@@ -71,9 +71,5 @@ export function validateSignupForm(
     errors.password = passwordError;
   }
 
-  if (values.role !== "buyer" && values.role !== "farmer") {
-    errors.role = "Изберете как искате да използвате Farmly.";
-  }
-
   return errors;
 }

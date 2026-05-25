@@ -64,6 +64,11 @@ Required variables:
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
+```
+
+Optional legacy fallback:
+
+```bash
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 ```
 

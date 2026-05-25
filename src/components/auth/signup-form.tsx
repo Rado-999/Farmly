@@ -7,7 +7,6 @@ import { type FormEvent, useState } from "react";
 import { AuthButton } from "@/components/auth/auth-button";
 import { AuthCard } from "@/components/auth/auth-card";
 import { AuthInput } from "@/components/auth/auth-input";
-import { RoleSelector } from "@/components/auth/role-selector";
 import { completeSignup } from "@/lib/auth/complete-signup";
 import type { AuthFieldErrors, SignupFormValues } from "@/lib/auth/types";
 import { validateSignupForm } from "@/lib/auth/validation";
@@ -17,7 +16,6 @@ const initialValues: SignupFormValues = {
   fullName: "",
   email: "",
   password: "",
-  role: "buyer",
 };
 
 export function SignupForm() {
@@ -132,12 +130,10 @@ export function SignupForm() {
           error={fieldErrors.password}
         />
 
-        <RoleSelector
-          name="role"
-          value={values.role}
-          onChange={(role) => setValues((current) => ({ ...current, role }))}
-          error={fieldErrors.role}
-        />
+        <p className="rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm leading-6 text-stone-600">
+          Всеки нов акаунт започва като купувач. Ако по-късно искате да публикувате
+          като фермер, можете да активирате фермерски профил от акаунта си.
+        </p>
 
         {formError ? (
           <p

@@ -1,0 +1,44 @@
+---
+description: Next.js audit and refactor review workflow
+alwaysApply: true
+---
+
+# Next.js Audit And Refactor Workflow
+
+- Treat project Cursor rules and `AGENTS.md` as the highest-priority repository instructions, while still obeying system, developer, and tool constraints.
+- Preserve existing functionality unless the user explicitly requests a behavior change.
+- Avoid outdated Next.js assumptions. When framework behavior matters, read the relevant local docs in `node_modules/next/dist/docs/` and heed deprecations.
+
+## Goals
+- Improve maintainability, readability, architecture, consistency, security, performance, and type safety.
+- Prefer pragmatic SOLID, composition, and feature-local organization when shared abstractions are not clearly justified.
+- Avoid overengineering, speculative rewrites, unnecessary service layers, wrappers, or dependencies.
+
+## Scope
+- Review relevant source, config, and infrastructure files: components, hooks, routes, server actions, utilities, Supabase integration, styling, state, data fetching, error handling, accessibility, security, performance, typing, and environment variable usage.
+- Skip generated files, build output, vendored code, and lockfiles unless they are directly relevant to an issue.
+
+## Required Workflow
+1. Analyze before changing anything.
+2. Present findings inside `<CODE_REVIEW>` with architecture, maintainability, performance, typing, App Router, styling, and Supabase concerns.
+3. Present a prioritized incremental plan inside `<PLANNING>`.
+4. If auth, APIs, Supabase, env handling, or other sensitive flows are involved, include `<SECURITY_REVIEW>`.
+5. Ask questions before refactoring whenever requirements, intent, or trade-offs are ambiguous.
+
+## Refactor Rules
+- Focus on critical and high-impact issues first; group lower-priority issues when appropriate.
+- Keep changes small, safe, and logical. Avoid unnecessary renames, rewrites, and broad structural moves.
+- Do not revert, overwrite, or restructure unrelated existing changes.
+- Ask before large file moves, broad renames, or architecture reorganizations affecting multiple features.
+- Do not create commits unless the user explicitly requests them.
+
+## Review Checklist
+- Validate server vs client boundaries, Suspense, streaming, caching, metadata, hydration, dynamic rendering, bundle size, and loading/error state consistency.
+- Check TypeScript strictness, unsafe `any`, duplicated/shared types, inference quality, and runtime safety assumptions.
+- Check Tailwind and CSS for duplication, conflicting styles, responsive issues, readability, and styling consistency.
+- Check Supabase client/server usage, query duplication, typed queries, auth handling, RLS assumptions, and env variable safety.
+- Check accessibility, semantic HTML, keyboard support, ARIA usage, and focus management.
+- Check performance issues such as unnecessary re-renders, oversized client components, expensive hooks, and inefficient queries without premature optimization.
+
+## Verification
+- After each meaningful refactor batch, run the most relevant lightweight verification available for the touched area and report the result.

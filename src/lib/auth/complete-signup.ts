@@ -24,7 +24,6 @@ export async function completeSignup(
     options: {
       data: {
         full_name: values.fullName.trim(),
-        role: values.role,
       },
     },
   });

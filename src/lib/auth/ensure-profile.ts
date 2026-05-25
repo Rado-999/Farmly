@@ -1,17 +1,6 @@
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 
 import { becomeFarmer } from "@/lib/auth/become-farmer";
-import type { UserRole } from "@/lib/auth/types";
-
-function resolveRoleFromUser(user: User): UserRole {
-  const metaRole = user.user_metadata?.role;
-
-  if (metaRole === "farmer" || metaRole === "buyer") {
-    return metaRole;
-  }
-
-  return "buyer";
-}
 
 async function ensureFarmerProfileExists(
   supabase: SupabaseClient,
@@ -57,7 +46,7 @@ export async function ensureProfileForAuthUser(
 ): Promise<void> {
   const { data: existing, error: selectError } = await supabase
     .from("profiles")
-    .select("id, role")
+    .select("id, role, name, email")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -73,24 +62,47 @@ export async function ensureProfileForAuthUser(
   }
 
   if (existing) {
-    const intendedRole = resolveRoleFromUser(user);
+    const email = user.email?.trim() ?? "";
+    const metaName =
+      typeof user.user_metadata?.full_name === "string"
+        ? user.user_metadata.full_name.trim()
+        : "";
+    const fallbackName =
+      metaName ||
+      (email.length > 0 ? (email.split("@")[0] ?? "Farmly member") : "");
+    const updates: {
+      email?: string | null;
+      name?: string | null;
+      updated_at?: string;
+    } = {};
 
-    if (existing.role !== intendedRole && intendedRole === "farmer") {
-      const { error: roleError } = await supabase
+    if (!existing.email && email.length > 0) {
+      updates.email = email;
+    }
+
+    if (!existing.name && fallbackName.length > 0) {
+      updates.name = fallbackName;
+    }
+
+    if (Object.keys(updates).length > 0) {
+      const { error: updateError } = await supabase
         .from("profiles")
-        .update({ role: intendedRole, updated_at: new Date().toISOString() })
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString(),
+        })
         .eq("id", user.id);
 
-      if (roleError) {
+      if (updateError) {
         console.error(
-          "[ensureProfileForAuthUser] role sync failed",
+          "[ensureProfileForAuthUser] profile sync failed",
           user.id,
-          roleError.message,
+          updateError.message,
         );
       }
     }
 
-    if (intendedRole === "farmer" || existing.role === "farmer") {
+    if (existing.role === "farmer") {
       await ensureFarmerProfileExists(supabase, user.id);
     }
 
@@ -111,7 +123,7 @@ export async function ensureProfileForAuthUser(
       id: user.id,
       name: name && name.length > 0 ? name : null,
       email: email.length > 0 ? email : null,
-      role: resolveRoleFromUser(user),
+      role: "buyer",
       is_profile_complete: false,
       onboarding_step: 1,
     },
@@ -127,7 +139,5 @@ export async function ensureProfileForAuthUser(
     throw new Error(`Failed to create profile: ${upsertError.message}`);
   }
 
-  if (resolveRoleFromUser(user) === "farmer") {
-    await ensureFarmerProfileExists(supabase, user.id);
-  }
+  return;
 }
