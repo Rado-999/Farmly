@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
-import { FarmerProductGuard } from "@/components/products/farmer-product-guard";
 import { VideoDropzone } from "@/components/videos/video-dropzone";
 import { VideoUploadForm } from "@/components/videos/video-upload-form";
 import { PROFILE_PATH } from "@/lib/auth/constants";
@@ -28,7 +27,7 @@ const INITIAL_VALUES: VideoFormValues = {
   productId: "",
 };
 
-function NewVideoForm({ access }: { access: FarmerProductAccess }) {
+export function NewVideoForm({ access }: { access: FarmerProductAccess }) {
   const router = useRouter();
   const previewRef = useRef<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
@@ -255,13 +254,5 @@ function NewVideoForm({ access }: { access: FarmerProductAccess }) {
         </div>
       </div>
     </div>
-  );
-}
-
-export function NewVideoPage() {
-  return (
-    <FarmerProductGuard>
-      {(access) => <NewVideoForm access={access} />}
-    </FarmerProductGuard>
   );
 }

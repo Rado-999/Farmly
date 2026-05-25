@@ -1,76 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
 
 import { FarmerCard } from "@/components/farmers/farmer-card";
 import { VillageFeedList } from "@/components/village/village-feed-list";
 import { EmptyState } from "@/components/ui/empty-state";
-import { PageLoadingShell } from "@/components/ui/page-loading-shell";
 import { PageSection } from "@/components/ui/page-section";
 import { RevealOnScroll } from "@/components/ui/reveal-on-scroll";
 import { RevealStagger } from "@/components/ui/reveal-stagger";
 import { StoryHeading } from "@/components/ui/story-heading";
-import { VILLAGE_PATH } from "@/lib/auth/constants";
-import { useAuthSession } from "@/lib/auth/use-auth-session";
 import type { VillagePageData } from "@/lib/village/load-village";
-import { loadVillagePageData } from "@/lib/village/load-village";
-import { createSupabaseClient } from "@/lib/supabase";
 
-export function VillageView() {
-  const router = useRouter();
-  const auth = useAuthSession();
-  const [data, setData] = useState<VillagePageData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+type VillageViewProps = {
+  initialData: VillagePageData;
+};
 
-  const loadVillage = useCallback(async (userId: string) => {
-    const supabase = createSupabaseClient();
-
-    if (!supabase) {
-      setError("Свързването с общността не е налично.");
-      setIsLoading(false);
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const village = await loadVillagePageData(supabase, userId);
-      setData(village);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Неуспешно зареждане на селото.",
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (auth.status === "loading") {
-      return;
-    }
-
-    if (auth.status !== "authenticated") {
-      router.replace(`/login?next=${encodeURIComponent(VILLAGE_PATH)}`);
-      return;
-    }
-
-    void loadVillage(auth.user.id);
-  }, [auth, loadVillage, router]);
-
-  if (auth.status === "loading" || isLoading) {
-    return <PageLoadingShell />;
-  }
-
-  if (auth.status !== "authenticated") {
-    return null;
-  }
-
-  const hasRelationships = data?.hasFollows || data?.hasSavedOnly;
+export function VillageView({ initialData }: VillageViewProps) {
+  const data = initialData;
+  const hasRelationships = data.hasFollows || data.hasSavedOnly;
 
   return (
     <main className="flex-1 bg-cream">
@@ -85,19 +32,6 @@ export function VillageView() {
           </RevealOnScroll>
         </div>
       </PageSection>
-
-      {error ? (
-        <PageSection tone="cream">
-          <div className="page-shell">
-            <p
-              role="alert"
-              className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
-            >
-              {error}
-            </p>
-          </div>
-        </PageSection>
-      ) : null}
 
       {!hasRelationships ? (
         <PageSection tone="cream">
@@ -222,7 +156,7 @@ export function VillageView() {
             <div className="page-shell-wide">
               <RevealOnScroll>
                 <div className="rounded-sm border border-stone-300/40 bg-cream/60 px-6 py-8 text-center sm:px-8">
-                  {data?.hasAnyContent ? (
+                  {data.hasAnyContent ? (
                     <p className="mx-auto max-w-xl text-base leading-8 text-stone-700/90">
                       Още няма нищо ново. Ела пак следващата седмица.
                     </p>
