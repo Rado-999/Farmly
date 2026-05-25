@@ -24,6 +24,7 @@ import { createSupabaseClient } from "@/lib/supabase";
 type ProductFormProps = {
   access: FarmerProductAccess;
   product?: ProductRow | null;
+  initialImageDrafts?: ProductImageDraft[];
   initialVideoIds?: string[];
 };
 
@@ -42,6 +43,7 @@ function buildInitialValues(product?: ProductRow | null): ProductFormValues {
 export function ProductForm({
   access,
   product,
+  initialImageDrafts,
   initialVideoIds = [],
 }: ProductFormProps) {
   const router = useRouter();
@@ -50,7 +52,7 @@ export function ProductForm({
     videoIds: initialVideoIds,
   }));
   const [imageDrafts, setImageDrafts] = useState<ProductImageDraft[]>(() =>
-    buildImageDraftsFromProduct(product?.images),
+    initialImageDrafts ?? buildImageDraftsFromProduct(product?.images),
   );
   const imageDraftsRef = useRef(imageDrafts);
   imageDraftsRef.current = imageDrafts;

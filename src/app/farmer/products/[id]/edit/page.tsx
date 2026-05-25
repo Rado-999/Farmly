@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { FarmerProductBlocked } from "@/components/products/farmer-product-blocked";
 import { ProductForm } from "@/components/products/product-form";
 import { requireServerFarmerProductAccess } from "@/lib/auth/server";
+import { buildImageDraftsFromStoredProductImages } from "@/lib/products/image-drafts";
 import {
   getProductForEdit,
   listFarmerVideosForPicker,
@@ -41,6 +42,10 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
     notFound();
   }
 
+  const initialImageDrafts = await buildImageDraftsFromStoredProductImages(
+    supabase,
+    product.images,
+  );
   const videos = await listFarmerVideosForPicker(supabase, access.farmerProfileId);
   const initialVideoIds = videos
     .filter((video) => video.product_id === id)
@@ -50,6 +55,7 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
     <ProductForm
       access={access}
       product={product}
+      initialImageDrafts={initialImageDrafts}
       initialVideoIds={initialVideoIds}
     />
   );

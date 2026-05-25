@@ -78,6 +78,7 @@ export async function saveProduct(
     args.farmerProfileId,
     productId,
     args.imageDrafts,
+    status,
   );
 
   if (resolvedImages.error) {

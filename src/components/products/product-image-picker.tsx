@@ -148,7 +148,9 @@ export function ProductImagePicker({ images, onChange }: ProductImagePickerProps
             >
               <div className="relative aspect-square">
                 <Image
-                  src={image.kind === "existing" ? image.url : image.preview}
+                  src={
+                    image.kind === "existing" ? image.previewUrl : image.preview
+                  }
                   alt=""
                   fill
                   className="object-cover"

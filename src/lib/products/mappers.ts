@@ -12,6 +12,7 @@ import {
   getFarmerRowAvatarUrl,
   getFarmerRowName,
 } from "@/lib/farmers/farmer-profile-row";
+import { getDisplayableProductImageUrl } from "@/lib/products/storage";
 import { formatDurationSeconds } from "@/lib/videos/format-duration";
 import type {
   FarmerProfileRow,
@@ -26,7 +27,7 @@ export function mapProductListItem(
 ): ProductListItem {
   const image = createFarmerImage(
     product.title,
-    product.images?.[0],
+    getDisplayableProductImageUrl(product.images?.[0]),
     product.id,
   );
 

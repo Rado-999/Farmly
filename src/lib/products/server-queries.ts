@@ -5,6 +5,10 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { FARMER_PROFILE_SELECT } from "@/lib/farmers/farmer-profile-row";
 import { mapProductDetail } from "@/lib/products/mappers";
+import {
+  createSignedDraftProductImageUrl,
+  isDraftProductImageRef,
+} from "@/lib/products/storage";
 import type { ProductDetail } from "@/lib/products/types";
 import type {
   FarmerProfileRow,
@@ -18,6 +22,24 @@ const REVALIDATE_SECONDS = 60;
 
 const PRODUCT_SELECT =
   "id, farmer_id, title, description, price, season, category, images, status, price_unit, published_at";
+
+async function resolveProductImagesForRead(
+  supabase: SupabaseClient,
+  product: ProductRow,
+): Promise<ProductRow> {
+  const images = await Promise.all(
+    (product.images ?? []).map(async (image) =>
+      isDraftProductImageRef(image)
+        ? createSignedDraftProductImageUrl(supabase, image)
+        : image,
+    ),
+  );
+
+  return {
+    ...product,
+    images,
+  };
+}
 
 export async function getProductByIdWithSupabase(
   supabase: SupabaseClient,
@@ -37,7 +59,10 @@ export async function getProductByIdWithSupabase(
     return null;
   }
 
-  const productRow = product as ProductRow;
+  const productRow = await resolveProductImagesForRead(
+    supabase,
+    product as ProductRow,
+  );
 
   const { data: farmer, error: farmerError } = await supabase
     .from("farmer_profiles")

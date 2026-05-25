@@ -32,12 +32,22 @@ const nextConfig: NextConfig = {
         hostname: "*.supabase.co",
         pathname: "/storage/v1/object/public/**",
       },
+      {
+        protocol: "https",
+        hostname: "*.supabase.co",
+        pathname: "/storage/v1/object/sign/**",
+      },
       ...(supabaseHostname
         ? [
             {
               protocol: "https" as const,
               hostname: supabaseHostname,
               pathname: "/storage/v1/object/public/**",
+            },
+            {
+              protocol: "https" as const,
+              hostname: supabaseHostname,
+              pathname: "/storage/v1/object/sign/**",
             },
           ]
         : []),
