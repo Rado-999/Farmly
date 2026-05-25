@@ -1,5 +1,7 @@
 import "server-only";
 
+import type { SupabaseClient } from "@supabase/supabase-js";
+
 import { FARMER_PROFILE_SELECT } from "@/lib/farmers/farmer-profile-row";
 import { mapProductDetail } from "@/lib/products/mappers";
 import type { ProductDetail } from "@/lib/products/types";
@@ -14,11 +16,10 @@ import { createServerPublicSupabaseClientOrThrow } from "@/lib/supabase/server";
 const PRODUCT_SELECT =
   "id, farmer_id, title, description, price, season, category, images, status, price_unit, published_at";
 
-export async function getProductById(
+export async function getProductByIdWithSupabase(
+  supabase: SupabaseClient,
   productId: string,
 ): Promise<ProductDetail | null> {
-  const supabase = createServerPublicSupabaseClientOrThrow();
-
   const { data: product, error: productError } = await supabase
     .from("products")
     .select(PRODUCT_SELECT)
@@ -72,4 +73,12 @@ export async function getProductById(
     (videos ?? []) as VideoRow[],
     (reviews ?? []) as ReviewRow[],
   );
+}
+
+export async function getProductById(
+  productId: string,
+): Promise<ProductDetail | null> {
+  const supabase = createServerPublicSupabaseClientOrThrow();
+
+  return getProductByIdWithSupabase(supabase, productId);
 }

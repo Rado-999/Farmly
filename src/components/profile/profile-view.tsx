@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 
 import { FarmerProductsList } from "@/components/products/farmer-products-list";
 import { FarmerVideosList } from "@/components/videos/farmer-videos-list";
@@ -11,14 +11,12 @@ import { IncompleteProfileBanner } from "@/components/profile/incomplete-profile
 import { ProfileEditModal } from "@/components/profile/profile-edit-modal";
 import { ProfileSkeleton } from "@/components/profile/profile-skeleton";
 import { UserAvatar } from "@/components/profile/user-avatar";
-import { PROFILE_PATH } from "@/lib/auth/constants";
 import {
   formatUserRole,
   getProfileDisplayName,
   isFarmerUser,
 } from "@/lib/auth/profile";
 import { formatLocation } from "@/lib/data/formatters";
-import { useAuthSession } from "@/lib/auth/use-auth-session";
 import { fetchOnboardingProfile } from "@/lib/onboarding/state";
 import type { OnboardingProfile } from "@/lib/onboarding/types";
 import { createSupabaseClient } from "@/lib/supabase";
@@ -55,15 +53,25 @@ function AccountDetail({
   );
 }
 
-export function ProfileView() {
+type ProfileViewProps = {
+  initialProfile: OnboardingProfile;
+  sessionEmail: string | null;
+  sessionMetadataName: string | null;
+};
+
+export function ProfileView({
+  initialProfile,
+  sessionEmail,
+  sessionMetadataName,
+}: ProfileViewProps) {
   const router = useRouter();
-  const authState = useAuthSession();
-  const [profile, setProfile] = useState<OnboardingProfile | null>(null);
-  const [isProfileLoading, setIsProfileLoading] = useState(true);
+  const [profile, setProfile] = useState<OnboardingProfile | null>(initialProfile);
+  const [isProfileLoading, setIsProfileLoading] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const profileId = initialProfile.id;
 
-  const loadProfile = useCallback(async (userId: string) => {
+  const loadProfile = useCallback(async () => {
     const supabase = createSupabaseClient();
 
     if (!supabase) {
@@ -72,29 +80,10 @@ export function ProfileView() {
     }
 
     setIsProfileLoading(true);
-    const nextProfile = await fetchOnboardingProfile(supabase, userId);
+    const nextProfile = await fetchOnboardingProfile(supabase, profileId);
     setProfile(nextProfile);
     setIsProfileLoading(false);
-  }, []);
-
-  useEffect(() => {
-    if (authState.status !== "authenticated") {
-      setIsProfileLoading(false);
-      return;
-    }
-
-    void loadProfile(authState.user.id);
-  }, [authState, loadProfile]);
-
-  useEffect(() => {
-    if (authState.status === "loading") {
-      return;
-    }
-
-    if (authState.status === "anonymous") {
-      router.replace(`/login?next=${encodeURIComponent(PROFILE_PATH)}`);
-    }
-  }, [authState, router]);
+  }, [profileId]);
 
   async function handleSignOut() {
     const supabase = createSupabaseClient();
@@ -110,28 +99,20 @@ export function ProfileView() {
     router.refresh();
   }
 
-  if (
-    authState.status === "loading" ||
-    (authState.status === "authenticated" && isProfileLoading)
-  ) {
+  if (isProfileLoading) {
     return <ProfileSkeleton />;
   }
 
-  if (authState.status !== "authenticated") {
+  if (!profile) {
     return <ProfileSkeleton />;
   }
-
-  const metadataName =
-    typeof authState.user.user_metadata?.full_name === "string"
-      ? authState.user.user_metadata.full_name
-      : null;
 
   const displayName = getProfileDisplayName({
     profileName: profile?.name,
-    metadataName,
-    email: profile?.email ?? authState.user.email,
+    metadataName: sessionMetadataName,
+    email: profile?.email ?? sessionEmail,
   });
-  const email = profile?.email ?? authState.user.email ?? "Няма информация";
+  const email = profile?.email ?? sessionEmail ?? "Няма информация";
   const memberSince = formatMemberSince(profile?.createdAt ?? null);
   const isFarmer = profile ? isFarmerUser(profile) : false;
   const farmerSlug = profile?.farmerProfile?.slug;
@@ -339,7 +320,7 @@ export function ProfileView() {
           displayName={displayName}
           onClose={() => setIsEditOpen(false)}
           onSaved={() => {
-            void loadProfile(authState.user.id);
+            void loadProfile();
             router.refresh();
           }}
         />

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 
 import { OnboardingShell } from "@/components/onboarding/onboarding-shell";
 import {
@@ -16,7 +16,6 @@ import { SkipWarningModal } from "@/components/onboarding/skip-warning-modal";
 import { ProfileSkeleton } from "@/components/profile/profile-skeleton";
 import { PROFILE_PATH } from "@/lib/auth/constants";
 import { getProfileDisplayName } from "@/lib/auth/profile";
-import { useAuthSession } from "@/lib/auth/use-auth-session";
 import {
   completeOnboarding,
   saveIdentityStep,
@@ -37,17 +36,21 @@ import {
 import type { OnboardingProfile } from "@/lib/onboarding/types";
 import { createSupabaseClient } from "@/lib/supabase";
 
-export function OnboardingWizard() {
+type OnboardingWizardProps = {
+  initialProfile: OnboardingProfile;
+};
+
+export function OnboardingWizard({ initialProfile }: OnboardingWizardProps) {
   const router = useRouter();
-  const authState = useAuthSession();
-  const [profile, setProfile] = useState<OnboardingProfile | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [profile, setProfile] = useState<OnboardingProfile | null>(initialProfile);
+  const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showSkipModal, setShowSkipModal] = useState(false);
   const [buyerFinishMode, setBuyerFinishMode] = useState(false);
+  const profileId = initialProfile.id;
 
-  const reloadProfile = useCallback(async (userId: string) => {
+  const reloadProfile = useCallback(async () => {
     const supabase = createSupabaseClient();
 
     if (!supabase) {
@@ -55,41 +58,12 @@ export function OnboardingWizard() {
       return;
     }
 
-    const nextProfile = await fetchOnboardingProfile(supabase, userId);
+    const nextProfile = await fetchOnboardingProfile(supabase, profileId);
     setProfile(nextProfile);
     setIsLoading(false);
-  }, []);
+  }, [profileId]);
 
-  useEffect(() => {
-    if (authState.status !== "authenticated") {
-      setIsLoading(false);
-      return;
-    }
-
-    void reloadProfile(authState.user.id);
-  }, [authState, reloadProfile]);
-
-  useEffect(() => {
-    if (authState.status === "loading") {
-      return;
-    }
-
-    if (authState.status !== "authenticated") {
-      router.replace("/login?next=/onboarding");
-    }
-  }, [authState, router]);
-
-  useEffect(() => {
-    if (!profile) {
-      return;
-    }
-
-    if (profile.isProfileComplete) {
-      router.replace(PROFILE_PATH);
-    }
-  }, [profile, router]);
-
-  if (authState.status === "loading" || isLoading || !profile) {
+  if (isLoading || !profile) {
     return (
       <main className="bg-cream">
         <ProfileSkeleton />
@@ -130,7 +104,7 @@ export function OnboardingWizard() {
       return;
     }
 
-    await reloadProfile(profile!.id);
+    await reloadProfile();
     onSuccess?.();
   }
 

@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
+import { redirect } from "next/navigation";
 
 import { OnboardingWizard } from "@/components/onboarding/onboarding-wizard";
-import { ProfileSkeleton } from "@/components/profile/profile-skeleton";
+import { ONBOARDING_PATH, PROFILE_PATH } from "@/lib/auth/constants";
+import { requireServerProfile } from "@/lib/auth/server";
 
 export const metadata: Metadata = {
   title: "Настройка на профила | Farmly",
@@ -10,16 +11,12 @@ export const metadata: Metadata = {
     "Насочена настройка, която ви помага да се представите и да изградите доверие в Farmly.",
 };
 
-export default function OnboardingPage() {
-  return (
-    <Suspense
-      fallback={
-        <main className="bg-cream">
-          <ProfileSkeleton />
-        </main>
-      }
-    >
-      <OnboardingWizard />
-    </Suspense>
-  );
+export default async function OnboardingPage() {
+  const { profile } = await requireServerProfile(ONBOARDING_PATH);
+
+  if (profile.isProfileComplete) {
+    redirect(PROFILE_PATH);
+  }
+
+  return <OnboardingWizard initialProfile={profile} />;
 }

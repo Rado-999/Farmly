@@ -1,7 +1,13 @@
 import type { Metadata } from "next";
-import { ProductDetailOwnerLoader } from "@/components/products/product-detail-owner-loader";
-import { ProductDetailPageClient } from "@/components/products/product-detail-page-client";
-import { getProductById } from "@/lib/products/server-queries";
+import { notFound } from "next/navigation";
+
+import { ProductDetailView } from "@/components/products/product-detail-view";
+import { getFarmerProductAccess } from "@/lib/products/access";
+import {
+  getProductById,
+  getProductByIdWithSupabase,
+} from "@/lib/products/server-queries";
+import { createServerSupabaseClientOrThrow } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
@@ -27,15 +33,20 @@ export async function generateMetadata({
 
 export default async function ProductPage({ params }: ProductPageProps) {
   const { slug, productId } = await params;
-  const product = await getProductById(productId);
+  const supabase = await createServerSupabaseClientOrThrow();
+  const product = await getProductByIdWithSupabase(supabase, productId);
 
   if (!product || product.farmerSlug !== slug) {
-    return <ProductDetailOwnerLoader slug={slug} productId={productId} />;
+    notFound();
   }
 
-  if (product.status === "draft") {
-    return <ProductDetailOwnerLoader slug={slug} productId={productId} />;
+  const access = await getFarmerProductAccess(supabase);
+  const isOwner =
+    access.ok && access.access.farmerProfileId === product.farmerId;
+
+  if (product.status === "draft" && !isOwner) {
+    notFound();
   }
 
-  return <ProductDetailPageClient product={product} />;
+  return <ProductDetailView product={product} isOwner={isOwner} />;
 }
