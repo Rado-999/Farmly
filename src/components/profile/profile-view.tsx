@@ -81,7 +81,9 @@ export function ProfileView({
 
     setIsProfileLoading(true);
     const nextProfile = await fetchOnboardingProfile(supabase, profileId);
-    setProfile(nextProfile);
+    if (nextProfile) {
+      setProfile(nextProfile);
+    }
     setIsProfileLoading(false);
   }, [profileId]);
 

@@ -4,7 +4,7 @@ import { createServerClient } from "@supabase/ssr";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 
-import { getSupabasePublicEnv, getSupabasePublicEnvOrThrow } from "@/lib/supabase/env";
+import { getSupabasePublicEnvOrThrow } from "@/lib/supabase/env";
 
 function buildServerPublicClient(url: string, publishableKey: string): SupabaseClient {
   return createClient(url, publishableKey, {
@@ -16,28 +16,14 @@ function buildServerPublicClient(url: string, publishableKey: string): SupabaseC
   });
 }
 
-export function createServerPublicSupabaseClient(): SupabaseClient | null {
-  const env = getSupabasePublicEnv();
-
-  if (!env) {
-    return null;
-  }
-
-  return buildServerPublicClient(env.url, env.publishableKey);
-}
-
 export function createServerPublicSupabaseClientOrThrow(): SupabaseClient {
   const env = getSupabasePublicEnvOrThrow();
 
   return buildServerPublicClient(env.url, env.publishableKey);
 }
 
-export async function createServerSupabaseClient(): Promise<SupabaseClient | null> {
-  const env = getSupabasePublicEnv();
-
-  if (!env) {
-    return null;
-  }
+export async function createServerSupabaseClientOrThrow(): Promise<SupabaseClient> {
+  const env = getSupabasePublicEnvOrThrow();
 
   const cookieStore = await cookies();
 
@@ -58,16 +44,4 @@ export async function createServerSupabaseClient(): Promise<SupabaseClient | nul
       },
     },
   });
-}
-
-export async function createServerSupabaseClientOrThrow(): Promise<SupabaseClient> {
-  const client = await createServerSupabaseClient();
-
-  if (!client) {
-    throw new Error(
-      "Supabase is not configured. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY to .env.local.",
-    );
-  }
-
-  return client;
 }

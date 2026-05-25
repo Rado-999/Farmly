@@ -43,7 +43,6 @@ type OnboardingWizardProps = {
 export function OnboardingWizard({ initialProfile }: OnboardingWizardProps) {
   const router = useRouter();
   const [profile, setProfile] = useState<OnboardingProfile | null>(initialProfile);
-  const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showSkipModal, setShowSkipModal] = useState(false);
@@ -54,16 +53,16 @@ export function OnboardingWizard({ initialProfile }: OnboardingWizardProps) {
     const supabase = createSupabaseClient();
 
     if (!supabase) {
-      setIsLoading(false);
       return;
     }
 
     const nextProfile = await fetchOnboardingProfile(supabase, profileId);
-    setProfile(nextProfile);
-    setIsLoading(false);
+    if (nextProfile) {
+      setProfile(nextProfile);
+    }
   }, [profileId]);
 
-  if (isLoading || !profile) {
+  if (!profile) {
     return (
       <main className="bg-cream">
         <ProfileSkeleton />

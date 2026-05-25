@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 
 import { FarmerCard } from "@/components/farmers/farmer-card";
@@ -51,7 +49,7 @@ export function VillageView({ initialData }: VillageViewProps) {
         </PageSection>
       ) : (
         <>
-          {data?.showSinceYouWereHere ? (
+          {data.showSinceYouWereHere ? (
             <PageSection tone="cream" id="since-you-were-here">
               <div className="page-shell-wide">
                 <RevealOnScroll>
@@ -69,7 +67,7 @@ export function VillageView({ initialData }: VillageViewProps) {
             </PageSection>
           ) : null}
 
-          {data?.fromYourFarms.length ? (
+          {data.fromYourFarms.length ? (
             <PageSection tone="dawn" id="from-your-farms">
               <div className="page-shell-wide">
                 <RevealOnScroll>
@@ -86,7 +84,7 @@ export function VillageView({ initialData }: VillageViewProps) {
             </PageSection>
           ) : null}
 
-          {data?.savedFarms.length ? (
+          {data.savedFarms.length ? (
             <PageSection tone="cream" id="saved-farms">
               <div className="page-shell">
                 <RevealOnScroll>
@@ -117,7 +115,7 @@ export function VillageView({ initialData }: VillageViewProps) {
             </PageSection>
           ) : null}
 
-          {data?.seasonNearYou.length ? (
+          {data.seasonNearYou.length ? (
             <PageSection tone="hearth" id="season-near-you">
               <div className="page-shell-wide">
                 <RevealOnScroll>
@@ -135,7 +133,7 @@ export function VillageView({ initialData }: VillageViewProps) {
             </PageSection>
           ) : null}
 
-          {data?.localGatherings.length ? (
+          {data.localGatherings.length ? (
             <PageSection tone="meadow" id="local-gatherings">
               <div className="page-shell-wide">
                 <RevealOnScroll>

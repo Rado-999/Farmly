@@ -40,26 +40,16 @@ export function isSupabaseConfigured(): boolean {
   return getSupabasePublicEnv() !== null;
 }
 
-export function getSupabaseAdminEnv(): SupabaseAdminEnv | null {
+export function getSupabaseAdminEnvOrThrow(): SupabaseAdminEnv {
   const publicEnv = getSupabasePublicEnv();
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!publicEnv || !serviceRoleKey) {
-    return null;
+    throw new Error(ADMIN_ENV_ERROR);
   }
 
   return {
     ...publicEnv,
     serviceRoleKey,
   };
-}
-
-export function getSupabaseAdminEnvOrThrow(): SupabaseAdminEnv {
-  const env = getSupabaseAdminEnv();
-
-  if (!env) {
-    throw new Error(ADMIN_ENV_ERROR);
-  }
-
-  return env;
 }
