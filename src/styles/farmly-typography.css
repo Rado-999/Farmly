@@ -1,0 +1,67 @@
+/* Farmly typography scale */
+
+.type-hero {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: clamp(2.75rem, 6vw, 4.5rem);
+  font-weight: 500;
+  line-height: 1.06;
+  letter-spacing: -0.025em;
+}
+
+.type-chapter {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: clamp(2rem, 4vw, 3.25rem);
+  font-weight: 500;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+}
+
+.type-story {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: clamp(1.5rem, 2.5vw, 2rem);
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+}
+
+.type-body {
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+@media (min-width: 640px) {
+  .type-body {
+    font-size: 1.125rem;
+    line-height: 1.75;
+  }
+}
+
+.type-caption {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+}
+
+.type-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.type-kicker {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-soil);
+}
+
+.type-kicker-on-dark {
+  color: var(--color-wheat);
+}
+
+.editorial-serif {
+  font-family: var(--font-display), Georgia, serif;
+}

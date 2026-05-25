@@ -1,0 +1,163 @@
+/* Farmly design tokens — Modern Village Atmosphere */
+
+:root {
+  /* ——— Loam (warm neutrals) ——— */
+  --loam-50: #faf8f4;
+  --loam-100: #f3efe6;
+  --loam-200: #e6dfd1;
+  --loam-300: #d4cabb;
+  --loam-400: #b8aa94;
+  --loam-500: #938471;
+  --loam-600: #6f6354;
+  --loam-700: #524a3f;
+  --loam-800: #38322b;
+  --loam-900: #241f1a;
+
+  /* ——— Moss (living green) ——— */
+  --moss-50: #eef2eb;
+  --moss-100: #dde5d8;
+  --moss-300: #8fa384;
+  --moss-500: #5c6f52;
+  --moss-700: #3d5238;
+  --moss-900: #1e2e22;
+
+  /* ——— Hearth (warm atmosphere) ——— */
+  --hearth-50: #f6f0e8;
+  --hearth-100: #ede4d6;
+  --hearth-300: #d4bc8a;
+  --hearth-500: #c9a06a;
+  --hearth-700: #a67c52;
+
+  /* ——— Accents ——— */
+  --color-clay: #a67c52;
+  --color-soil: #7a5c3e;
+  --color-ember: #c4784a;
+  --color-wheat: #d4bc8a;
+  --color-sun: #e4c078;
+
+  /* ——— Semantic (evolved from beige monolith) ——— */
+  --background: var(--loam-100);
+  --foreground: var(--loam-900);
+  --surface: rgba(250, 248, 244, 0.92);
+  --surface-muted: rgba(243, 239, 230, 0.82);
+  --border-soft: rgba(56, 50, 43, 0.12);
+  --border-strong: rgba(56, 50, 43, 0.22);
+
+  /* ——— Radius ——— */
+  --radius-sm: 0.125rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.875rem;
+  --radius-xl: 1.25rem;
+  --radius-full: 9999px;
+
+  /* ——— Shadows ——— */
+  --shadow-whisper: 0 8px 24px -20px rgba(36, 31, 26, 0.18);
+  --shadow-soft: 0 22px 48px -28px rgba(36, 31, 26, 0.22);
+  --shadow-lift: 0 28px 56px -24px rgba(36, 31, 26, 0.28);
+  --shadow-glow: 0 0 0 1px rgba(92, 111, 82, 0.12);
+  --shadow-inset: inset 0 1px 2px rgba(36, 31, 26, 0.06);
+
+  /* ——— Motion ——— */
+  --ease-organic: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-cinematic: cubic-bezier(0.33, 0, 0.2, 1);
+  --ease-drift: ease-in-out;
+  --duration-instant: 150ms;
+  --duration-fast: 300ms;
+  --duration-medium: 500ms;
+  --duration-slow: 700ms;
+  --duration-ambient: 28000ms;
+
+  /* ——— Gradients ——— */
+  --gradient-dawn: linear-gradient(
+    180deg,
+    var(--hearth-50) 0%,
+    var(--loam-200) 100%
+  );
+  --gradient-meadow: linear-gradient(
+    180deg,
+    var(--moss-50) 0%,
+    var(--loam-100) 100%
+  );
+  --gradient-depth: linear-gradient(
+    180deg,
+    var(--moss-700) 0%,
+    var(--moss-900) 100%
+  );
+  --gradient-hearth: linear-gradient(
+    180deg,
+    var(--hearth-100) 0%,
+    var(--loam-200) 55%,
+    var(--loam-100) 100%
+  );
+  --gradient-scrim-hero: linear-gradient(
+    180deg,
+    rgba(30, 46, 34, 0.38) 0%,
+    rgba(30, 46, 34, 0.08) 42%,
+    rgba(30, 46, 34, 0.82) 100%
+  );
+  --gradient-scrim-light: linear-gradient(
+    180deg,
+    rgba(30, 46, 34, 0.28) 0%,
+    rgba(30, 46, 34, 0.04) 45%,
+    rgba(30, 46, 34, 0.72) 100%
+  );
+
+  /* ——— Grain ——— */
+  --grain-opacity-hero: 0.14;
+  --grain-opacity-media: 0.12;
+  --grain-opacity-light: 0.05;
+  --grain-opacity-subtle: 0.04;
+}
+
+@theme inline {
+  /* Legacy names → evolved palette */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-cream: var(--loam-200);
+  --color-mist: var(--loam-50);
+  --color-dawn: var(--hearth-50);
+  --color-sage: var(--moss-500);
+  --color-forest: var(--moss-700);
+  --color-forest-deep: var(--moss-900);
+  --color-soil: var(--color-soil);
+  --color-clay: var(--color-clay);
+  --color-wheat: var(--color-wheat);
+  --color-sunlight: var(--color-sun);
+  --color-olive: var(--moss-700);
+  --color-ember: var(--color-ember);
+  --color-loam-50: var(--loam-50);
+  --color-loam-100: var(--loam-100);
+  --color-loam-200: var(--loam-200);
+  --color-loam-300: var(--loam-300);
+  --color-loam-500: var(--loam-500);
+  --color-loam-600: var(--loam-600);
+  --color-loam-700: var(--loam-700);
+  --color-loam-800: var(--loam-800);
+  --color-loam-900: var(--loam-900);
+  --color-moss-50: var(--moss-50);
+  --color-moss-100: var(--moss-100);
+  --color-moss-300: var(--moss-300);
+  --color-moss-500: var(--moss-500);
+  --color-moss-700: var(--moss-700);
+  --color-moss-900: var(--moss-900);
+  --color-hearth-50: var(--hearth-50);
+  --color-hearth-100: var(--hearth-100);
+  --color-hearth-300: var(--hearth-300);
+  --color-hearth-500: var(--hearth-500);
+  --color-hearth-700: var(--hearth-700);
+  --font-sans: var(--font-body);
+  --font-display: var(--font-display);
+  --font-mono: var(--font-geist-mono);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Farmly stays light-first — village morning, not dark mode SaaS */
+    --background: var(--loam-100);
+    --foreground: var(--loam-900);
+  }
+}

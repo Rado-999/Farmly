@@ -1,0 +1,89 @@
+/* Surface & card systems — use ghost/editorial before surface-card */
+
+.surface-ghost {
+  border-radius: var(--radius-md);
+  transition: background-color var(--duration-fast) var(--ease-organic);
+}
+
+.surface-ghost:hover {
+  background-color: rgba(250, 248, 244, 0.55);
+}
+
+.surface-editorial {
+  border-bottom: 1px solid var(--border-soft);
+  padding-block: var(--editorial-row-y);
+}
+
+@media (min-width: 640px) {
+  .surface-editorial {
+    padding-block: var(--editorial-row-y-lg);
+  }
+}
+
+.surface-frame {
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-soft);
+  background: var(--surface);
+  box-shadow: var(--shadow-whisper);
+}
+
+.surface-inset {
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--border-strong);
+  background: rgba(243, 239, 230, 0.65);
+  box-shadow: var(--shadow-inset);
+}
+
+.surface-card {
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-soft);
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+}
+
+.surface-card-interactive {
+  transition:
+    box-shadow var(--duration-slow) var(--ease-organic),
+    border-color var(--duration-slow) var(--ease-organic);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .surface-card-interactive:hover {
+    box-shadow: var(--shadow-lift);
+    border-color: var(--border-strong);
+  }
+}
+
+.surface-card-muted {
+  background: var(--surface-muted);
+}
+
+.empty-state {
+  border-radius: var(--radius-lg);
+  border: 1px dashed var(--border-strong);
+  background: rgba(238, 242, 235, 0.5);
+  padding: var(--space-10) var(--space-6);
+  text-align: center;
+}
+
+@media (min-width: 640px) {
+  .empty-state {
+    padding: var(--space-12) var(--space-8);
+  }
+}
+
+.clickable-card {
+  border-radius: var(--radius-sm);
+  transition: background-color var(--duration-medium) var(--ease-organic);
+}
+
+.clickable-card:hover {
+  background-color: rgba(250, 248, 244, 0.5);
+}
+
+.clickable-card:focus-visible {
+  outline: 2px solid rgba(61, 82, 56, 0.35);
+  outline-offset: 4px;
+}

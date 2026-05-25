@@ -1,0 +1,43 @@
+---
+description: Farmly emotional design system — modern village cinematic aesthetic
+globs:
+  - "**/*.{tsx,css}"
+alwaysApply: false
+---
+
+# Farmly Design System (required for UI work)
+
+Full reference: `docs/design-system.md`
+
+## North star
+Modern **village atmosphere** — warm, earthy, cinematic, trustworthy. NOT beige SaaS, NOT Apple/Airbnb, NOT card catalogs.
+
+## Colors
+- Default page: `loam-100` / `bg-loam-100` — not flat cream everywhere
+- `cream` / `bg-cream` = accent band only (`loam-200`)
+- Greens: `moss-*` (forest = `moss-700`, forest-deep = `moss-900`)
+- Warm: `hearth-*`, `clay`, `soil`, `wheat`
+- Avoid `stone-*` as primary palette
+
+## Layout
+- Prefer **editorial rows** (`surface-ghost`, `editorial-row`) over `surface-card` grids on landing/marketing
+- Use `surface-card` only for settings, forms, dashboards
+- Alternate section tones: `parchment` → `meadow` → `hearth` → `depth`
+- Media: `CinematicMedia` + green-brown scrims, not flat black overlays
+
+## Typography
+- Display: Newsreader (`editorial-serif`, `type-chapter`, `type-hero`)
+- Body: Source Sans 3
+- Kickers: `0.12em` tracking, `soil`/`clay` on light, `wheat` on dark
+
+## Motion
+- `ease-organic` for UI, `ease-cinematic` for reveals
+- `slow-drift` on hero imagery only
+- Respect `prefers-reduced-motion`
+
+## CTAs
+- One primary per viewport; exploration via `story-link` (quiet)
+- Invite copy, not "Shop now" / "Get started"
+
+## Tokens
+CSS: `src/styles/farmly-*.css` · TS: `src/lib/design/tokens.ts`

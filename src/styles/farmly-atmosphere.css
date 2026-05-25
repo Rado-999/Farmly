@@ -1,0 +1,202 @@
+/* Cinematic atmosphere — grain, veils, textures */
+
+@keyframes grain-shift {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+
+  50% {
+    transform: translate(-2%, -1%);
+  }
+}
+
+.film-grain {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  opacity: var(--grain-opacity-hero);
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+}
+
+.film-grain--light {
+  opacity: var(--grain-opacity-light);
+  mix-blend-mode: soft-light;
+}
+
+.film-grain--subtle {
+  opacity: var(--grain-opacity-subtle);
+  mix-blend-mode: soft-light;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .film-grain:not(.film-grain--static) {
+    animation: grain-shift 14s var(--ease-drift) infinite;
+  }
+}
+
+.cinematic-veil {
+  position: absolute;
+  inset: 0;
+  background: var(--gradient-scrim-hero);
+}
+
+.cinematic-veil-light {
+  position: absolute;
+  inset: 0;
+  background: var(--gradient-scrim-light);
+}
+
+.cinematic-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 120% 80% at 50% 100%,
+    rgba(30, 46, 34, 0.55) 0%,
+    transparent 55%
+  );
+  pointer-events: none;
+}
+
+.texture-linen {
+  position: relative;
+}
+
+.texture-linen::before {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.2' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+}
+
+.texture-edge-top {
+  border-top: 1px solid transparent;
+  border-image: linear-gradient(
+      90deg,
+      transparent,
+      var(--loam-300),
+      transparent
+    )
+    1;
+}
+
+/* Section gradient bands */
+.bg-gradient-dawn {
+  background: var(--gradient-dawn);
+}
+
+.bg-gradient-meadow {
+  background: var(--gradient-meadow);
+}
+
+.bg-gradient-depth {
+  background: var(--gradient-depth);
+}
+
+.bg-gradient-hearth {
+  background: var(--gradient-hearth);
+}
+
+.hero-media-drift {
+  /* Reserved for optional future use — hero stays static to avoid wiggle/lag */
+}
+
+@keyframes ken-burns {
+  0% {
+    transform: scale(1.02) translate(0, 0);
+  }
+
+  100% {
+    transform: scale(1.08) translate(-1%, -0.5%);
+  }
+}
+
+@keyframes sun-glow {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+
+  50% {
+    opacity: 0.85;
+  }
+}
+
+@keyframes fog-drift {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: translateX(0);
+  }
+
+  50% {
+    opacity: 0.55;
+    transform: translateX(2%);
+  }
+}
+
+.cinematic-ken-burns {
+  transform-origin: center center;
+}
+
+.cinematic-ken-burns-slow {
+  transform-origin: center center;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cinematic-ken-burns {
+    animation: ken-burns var(--duration-ambient) var(--ease-cinematic) infinite
+      alternate;
+  }
+
+  .cinematic-ken-burns-slow {
+    animation: ken-burns 36s var(--ease-cinematic) infinite alternate;
+  }
+}
+
+.fog-drift {
+  pointer-events: none;
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    rgba(250, 248, 244, 0.08) 35%,
+    rgba(250, 248, 244, 0.18) 50%,
+    rgba(250, 248, 244, 0.08) 65%,
+    transparent 100%
+  );
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .fog-drift {
+    animation: fog-drift 22s ease-in-out infinite;
+  }
+}
+
+.sun-glow {
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 80% 60% at 50% 20%,
+    rgba(228, 192, 120, 0.12) 0%,
+    transparent 55%
+  );
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .sun-glow {
+    animation: sun-glow 18s ease-in-out infinite;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cinematic-ken-burns,
+  .cinematic-ken-burns-slow,
+  .fog-drift,
+  .sun-glow {
+    animation: none;
+  }
+}

@@ -1,0 +1,91 @@
+---
+alwaysApply: true
+---
+# Project Overview
+
+This project is a modern marketplace platform connecting local farmers with buyers.
+
+The platform focuses on:
+- transparency
+- trust
+- local food
+- video proof of farming practices
+- authentic farmer identity
+
+Farmers can:
+- create profiles
+- upload products
+- upload photos and videos
+- share farming methods
+- explain fertilizers and production process
+- receive ratings and reviews
+
+Buyers can:
+- browse products
+- discover local farmers
+- watch farming videos
+- review farmers
+- build trust through transparency
+
+The platform should feel:
+- modern
+- organic
+- trustworthy
+- minimal
+- mobile-first
+
+# Tech Stack
+
+Use:
+- Next.js 15 App Router
+- TypeScript
+- Tailwind CSS
+- Supabase
+
+# Code Standards
+
+Always:
+- create reusable components
+- keep components small
+- separate UI from logic
+- use TypeScript properly
+- avoid duplicated code
+- prefer server components when possible
+- use clean folder structure
+- use responsive design
+- use accessible HTML
+
+# Design System
+
+Design should use:
+- soft shadows
+- rounded corners
+- excellent spacing
+- modern marketplace UI patterns
+- calm organic aesthetic
+
+Avoid:
+- overly complex abstractions
+- large files
+- unnecessary dependencies
+- messy state management
+
+# Architecture
+
+Prefer:
+- feature-based organization
+- reusable UI components
+- scalable structure
+
+# Important
+
+Do NOT:
+- generate huge files
+- generate unnecessary code
+- overengineer features
+- implement features not requested
+
+Always focus on:
+- maintainability
+- readability
+- scalability
