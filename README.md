@@ -72,6 +72,12 @@ Optional legacy fallback:
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 ```
 
+Optional server-only key for admin workflows:
+
+```bash
+SUPABASE_SERVICE_ROLE_KEY=
+```
+
 ### 3. Start the app
 
 ```bash

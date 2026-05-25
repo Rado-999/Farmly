@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { ProductDetailOwnerLoader } from "@/components/products/product-detail-owner-loader";
 import { ProductDetailPageClient } from "@/components/products/product-detail-page-client";
-import { getProductById } from "@/lib/products/queries";
+import { getProductById } from "@/lib/products/server-queries";
 
 export const dynamic = "force-dynamic";
 

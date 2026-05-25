@@ -1,3 +1,5 @@
+import "server-only";
+
 import { unstable_cache } from "next/cache";
 
 import {
@@ -22,18 +24,10 @@ import {
 } from "@/lib/farmers/farmer-profile-row";
 import { formatDurationSeconds } from "@/lib/videos/format-duration";
 import type { FarmerProfileRow } from "@/lib/supabase/database.types";
-import { createSupabaseClient } from "@/lib/supabase";
+import { createServerPublicSupabaseClientOrThrow } from "@/lib/supabase/server";
 
 function getSupabaseOrThrow() {
-  const supabase = createSupabaseClient();
-
-  if (!supabase) {
-    throw new Error(
-      "Supabase is not configured. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY to .env.local.",
-    );
-  }
-
-  return supabase;
+  return createServerPublicSupabaseClientOrThrow();
 }
 
 type LinkedFarmerRow = {
