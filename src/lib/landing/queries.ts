@@ -22,6 +22,8 @@ import type {
 import type { FarmerProfileRow } from "@/lib/supabase/database.types";
 import { createServerPublicSupabaseClientOrThrow } from "@/lib/supabase/server";
 
+const REVALIDATE_SECONDS = 60;
+
 function getSupabaseOrThrow() {
   return createServerPublicSupabaseClientOrThrow();
 }
@@ -31,6 +33,11 @@ type LinkedFarmerRow = {
   region: string | null;
   display_name: string | null;
   public_display_name: string | null;
+};
+
+type FarmerCategoryRow = {
+  farmer_id: string | null;
+  category: string | null;
 };
 
 function getLinkedFarmerName(farmer: LinkedFarmerRow | null): string {
@@ -43,6 +50,38 @@ function getLinkedFarmerName(farmer: LinkedFarmerRow | null): string {
     farmer.display_name?.trim() ||
     "Local farmer"
   );
+}
+
+async function loadLatestProductCategories(
+  farmerIds: string[],
+): Promise<Map<string, string>> {
+  if (farmerIds.length === 0) {
+    return new Map();
+  }
+
+  const supabase = getSupabaseOrThrow();
+  const { data, error } = await supabase
+    .from("products")
+    .select("farmer_id, category, created_at")
+    .in("farmer_id", farmerIds)
+    .eq("status", "published")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const categories = new Map<string, string>();
+
+  for (const row of (data ?? []) as FarmerCategoryRow[]) {
+    if (!row.farmer_id || !row.category || categories.has(row.farmer_id)) {
+      continue;
+    }
+
+    categories.set(row.farmer_id, row.category);
+  }
+
+  return categories;
 }
 
 async function fetchFeaturedFarmers(): Promise<FarmerPreview[]> {
@@ -60,49 +99,40 @@ async function fetchFeaturedFarmers(): Promise<FarmerPreview[]> {
   }
 
   const farmers = (data ?? []) as FarmerProfileRow[];
-
-  const previews = await Promise.all(
-    farmers.map(async (farmer) => {
-      const { data: products } = await supabase
-        .from("products")
-        .select("category")
-        .eq("farmer_id", farmer.id)
-        .eq("status", "published")
-        .order("created_at", { ascending: false })
-        .limit(1);
-
-      const name = getFarmerRowName(farmer);
-      const specialty =
-        products?.[0]?.category ??
-        farmer.philosophy ??
-        "Seasonal local produce";
-
-      const image = createFarmerImage(
-        `${name} profile`,
-        getFarmerRowAvatarUrl(farmer) ?? farmer.cover_image_url,
-        farmer.id,
-      );
-
-      return {
-        id: farmer.slug,
-        name,
-        location: formatLocation(farmer.location, farmer.region),
-        story: farmer.story ?? farmer.bio ?? "",
-        specialty,
-        imageUrl: image.imageUrl,
-        gradientFrom: image.gradientFrom,
-        gradientTo: image.gradientTo,
-      };
-    }),
+  const categoriesByFarmer = await loadLatestProductCategories(
+    farmers.map((farmer) => farmer.id),
   );
 
-  return previews;
+  return farmers.map((farmer) => {
+    const name = getFarmerRowName(farmer);
+    const specialty =
+      categoriesByFarmer.get(farmer.id) ??
+      farmer.philosophy ??
+      "Seasonal local produce";
+
+    const image = createFarmerImage(
+      `${name} profile`,
+      getFarmerRowAvatarUrl(farmer) ?? farmer.cover_image_url,
+      farmer.id,
+    );
+
+    return {
+      id: farmer.slug,
+      name,
+      location: formatLocation(farmer.location, farmer.region),
+      story: farmer.story ?? farmer.bio ?? "",
+      specialty,
+      imageUrl: image.imageUrl,
+      gradientFrom: image.gradientFrom,
+      gradientTo: image.gradientTo,
+    };
+  });
 }
 
 export const getFeaturedFarmers = unstable_cache(
   fetchFeaturedFarmers,
   ["landing-featured-farmers"],
-  { revalidate: 60 },
+  { revalidate: REVALIDATE_SECONDS },
 );
 
 async function fetchSeasonalProducts(): Promise<SeasonalProduct[]> {
@@ -150,7 +180,7 @@ async function fetchSeasonalProducts(): Promise<SeasonalProduct[]> {
 export const getSeasonalProducts = unstable_cache(
   fetchSeasonalProducts,
   ["landing-seasonal-products"],
-  { revalidate: 60 },
+  { revalidate: REVALIDATE_SECONDS },
 );
 
 async function fetchFarmerStories(): Promise<FarmerStory[]> {
@@ -201,5 +231,5 @@ async function fetchFarmerStories(): Promise<FarmerStory[]> {
 export const getFarmerStories = unstable_cache(
   fetchFarmerStories,
   ["landing-farmer-stories"],
-  { revalidate: 60 },
+  { revalidate: REVALIDATE_SECONDS },
 );

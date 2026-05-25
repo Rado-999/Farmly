@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { FarmerProfileView } from "@/components/farmers/farmer-profile-view";
 import { getFarmerProfile, getFarmerSlugs } from "@/lib/farmers/queries";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 type FarmerPageProps = {
   params: Promise<{ slug: string }>;

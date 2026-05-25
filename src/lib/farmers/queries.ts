@@ -18,6 +18,8 @@ import type {
 } from "@/lib/supabase/database.types";
 import { createServerPublicSupabaseClientOrThrow } from "@/lib/supabase/server";
 
+const REVALIDATE_SECONDS = 60;
+
 function getSupabaseOrThrow() {
   return createServerPublicSupabaseClientOrThrow();
 }
@@ -91,7 +93,7 @@ async function getFarmerRelations(farmerId: string) {
   };
 }
 
-export async function getFarmerProfile(
+async function fetchFarmerProfile(
   slugOrId: string,
 ): Promise<FarmerProfile | null> {
   const farmer = await getFarmerRow(slugOrId);
@@ -105,7 +107,19 @@ export async function getFarmerProfile(
   return mapFarmerProfile(farmer, products, videos, reviews);
 }
 
-export async function getFarmerSlugs(): Promise<string[]> {
+const getCachedFarmerProfile = unstable_cache(
+  fetchFarmerProfile,
+  ["farmer-profile"],
+  { revalidate: REVALIDATE_SECONDS },
+);
+
+export async function getFarmerProfile(
+  slugOrId: string,
+): Promise<FarmerProfile | null> {
+  return getCachedFarmerProfile(slugOrId);
+}
+
+async function fetchFarmerSlugs(): Promise<string[]> {
   const supabase = getSupabaseOrThrow();
 
   const { data, error } = await supabase
@@ -118,6 +132,16 @@ export async function getFarmerSlugs(): Promise<string[]> {
   }
 
   return (data ?? []).map((farmer) => farmer.slug);
+}
+
+const getCachedFarmerSlugs = unstable_cache(
+  fetchFarmerSlugs,
+  ["farmer-slugs"],
+  { revalidate: REVALIDATE_SECONDS },
+);
+
+export async function getFarmerSlugs(): Promise<string[]> {
+  return getCachedFarmerSlugs();
 }
 
 async function fetchFarmerDirectoryEntries(): Promise<FarmerDirectoryEntry[]> {
@@ -152,5 +176,5 @@ async function fetchFarmerDirectoryEntries(): Promise<FarmerDirectoryEntry[]> {
 export const listFarmers = unstable_cache(
   fetchFarmerDirectoryEntries,
   ["farmer-directory"],
-  { revalidate: 60 },
+  { revalidate: REVALIDATE_SECONDS },
 );

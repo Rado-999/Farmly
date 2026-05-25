@@ -26,6 +26,8 @@ import { formatDurationSeconds } from "@/lib/videos/format-duration";
 import type { FarmerProfileRow } from "@/lib/supabase/database.types";
 import { createServerPublicSupabaseClientOrThrow } from "@/lib/supabase/server";
 
+const REVALIDATE_SECONDS = 60;
+
 function getSupabaseOrThrow() {
   return createServerPublicSupabaseClientOrThrow();
 }
@@ -37,6 +39,11 @@ type LinkedFarmerRow = {
   region: string | null;
   display_name: string | null;
   public_display_name: string | null;
+};
+
+type FarmerCategoryRow = {
+  farmer_id: string | null;
+  category: string | null;
 };
 
 function getLinkedFarmerName(farmer: LinkedFarmerRow | null): string {
@@ -51,23 +58,15 @@ function getLinkedFarmerName(farmer: LinkedFarmerRow | null): string {
   );
 }
 
-async function mapFarmerRow(
+function mapFarmerRow(
   farmer: FarmerProfileRow,
+  categoriesByFarmer: Map<string, string>,
   specialtyFallback?: string,
-): Promise<VillageFarmer> {
-  const supabase = getSupabaseOrThrow();
+): VillageFarmer {
   const name = getFarmerRowName(farmer);
 
-  const { data: products } = await supabase
-    .from("products")
-    .select("category")
-    .eq("farmer_id", farmer.id)
-    .eq("status", "published")
-    .order("created_at", { ascending: false })
-    .limit(1);
-
   const specialty =
-    products?.[0]?.category ??
+    categoriesByFarmer.get(farmer.id) ??
     specialtyFallback ??
     farmer.philosophy ??
     "Сезонно отглеждане";
@@ -93,6 +92,38 @@ async function mapFarmerRow(
   };
 }
 
+async function loadLatestProductCategories(
+  farmerIds: string[],
+): Promise<Map<string, string>> {
+  if (farmerIds.length === 0) {
+    return new Map();
+  }
+
+  const supabase = getSupabaseOrThrow();
+  const { data, error } = await supabase
+    .from("products")
+    .select("farmer_id, category, created_at")
+    .in("farmer_id", farmerIds)
+    .eq("status", "published")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const categories = new Map<string, string>();
+
+  for (const row of (data ?? []) as FarmerCategoryRow[]) {
+    if (!row.farmer_id || !row.category || categories.has(row.farmer_id)) {
+      continue;
+    }
+
+    categories.set(row.farmer_id, row.category);
+  }
+
+  return categories;
+}
+
 async function fetchVillageFarmers(): Promise<VillageFarmer[]> {
   const supabase = getSupabaseOrThrow();
 
@@ -108,14 +139,17 @@ async function fetchVillageFarmers(): Promise<VillageFarmer[]> {
   }
 
   const farmers = (data ?? []) as FarmerProfileRow[];
+  const categoriesByFarmer = await loadLatestProductCategories(
+    farmers.map((farmer) => farmer.id),
+  );
 
-  return Promise.all(farmers.map((farmer) => mapFarmerRow(farmer)));
+  return farmers.map((farmer) => mapFarmerRow(farmer, categoriesByFarmer));
 }
 
 export const getVillageFarmers = unstable_cache(
   fetchVillageFarmers,
   ["discover-village-farmers"],
-  { revalidate: 60 },
+  { revalidate: REVALIDATE_SECONDS },
 );
 
 async function fetchVillageMoments(): Promise<VillageMoment[]> {
@@ -162,7 +196,7 @@ async function fetchVillageMoments(): Promise<VillageMoment[]> {
 export const getVillageMoments = unstable_cache(
   fetchVillageMoments,
   ["discover-village-moments"],
-  { revalidate: 60 },
+  { revalidate: REVALIDATE_SECONDS },
 );
 
 async function fetchVillageFilms(): Promise<VillageFilm[]> {
@@ -217,7 +251,7 @@ async function fetchVillageFilms(): Promise<VillageFilm[]> {
 export const getVillageFilms = unstable_cache(
   fetchVillageFilms,
   ["discover-village-films"],
-  { revalidate: 60 },
+  { revalidate: REVALIDATE_SECONDS },
 );
 
 function buildWhispers(farmers: VillageFarmer[]): VillageWhisper[] {

@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
-import { DiscoverPageShell } from "@/components/discover/discover-page-shell";
+import { DiscoverFeedMode } from "@/components/discover/discover-feed-mode";
+import { DiscoverPage } from "@/components/discover/discover-page";
 import { getDiscoverVillageData } from "@/lib/discover/queries";
-
-export const dynamic = "force-dynamic";
+import { createServerSupabaseClientOrThrow } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
   title: "Farmly | Разходка из селото",
@@ -12,11 +12,20 @@ export const metadata: Metadata = {
 };
 
 export default async function DiscoverRoute() {
+  const supabase = await createServerSupabaseClientOrThrow();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (user) {
+    return <DiscoverFeedMode userId={user.id} />;
+  }
+
   const { farmers, moments, films, whispers, neighbourhoods, snapshot } =
     await getDiscoverVillageData();
 
   return (
-    <DiscoverPageShell
+    <DiscoverPage
       farmers={farmers}
       moments={moments}
       films={films}

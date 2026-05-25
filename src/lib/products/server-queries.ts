@@ -1,5 +1,6 @@
 import "server-only";
 
+import { unstable_cache } from "next/cache";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { FARMER_PROFILE_SELECT } from "@/lib/farmers/farmer-profile-row";
@@ -12,6 +13,8 @@ import type {
   VideoRow,
 } from "@/lib/supabase/database.types";
 import { createServerPublicSupabaseClientOrThrow } from "@/lib/supabase/server";
+
+const REVALIDATE_SECONDS = 60;
 
 const PRODUCT_SELECT =
   "id, farmer_id, title, description, price, season, category, images, status, price_unit, published_at";
@@ -75,10 +78,22 @@ export async function getProductByIdWithSupabase(
   );
 }
 
-export async function getProductById(
+async function fetchPublicProductById(
   productId: string,
 ): Promise<ProductDetail | null> {
   const supabase = createServerPublicSupabaseClientOrThrow();
 
   return getProductByIdWithSupabase(supabase, productId);
+}
+
+const getCachedPublicProductById = unstable_cache(
+  fetchPublicProductById,
+  ["public-product-detail"],
+  { revalidate: REVALIDATE_SECONDS },
+);
+
+export async function getProductById(
+  productId: string,
+): Promise<ProductDetail | null> {
+  return getCachedPublicProductById(productId);
 }

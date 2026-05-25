@@ -9,8 +9,6 @@ import {
 } from "@/lib/products/server-queries";
 import { createServerSupabaseClientOrThrow } from "@/lib/supabase/server";
 
-export const dynamic = "force-dynamic";
-
 type ProductPageProps = {
   params: Promise<{ slug: string; productId: string }>;
 };
@@ -33,16 +31,35 @@ export async function generateMetadata({
 
 export default async function ProductPage({ params }: ProductPageProps) {
   const { slug, productId } = await params;
-  const supabase = await createServerSupabaseClientOrThrow();
-  const product = await getProductByIdWithSupabase(supabase, productId);
+  const publicProduct = await getProductById(productId);
 
-  if (!product || product.farmerSlug !== slug) {
+  if (publicProduct && publicProduct.farmerSlug !== slug) {
     notFound();
   }
 
+  const supabase = await createServerSupabaseClientOrThrow();
   const access = await getFarmerProductAccess(supabase);
-  const isOwner =
-    access.ok && access.access.farmerProfileId === product.farmerId;
+  let product = publicProduct;
+  let isOwner = false;
+
+  if (product && access.ok) {
+    isOwner = access.access.farmerProfileId === product.farmerId;
+  }
+
+  if (!product && access.ok) {
+    const privateProduct = await getProductByIdWithSupabase(supabase, productId);
+
+    if (!privateProduct || privateProduct.farmerSlug !== slug) {
+      notFound();
+    }
+
+    product = privateProduct;
+    isOwner = access.access.farmerProfileId === privateProduct.farmerId;
+  }
+
+  if (!product) {
+    notFound();
+  }
 
   if (product.status === "draft" && !isOwner) {
     notFound();
