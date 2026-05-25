@@ -7,6 +7,8 @@ import {
   getSeasonalProducts,
 } from "@/lib/landing/queries";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Farmly | Тук храната помни ръцете, които я отглеждат",
   description:

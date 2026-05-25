@@ -1,45 +1,52 @@
-# MVP Scope
+# Farmly MVP Scope
 
 The MVP focuses on building trust between farmers and consumers.
 
-The goal is NOT to build a full ecommerce platform.
+The goal is not to build a full ecommerce platform yet. It is to validate whether people enjoy discovering and trusting local farmers through authentic content.
 
-# MVP Features
+## MVP features
 
-## Authentication
+### Authentication
+
 - register
 - login
 
-## Farmer Profiles
+### Farmer profiles
+
 - profile image
 - bio
 - location
 - farming philosophy
 
-## Product Listings
+### Product listings
+
 - title
 - description
 - photos
 - simple pricing
 - seasonal availability
 
-## Product Storytelling
+### Product storytelling
+
 - videos associated with products
 - farming updates
 - growth timeline
 
-## Feed
+### Feed and discovery
+
 - discover farmers
 - discover products
 - recent updates
 
-## Reviews
+### Reviews
+
 - farmer reviews
 - product reviews
 
-# NOT Included In MVP
+## Not included in the MVP
 
-Do NOT build:
+Do not build yet:
+
 - payments
 - delivery system
 - subscriptions
@@ -51,10 +58,10 @@ Do NOT build:
 - admin dashboard
 - notifications
 - podcasts
-- messaging system
+- messaging
 
-# MVP Goal
+## Validation question
 
-The MVP should answer one question:
+The MVP should answer one core question:
 
-"Do people enjoy discovering and trusting local farmers through authentic content?"
+> Do people enjoy discovering and trusting local farmers through authentic content?

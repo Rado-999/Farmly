@@ -121,7 +121,7 @@ function WhisperPulseCard({
   return (
     <blockquote className="border-l-2 border-forest/25 py-1 pl-4 sm:pl-5">
       <p className="editorial-serif line-clamp-2 text-base leading-relaxed text-forest-deep sm:text-lg">
-        „{whisper.text}"
+        „{whisper.text}&rdquo;
       </p>
       <footer className="mt-2">
         <FarmerAttribution

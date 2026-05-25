@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { DiscoverPageShell } from "@/components/discover/discover-page-shell";
 import { getDiscoverVillageData } from "@/lib/discover/queries";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Farmly | Разходка из селото",
   description:

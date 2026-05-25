@@ -4,13 +4,19 @@ import { notFound } from "next/navigation";
 import { FarmerProfileView } from "@/components/farmers/farmer-profile-view";
 import { getFarmerProfile, getFarmerSlugs } from "@/lib/farmers/queries";
 
+export const dynamic = "force-dynamic";
+
 type FarmerPageProps = {
   params: Promise<{ slug: string }>;
 };
 
 export async function generateStaticParams() {
-  const slugs = await getFarmerSlugs();
-  return slugs.map((slug) => ({ slug }));
+  try {
+    const slugs = await getFarmerSlugs();
+    return slugs.map((slug) => ({ slug }));
+  } catch {
+    return [];
+  }
 }
 
 export async function generateMetadata({

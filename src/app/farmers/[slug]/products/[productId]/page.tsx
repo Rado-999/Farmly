@@ -3,6 +3,8 @@ import { ProductDetailOwnerLoader } from "@/components/products/product-detail-o
 import { ProductDetailPageClient } from "@/components/products/product-detail-page-client";
 import { getProductById } from "@/lib/products/queries";
 
+export const dynamic = "force-dynamic";
+
 type ProductPageProps = {
   params: Promise<{ slug: string; productId: string }>;
 };

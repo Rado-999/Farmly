@@ -8,6 +8,8 @@ import { RevealStagger } from "@/components/ui/reveal-stagger";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { listFarmers } from "@/lib/farmers/queries";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Farmly | Фермери",
   description:

@@ -1,36 +1,109 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Farmly
 
-## Getting Started
+Farmly is a trust-first marketplace for local food.
 
-First, run the development server:
+The idea behind the product is simple: people should be able to discover real farmers, see how food is grown, and build confidence before they ever decide to buy. Instead of feeling like a generic ecommerce catalog, Farmly is designed to feel human, local, and story-led.
+
+## Why this project exists
+
+Modern food systems often feel distant and hard to trust. Farmly explores a different model:
+
+- farmers share who they are and how they grow
+- products are supported by photos, updates, and video
+- discovery feels closer to a community feed than a cold catalog
+- commerce follows trust, rather than trying to force it
+
+This repository is both an active product idea and a portfolio project focused on product thinking, frontend craft, and building a clear trust-driven experience.
+
+## Current product direction
+
+Farmly is currently centered around:
+
+- a cinematic landing experience
+- farmer discovery and profile pages
+- product storytelling with seasonal context
+- video-first trust building
+- onboarding and profile flows for farmers
+
+The current MVP is intentionally narrower than a full marketplace. The goal is to validate whether people enjoy discovering and trusting local farmers through authentic content.
+
+## Experience principles
+
+- Trust before transaction
+- Storytelling before hard selling
+- Local, warm, and organic instead of generic marketplace UI
+- Mobile-first product decisions
+- Reusable components and scalable structure
+
+## Tech stack
+
+- Next.js 15 App Router
+- TypeScript
+- Tailwind CSS 4
+- Supabase
+- React 19
+
+## Local development
+
+### 1. Install dependencies
+
+```bash
+npm install
+```
+
+### 2. Create local environment variables
+
+Copy `.env.example` to `.env.local` and fill in your Supabase values:
+
+```bash
+cp .env.example .env.local
+```
+
+Required variables:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+```
+
+### 3. Start the app
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Available scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run dev
+npm run build
+npm run start
+npm run lint
+npm run format
+npm run format:check
+```
 
-## Learn More
+## Project docs
 
-To learn more about Next.js, take a look at the following resources:
+- `docs/vision.md` - product vision and marketplace philosophy
+- `docs/mvp.md` - current MVP scope and non-goals
+- `docs/design-system.md` - UI direction, emotional design language, and design tokens
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Status
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Farmly is an active early-stage product exploration. The repository is being shaped as:
 
-## Deploy on Vercel
+- a public portfolio-quality codebase
+- a foundation for a real business idea
+- a place to iterate on product, experience, and technical architecture in public
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Roadmap themes
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- deepen farmer profiles and storytelling
+- improve discovery flows and seasonal browsing
+- expand product and video publishing workflows
+- refine trust signals across the experience
+- prepare the product for broader end-to-end user testing
