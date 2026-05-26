@@ -3,10 +3,12 @@
 import dynamic from "next/dynamic";
 import { useState } from "react";
 
+import { useLocale } from "@/components/i18n/language-provider";
 import { EmptyState } from "@/components/ui/empty-state";
 import { MediaPanel } from "@/components/ui/media-panel";
 import { RevealOnScroll } from "@/components/ui/reveal-on-scroll";
 import { StoryHeading } from "@/components/ui/story-heading";
+import { translate } from "@/lib/i18n/translate";
 import { farmerStoryToVideo } from "@/lib/landing/story-to-video";
 import type { FarmerStory } from "@/lib/landing/types";
 import type { VideoPlaybackSource } from "@/lib/videos/playback-types";
@@ -36,6 +38,7 @@ function toPlayback(story: FarmerStory): VideoPlaybackSource {
 }
 
 function PlayMark({ size = "lg" }: { size?: "lg" | "sm" }) {
+  const { locale } = useLocale();
   const sizeClass =
     size === "lg" ? "h-14 w-14 text-sm" : "h-10 w-10 text-xs";
 
@@ -46,12 +49,15 @@ function PlayMark({ size = "lg" }: { size?: "lg" | "sm" }) {
       <span aria-hidden className="ml-0.5">
         ▶
       </span>
-      <span className="sr-only">Пусни видеото</span>
+      <span className="sr-only">
+        {translate(locale, "Пусни видеото", "Play video")}
+      </span>
     </span>
   );
 }
 
 export function CinematicStoriesContent({ stories }: CinematicStoriesContentProps) {
+  const { locale } = useLocale();
   const [activeStory, setActiveStory] = useState<FarmerStory | null>(null);
   const [featured, ...rest] = stories;
 
@@ -59,9 +65,17 @@ export function CinematicStoriesContent({ stories }: CinematicStoriesContentProp
     <>
       <RevealOnScroll>
         <StoryHeading
-          kicker="Доверието живее в движение"
-          title="Гледай как храната наистина се отглежда."
-          description="Не декорация — доказателство. Времето по кожата, инструменти в ръка, същото поле през пролет и жътва. Когато го видиш, вярата идва тихо."
+          kicker={translate(locale, "Доверието живее в движение", "Trust lives in motion")}
+          title={translate(
+            locale,
+            "Гледай как храната наистина се отглежда.",
+            "Watch how food is really grown.",
+          )}
+          description={translate(
+            locale,
+            "Не декорация — доказателство. Времето по кожата, инструменти в ръка, същото поле през пролет и жътва. Когато го видиш, вярата идва тихо.",
+            "Not decoration, but proof. Time on the skin, tools in hand, the same field in spring and harvest. Once you see it, belief arrives quietly.",
+          )}
           size="chapter"
         />
       </RevealOnScroll>
@@ -69,8 +83,12 @@ export function CinematicStoriesContent({ stories }: CinematicStoriesContentProp
       {stories.length === 0 ? (
         <RevealOnScroll className="content-after-head block">
           <EmptyState
-            title="Първите филми се правят"
-            description="Докато фермерите споделят сутрините и жътвите си, тази алея ще се напълни с истинско движение — не стокови кадри, не реклами."
+            title={translate(locale, "Първите филми се правят", "The first films are being made")}
+            description={translate(
+              locale,
+              "Докато фермерите споделят сутрините и жътвите си, тази алея ще се напълни с истинско движение — не стокови кадри, не реклами.",
+              "As farmers share their mornings and harvests, this lane will fill with real movement, not stock footage or ads.",
+            )}
           />
         </RevealOnScroll>
       ) : (
@@ -151,7 +169,7 @@ export function CinematicStoriesContent({ stories }: CinematicStoriesContentProp
                         </p>
                       </div>
                       <span className="story-link hidden shrink-0 sm:inline-flex">
-                        Гледай
+                        {translate(locale, "Гледай", "Watch")}
                       </span>
                     </button>
                   </RevealOnScroll>

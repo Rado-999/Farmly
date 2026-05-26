@@ -5,6 +5,7 @@ import {
   getSignupWithoutUserMessage,
 } from "@/lib/auth/messages";
 import type { SignupFormValues } from "@/lib/auth/types";
+import type { Locale } from "@/lib/i18n/config";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 type SignupResult =
@@ -15,6 +16,7 @@ type SignupResult =
 export async function completeSignup(
   supabase: SupabaseClient,
   values: SignupFormValues,
+  locale: Locale = "bg",
 ): Promise<SignupResult> {
   const email = values.email.trim();
 
@@ -31,14 +33,14 @@ export async function completeSignup(
   if (error) {
     return {
       status: "error",
-      message: getAuthErrorMessage(error),
+      message: getAuthErrorMessage(error, locale),
     };
   }
 
   if (!data.user) {
     return {
       status: "error",
-      message: getSignupWithoutUserMessage(),
+      message: getSignupWithoutUserMessage(locale),
     };
   }
 

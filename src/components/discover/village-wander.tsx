@@ -4,8 +4,11 @@ import { ButtonLink } from "@/components/ui/button-link";
 import { PageSection } from "@/components/ui/page-section";
 import { RevealOnScroll } from "@/components/ui/reveal-on-scroll";
 import type { VillageFarmer } from "@/lib/discover/types";
+import type { Locale } from "@/lib/i18n/config";
+import { translate } from "@/lib/i18n/translate";
 
 type VillageWanderProps = {
+  locale: Locale;
   farmers: VillageFarmer[];
 };
 
@@ -21,7 +24,7 @@ function pickWanderTargets(farmers: VillageFarmer[], count: number) {
   });
 }
 
-export function VillageWander({ farmers }: VillageWanderProps) {
+export function VillageWander({ farmers, locale }: VillageWanderProps) {
   const suggestions = pickWanderTargets(farmers, 3);
 
   return (
@@ -30,14 +33,21 @@ export function VillageWander({ farmers }: VillageWanderProps) {
         <RevealOnScroll>
           <div className="mx-auto max-w-2xl text-center stack-relaxed">
             <p className="text-[0.8125rem] font-medium tracking-[0.14em] text-wheat/90 uppercase">
-              Продължи без план
+              {translate(locale, "Продължи без план", "Keep going without a plan")}
             </p>
             <h2 className="editorial-serif text-3xl leading-tight text-mist sm:text-4xl">
-              Селото няма край — само следваща завийка.
+              {translate(
+                locale,
+                "Селото няма край — само следваща завийка.",
+                "The village has no end, only another bend.",
+              )}
             </h2>
             <p className="text-base leading-8 text-mist/80 sm:text-lg">
-              Върни се утре. Следи фермер, който те закачи. Или просто избери
-              посока и тръгни — любопитството е достатъчна карта.
+              {translate(
+                locale,
+                "Върни се утре. Следи фермер, който те закачи. Или просто избери посока и тръгни — любопитството е достатъчна карта.",
+                "Come back tomorrow. Follow a farmer who stays with you. Or just choose a direction and go. Curiosity is map enough.",
+              )}
             </p>
 
             {suggestions.length > 0 ? (
@@ -61,14 +71,14 @@ export function VillageWander({ farmers }: VillageWanderProps) {
                 variant="secondary"
                 className="border-mist/30 bg-mist/15 text-mist hover:bg-mist/25"
               >
-                Всички ферми
+                {translate(locale, "Всички ферми", "All farms")}
               </ButtonLink>
               <ButtonLink
                 href="#village-ring"
                 variant="quiet"
                 className="text-wheat hover:text-mist"
               >
-                Започни отначало
+                {translate(locale, "Започни отначало", "Start again")}
               </ButtonLink>
             </div>
           </div>

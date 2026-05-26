@@ -7,7 +7,9 @@ import { type FormEvent, useState } from "react";
 import { AuthButton } from "@/components/auth/auth-button";
 import { AuthCard } from "@/components/auth/auth-card";
 import { AuthInput } from "@/components/auth/auth-input";
+import { useLocale } from "@/components/i18n/language-provider";
 import type { AuthFieldErrors, LoginFormValues } from "@/lib/auth/types";
+import { translate } from "@/lib/i18n/translate";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { loadSupabaseClient } from "@/lib/supabase/load-client";
 
@@ -19,6 +21,7 @@ const initialValues: LoginFormValues = {
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { locale } = useLocale();
   const [values, setValues] = useState(initialValues);
   const [fieldErrors, setFieldErrors] =
     useState<AuthFieldErrors<keyof LoginFormValues>>({});
@@ -30,7 +33,7 @@ export function LoginForm() {
     setFormError(null);
 
     const { validateLoginForm } = await import("@/lib/auth/validation");
-    const nextFieldErrors = validateLoginForm(values);
+    const nextFieldErrors = validateLoginForm(values, locale);
     setFieldErrors(nextFieldErrors);
 
     if (Object.keys(nextFieldErrors).length > 0) {
@@ -38,14 +41,26 @@ export function LoginForm() {
     }
 
     if (!isSupabaseConfigured()) {
-      setFormError("Удостоверяването все още не е конфигурирано.");
+      setFormError(
+        translate(
+          locale,
+          "Удостоверяването все още не е конфигурирано.",
+          "Authentication is not configured yet.",
+        ),
+      );
       return;
     }
 
     const supabase = await loadSupabaseClient();
 
     if (!supabase) {
-      setFormError("Удостоверяването все още не е конфигурирано.");
+      setFormError(
+        translate(
+          locale,
+          "Удостоверяването все още не е конфигурирано.",
+          "Authentication is not configured yet.",
+        ),
+      );
       return;
     }
 
@@ -59,7 +74,7 @@ export function LoginForm() {
     if (error) {
       const { getAuthErrorMessage } = await import("@/lib/auth/messages");
       setIsLoading(false);
-      setFormError(getAuthErrorMessage(error));
+      setFormError(getAuthErrorMessage(error, locale));
       return;
     }
 
@@ -91,16 +106,20 @@ export function LoginForm() {
 
   return (
     <AuthCard
-      title="Добре дошли отново"
-      message="Свържете се отново с истинска храна и истински фермери."
+      title={translate(locale, "Добре дошли отново", "Welcome back")}
+      message={translate(
+        locale,
+        "Свържете се отново с истинска храна и истински фермери.",
+        "Reconnect with real food and real farmers.",
+      )}
       footer={
         <>
-          Нови сте в Farmly?{" "}
+          {translate(locale, "Нови сте в Farmly? ", "New to Farmly? ")}
           <Link
             href="/signup"
             className="text-link"
           >
-            Създайте акаунт
+            {translate(locale, "Създайте акаунт", "Create an account")}
           </Link>
         </>
       }
@@ -108,7 +127,7 @@ export function LoginForm() {
       <form className="space-y-5" onSubmit={handleSubmit} noValidate>
         <AuthInput
           id="login-email"
-          label="Имейл"
+          label={translate(locale, "Имейл", "Email")}
           type="email"
           autoComplete="email"
           value={values.email}
@@ -120,7 +139,7 @@ export function LoginForm() {
 
         <AuthInput
           id="login-password"
-          label="Парола"
+          label={translate(locale, "Парола", "Password")}
           type="password"
           autoComplete="current-password"
           value={values.password}
@@ -142,8 +161,11 @@ export function LoginForm() {
           </p>
         ) : null}
 
-        <AuthButton isLoading={isLoading} loadingLabel="Влизане">
-          Вход
+        <AuthButton
+          isLoading={isLoading}
+          loadingLabel={translate(locale, "Влизане", "Signing in")}
+        >
+          {translate(locale, "Вход", "Log in")}
         </AuthButton>
       </form>
     </AuthCard>

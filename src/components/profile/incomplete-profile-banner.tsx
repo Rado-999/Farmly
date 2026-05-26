@@ -1,6 +1,10 @@
+"use client";
+
 import Link from "next/link";
 
+import { useLocale } from "@/components/i18n/language-provider";
 import { ONBOARDING_PATH } from "@/lib/auth/constants";
+import { translate } from "@/lib/i18n/translate";
 
 type IncompleteProfileBannerProps = {
   wasSkipped?: boolean;
@@ -32,6 +36,8 @@ function WarningIcon() {
 export function IncompleteProfileBanner({
   wasSkipped = false,
 }: IncompleteProfileBannerProps) {
+  const { locale } = useLocale();
+
   return (
     <div
       role="status"
@@ -42,17 +48,29 @@ export function IncompleteProfileBanner({
           <WarningIcon />
           <div className="space-y-1.5">
             <p className="inline-flex rounded-full border border-amber-400/60 bg-amber-50/90 px-2.5 py-0.5 text-xs font-semibold uppercase tracking-[0.16em] text-amber-950">
-              Нужно действие
+              {translate(locale, "Нужно действие", "Action needed")}
             </p>
             <p className="text-sm font-medium leading-6 text-amber-950">
               {wasSkipped
-                ? "Профилът ви все още не е напълно видим за другите."
-                : "Профилът ви е непълен."}
+                ? translate(
+                    locale,
+                    "Профилът ви все още не е напълно видим за другите.",
+                    "Your profile is not fully visible to others yet.",
+                  )
+                : translate(locale, "Профилът ви е непълен.", "Your profile is incomplete.")}
             </p>
             <p className="text-sm leading-6 text-amber-900/85">
               {wasSkipped
-                ? "Довършете настройката, за да могат купувачите да ви откриват и да се доверяват в Farmly."
-                : "Довършете останалите стъпки, за да могат другите да ви откриват и да се доверяват в Farmly."}
+                ? translate(
+                    locale,
+                    "Довършете настройката, за да могат купувачите да ви откриват и да се доверяват в Farmly.",
+                    "Finish setup so buyers can discover you and trust you on Farmly.",
+                  )
+                : translate(
+                    locale,
+                    "Довършете останалите стъпки, за да могат другите да ви откриват и да се доверяват в Farmly.",
+                    "Complete the remaining steps so others can discover you and trust you on Farmly.",
+                  )}
             </p>
           </div>
         </div>
@@ -60,7 +78,7 @@ export function IncompleteProfileBanner({
           href={ONBOARDING_PATH}
           className="inline-flex shrink-0 justify-center rounded-full bg-forest px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#324a2f] sm:self-center"
         >
-          Довърши профила
+          {translate(locale, "Довърши профила", "Complete profile")}
         </Link>
       </div>
     </div>

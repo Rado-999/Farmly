@@ -1,4 +1,9 @@
+"use client";
+
 import type { ReactNode } from "react";
+
+import { useLocale } from "@/components/i18n/language-provider";
+import { translate } from "@/lib/i18n/translate";
 
 type OnboardingShellProps = {
   step: number;
@@ -17,6 +22,7 @@ export function OnboardingShell({
   onSkip,
   children,
 }: OnboardingShellProps) {
+  const { locale } = useLocale();
   const progress = Math.round((step / totalSteps) * 100);
 
   return (
@@ -24,14 +30,15 @@ export function OnboardingShell({
       <div className="mb-8 space-y-5">
         <div className="flex items-center justify-between gap-4">
           <p className="text-sm font-medium text-stone-500">
-            Стъпка {step} от {totalSteps}
+            {translate(locale, "Стъпка", "Step")} {step}{" "}
+            {translate(locale, "от", "of")} {totalSteps}
           </p>
           <button
             type="button"
             onClick={onSkip}
             className="text-sm font-medium text-stone-500 transition-colors hover:text-stone-800"
           >
-            Пропусни засега
+            {translate(locale, "Пропусни засега", "Skip for now")}
           </button>
         </div>
 

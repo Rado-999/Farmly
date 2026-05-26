@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { useLocale } from "@/components/i18n/language-provider";
 import { AvatarPhotoPicker } from "@/components/onboarding/avatar-photo-picker";
 import { AuthInput } from "@/components/auth/auth-input";
 import { formSelectClassName } from "@/components/ui/form-select";
@@ -13,6 +14,7 @@ import { BULGARIA_REGIONS } from "@/lib/onboarding/regions";
 import type { OnboardingProfile } from "@/lib/onboarding/types";
 import { getProfileDisplayName } from "@/lib/auth/profile";
 import { formatLocation } from "@/lib/data/formatters";
+import { translate } from "@/lib/i18n/translate";
 
 const primaryButtonClassName =
   "inline-flex w-full items-center justify-center rounded-full bg-forest px-5 py-3.5 text-sm font-medium text-white shadow-[0_14px_30px_-18px_rgba(63,90,58,0.5)] transition-[background-color,opacity] duration-300 hover:bg-[#324a2f] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto";
@@ -31,10 +33,14 @@ type StepActionsProps = {
 function StepActions({
   onBack,
   onContinue,
-  continueLabel = "Напред",
+  continueLabel,
   isLoading = false,
   continueDisabled = false,
 }: StepActionsProps) {
+  const { locale } = useLocale();
+  const resolvedContinueLabel =
+    continueLabel ?? translate(locale, "Напред", "Continue");
+
   return (
     <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-between">
       {onBack ? (
@@ -44,7 +50,7 @@ function StepActions({
           disabled={isLoading}
           className={secondaryButtonClassName}
         >
-          Назад
+          {translate(locale, "Назад", "Back")}
         </button>
       ) : (
         <span className="hidden sm:block" />
@@ -55,7 +61,9 @@ function StepActions({
         disabled={isLoading || continueDisabled}
         className={primaryButtonClassName}
       >
-        {isLoading ? "Запазване..." : continueLabel}
+        {isLoading
+          ? translate(locale, "Запазване...", "Saving...")
+          : resolvedContinueLabel}
       </button>
     </div>
   );
@@ -76,6 +84,7 @@ export function StepIdentity({
   isLoading,
   onContinue,
 }: StepIdentityProps) {
+  const { locale } = useLocale();
   const [name, setName] = useState(initialName);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [isAdjustingPhoto, setIsAdjustingPhoto] = useState(false);
@@ -92,11 +101,11 @@ export function StepIdentity({
 
         <AuthInput
           id="onboarding-name"
-          label="Вашето име"
+          label={translate(locale, "Вашето име", "Your name")}
           value={name}
           onChange={(event) => setName(event.target.value)}
           autoComplete="name"
-          placeholder="Как да ви поздравим?"
+          placeholder={translate(locale, "Как да ви поздравим?", "How should we greet you?")}
         />
 
         {error ? (
@@ -137,6 +146,7 @@ export function StepLocation({
   onContinue,
   continueLabel,
 }: StepLocationProps) {
+  const { locale } = useLocale();
   const [city, setCity] = useState(initialCity);
   const [region, setRegion] = useState(initialRegion);
 
@@ -145,10 +155,10 @@ export function StepLocation({
       <div className="space-y-5">
         <AuthInput
           id="onboarding-city"
-          label="Град или село"
+          label={translate(locale, "Град или село", "Town or village")}
           value={city}
           onChange={(event) => setCity(event.target.value)}
-          placeholder="напр. Пловдив"
+          placeholder={translate(locale, "напр. Пловдив", "e.g. Plovdiv")}
         />
 
         <div className="space-y-2">
@@ -156,7 +166,7 @@ export function StepLocation({
             htmlFor="onboarding-region"
             className="block text-sm font-medium text-stone-700"
           >
-            Област в България
+            {translate(locale, "Област в България", "Region in Bulgaria")}
           </label>
           <select
             id="onboarding-region"
@@ -164,7 +174,9 @@ export function StepLocation({
             onChange={(event) => setRegion(event.target.value)}
             className={formSelectClassName}
           >
-            <option value="">Изберете област</option>
+            <option value="">
+              {translate(locale, "Изберете област", "Choose a region")}
+            </option>
             {BULGARIA_REGIONS.map((item) => (
               <option key={item} value={item}>
                 {item}
@@ -216,6 +228,7 @@ export function StepStory({
   onBack,
   onContinue,
 }: StepStoryProps) {
+  const { locale } = useLocale();
   const [bio, setBio] = useState(initialBio);
   const [story, setStory] = useState(initialStory);
   const [philosophy, setPhilosophy] = useState(initialPhilosophy);
@@ -225,26 +238,42 @@ export function StepStory({
       <div className="space-y-5">
         <OnboardingTextarea
           id="onboarding-bio"
-          label="Кратко представяне на фермата"
+          label={translate(locale, "Кратко представяне на фермата", "Short farm introduction")}
           value={bio}
           onChange={setBio}
-          placeholder="Кратко представяне на фермата ви"
-          hint="Едно-две изречения са достатъчни за начало."
+          placeholder={translate(
+            locale,
+            "Кратко представяне на фермата ви",
+            "A short introduction to your farm",
+          )}
+          hint={translate(
+            locale,
+            "Едно-две изречения са достатъчни за начало.",
+            "One or two sentences are enough to start.",
+          )}
         />
         <OnboardingTextarea
           id="onboarding-story"
-          label="Фермерска история"
+          label={translate(locale, "Фермерска история", "Farmer story")}
           value={story}
           onChange={setStory}
-          placeholder="Как започна фермата ви? Какво отглеждате днес?"
+          placeholder={translate(
+            locale,
+            "Как започна фермата ви? Какво отглеждате днес?",
+            "How did your farm begin? What are you growing today?",
+          )}
           rows={5}
         />
         <OnboardingTextarea
           id="onboarding-philosophy"
-          label="Философия"
+          label={translate(locale, "Философия", "Philosophy")}
           value={philosophy}
           onChange={setPhilosophy}
-          placeholder="Какви принципи насочват начина, по който отглеждате храна?"
+          placeholder={translate(
+            locale,
+            "Какви принципи насочват начина, по който отглеждате храна?",
+            "What principles guide the way you grow food?",
+          )}
         />
         {error ? (
           <p
@@ -282,6 +311,7 @@ export function StepPractice({
   onBack,
   onContinue,
 }: StepPracticeProps) {
+  const { locale } = useLocale();
   const [experienceYears, setExperienceYears] = useState(initialYears);
   const [farmingTypes, setFarmingTypes] = useState(initialTypes);
 
@@ -298,18 +328,21 @@ export function StepPractice({
       <div className="space-y-5">
         <AuthInput
           id="onboarding-experience"
-          label="Години опит"
+          label={translate(locale, "Години опит", "Years of experience")}
           type="number"
           min={0}
           max={80}
           value={experienceYears}
           onChange={(event) => setExperienceYears(event.target.value)}
-          placeholder="напр. 12"
+          placeholder={translate(locale, "напр. 12", "e.g. 12")}
         />
 
         <div className="space-y-3">
           <p className="text-sm font-medium text-stone-700">
-            Фокус в отглеждането <span className="font-normal text-stone-500">(по избор)</span>
+            {translate(locale, "Фокус в отглеждането", "Growing focus")}{" "}
+            <span className="font-normal text-stone-500">
+              ({translate(locale, "по избор", "optional")})
+            </span>
           </p>
           <div className="flex flex-wrap gap-2">
             {FARMING_TYPE_OPTIONS.map((type) => {
@@ -367,10 +400,12 @@ export function StepPreview({
   onBack,
   onFinish,
 }: StepPreviewProps) {
+  const { locale } = useLocale();
   const farmer = profile.farmerProfile;
   const displayName = getProfileDisplayName({
     profileName: profile.name,
     email: profile.email,
+    locale,
   });
   const location = formatLocation(
     farmer?.location ?? profile.city,
@@ -431,7 +466,7 @@ export function StepPreview({
       <StepActions
         onBack={onBack}
         isLoading={isLoading}
-        continueLabel="Публикувай профила"
+        continueLabel={translate(locale, "Публикувай профила", "Publish profile")}
         onContinue={onFinish}
       />
     </div>
@@ -453,18 +488,22 @@ export function StepBuyerFinish({
   onBack,
   onFinish,
 }: StepBuyerFinishProps) {
+  const { locale } = useLocale();
   return (
     <div className="flex flex-col">
       <div className="rounded-[1.75rem] border border-forest/15 bg-forest/5 p-6 text-center sm:p-8">
         <p className="text-sm font-medium uppercase tracking-[0.2em] text-forest">
-          Готови сте
+          {translate(locale, "Готови сте", "You are ready")}
         </p>
         <h2 className="mt-3 text-2xl font-semibold text-stone-900">
-          Добре дошли, {displayName}
+          {translate(locale, `Добре дошли, ${displayName}`, `Welcome, ${displayName}`)}
         </h2>
         <p className="mt-3 text-sm leading-6 text-stone-600">
-          Основните ви данни са запазени. Разгледайте местни производители и
-          следвайте сезоните, които са важни за вас.
+          {translate(
+            locale,
+            "Основните ви данни са запазени. Разгледайте местни производители и следвайте сезоните, които са важни за вас.",
+            "Your basic details are saved. Explore local growers and follow the seasons that matter to you.",
+          )}
         </p>
       </div>
 
@@ -480,7 +519,7 @@ export function StepBuyerFinish({
       <StepActions
         onBack={onBack}
         isLoading={isLoading}
-        continueLabel="Започни да откриваш"
+        continueLabel={translate(locale, "Започни да откриваш", "Start discovering")}
         onContinue={onFinish}
       />
     </div>

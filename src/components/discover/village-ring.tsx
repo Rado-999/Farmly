@@ -6,8 +6,11 @@ import { RevealOnScroll } from "@/components/ui/reveal-on-scroll";
 import { StoryHeading } from "@/components/ui/story-heading";
 import { getProfileInitials } from "@/lib/auth/profile";
 import type { VillageFarmer } from "@/lib/discover/types";
+import type { Locale } from "@/lib/i18n/config";
+import { translate } from "@/lib/i18n/translate";
 
 type VillageRingProps = {
+  locale: Locale;
   farmers: VillageFarmer[];
 };
 
@@ -38,15 +41,19 @@ function RingPortrait({ farmer }: { farmer: VillageFarmer }) {
   );
 }
 
-export function VillageRing({ farmers }: VillageRingProps) {
+export function VillageRing({ farmers, locale }: VillageRingProps) {
   return (
     <PageSection id="village-ring" tone="mist" spacing="default">
       <div className="page-shell-wide">
         <RevealOnScroll>
           <StoryHeading
-            kicker="Кого ще срещнеш"
-            title="Лицата по пътеката."
-            description="Премини покрай тях — без бързане. Всяка ферма е врата към история, не към кошница."
+            kicker={translate(locale, "Кого ще срещнеш", "Who you will meet")}
+            title={translate(locale, "Лицата по пътеката.", "The faces along the path.")}
+            description={translate(
+              locale,
+              "Премини покрай тях — без бързане. Всяка ферма е врата към история, не към кошница.",
+              "Pass by them without rushing. Every farm is a doorway to a story, not to a basket.",
+            )}
           />
         </RevealOnScroll>
 

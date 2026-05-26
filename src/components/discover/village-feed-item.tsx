@@ -1,24 +1,29 @@
 import Link from "next/link";
 
+import type { Locale } from "@/lib/i18n/config";
+import { translate } from "@/lib/i18n/translate";
 import { MediaPanel } from "@/components/ui/media-panel";
 import type { VillageFeedItem } from "@/lib/discover/types";
 
 type VillageFeedItemViewProps = {
   item: VillageFeedItem;
+  locale: Locale;
 };
 
 function FarmerAttribution({
   name,
   slug,
   location,
+  locale,
 }: {
   name: string;
   slug: string;
   location?: string;
+  locale: Locale;
 }) {
   return (
     <p className="text-xs text-stone-500">
-      от{" "}
+      {translate(locale, "от ", "by ")}
       <Link
         href={`/farmers/${slug}`}
         className="font-medium text-soil hover:text-forest-deep"
@@ -30,7 +35,13 @@ function FarmerAttribution({
   );
 }
 
-function FilmPulseCard({ item }: { item: Extract<VillageFeedItem, { kind: "film" }> }) {
+function FilmPulseCard({
+  item,
+  locale,
+}: {
+  item: Extract<VillageFeedItem, { kind: "film" }>;
+  locale: Locale;
+}) {
   const { film } = item;
 
   return (
@@ -38,7 +49,7 @@ function FilmPulseCard({ item }: { item: Extract<VillageFeedItem, { kind: "film"
       <Link
         href={`/farmers/${film.farmerSlug}#videos`}
         className="shrink-0"
-        aria-label={`Гледай ${film.title}`}
+        aria-label={translate(locale, `Гледай ${film.title}`, `Watch ${film.title}`)}
       >
         <MediaPanel
           from={film.gradientFrom}
@@ -50,7 +61,7 @@ function FilmPulseCard({ item }: { item: Extract<VillageFeedItem, { kind: "film"
       </Link>
       <div className="min-w-0 flex-1">
         <p className="text-[0.625rem] font-medium uppercase tracking-[0.14em] text-wheat/85">
-          Полски филм · {film.stage}
+          {translate(locale, "Полски филм", "Field film")} · {film.stage}
         </p>
         <h3 className="editorial-serif mt-1 text-lg leading-snug sm:text-xl">
           {film.title}
@@ -59,6 +70,7 @@ function FilmPulseCard({ item }: { item: Extract<VillageFeedItem, { kind: "film"
           name={film.farmerName}
           slug={film.farmerSlug}
           location={film.location}
+          locale={locale}
         />
         <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-wheat/80">
           <span>{film.duration}</span>
@@ -66,7 +78,7 @@ function FilmPulseCard({ item }: { item: Extract<VillageFeedItem, { kind: "film"
             href={`/farmers/${film.farmerSlug}#videos`}
             className="story-link text-xs text-wheat hover:text-mist"
           >
-            Гледай
+            {translate(locale, "Гледай", "Watch")}
           </Link>
         </div>
       </div>
@@ -76,8 +88,10 @@ function FilmPulseCard({ item }: { item: Extract<VillageFeedItem, { kind: "film"
 
 function MomentPulseCard({
   item,
+  locale,
 }: {
   item: Extract<VillageFeedItem, { kind: "moment" }>;
+  locale: Locale;
 }) {
   const { moment } = item;
   const href = `/farmers/${moment.farmerSlug}/products/${moment.id}`;
@@ -95,14 +109,18 @@ function MomentPulseCard({
       </Link>
       <div className="min-w-0 flex-1">
         <p className="text-[0.625rem] font-medium uppercase tracking-[0.14em] text-clay">
-          {moment.season} · в сезон
+          {moment.season} · {translate(locale, "в сезон", "in season")}
         </p>
         <h3 className="editorial-serif mt-1 text-lg leading-snug text-forest-deep sm:text-xl">
           <Link href={href} className="hover:text-forest">
             {moment.title}
           </Link>
         </h3>
-        <FarmerAttribution name={moment.farmerName} slug={moment.farmerSlug} />
+        <FarmerAttribution
+          name={moment.farmerName}
+          slug={moment.farmerSlug}
+          locale={locale}
+        />
         {moment.note ? (
           <p className="mt-1 line-clamp-1 text-sm text-stone-600">{moment.note}</p>
         ) : null}
@@ -113,8 +131,10 @@ function MomentPulseCard({
 
 function WhisperPulseCard({
   item,
+  locale,
 }: {
   item: Extract<VillageFeedItem, { kind: "whisper" }>;
+  locale: Locale;
 }) {
   const { whisper } = item;
 
@@ -128,20 +148,21 @@ function WhisperPulseCard({
           name={whisper.farmerName}
           slug={whisper.farmerSlug}
           location={whisper.location}
+          locale={locale}
         />
       </footer>
     </blockquote>
   );
 }
 
-export function VillageFeedItemView({ item }: VillageFeedItemViewProps) {
+export function VillageFeedItemView({ item, locale }: VillageFeedItemViewProps) {
   switch (item.kind) {
     case "film":
-      return <FilmPulseCard item={item} />;
+      return <FilmPulseCard item={item} locale={locale} />;
     case "moment":
-      return <MomentPulseCard item={item} />;
+      return <MomentPulseCard item={item} locale={locale} />;
     case "whisper":
-      return <WhisperPulseCard item={item} />;
+      return <WhisperPulseCard item={item} locale={locale} />;
     default:
       return null;
   }

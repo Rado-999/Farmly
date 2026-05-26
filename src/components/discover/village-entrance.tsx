@@ -1,7 +1,10 @@
 import { ButtonLink } from "@/components/ui/button-link";
 import type { VillageSnapshot } from "@/lib/discover/types";
+import type { Locale } from "@/lib/i18n/config";
+import { translate } from "@/lib/i18n/translate";
 
 type VillageEntranceProps = {
+  locale: Locale;
   snapshot: VillageSnapshot;
 };
 
@@ -23,7 +26,7 @@ function SnapshotLine({
   );
 }
 
-export function VillageEntrance({ snapshot }: VillageEntranceProps) {
+export function VillageEntrance({ snapshot, locale }: VillageEntranceProps) {
   const hasStats =
     snapshot.farmerCount > 0 ||
     snapshot.filmCount > 0 ||
@@ -43,55 +46,73 @@ export function VillageEntrance({ snapshot }: VillageEntranceProps) {
       <div className="page-shell-wide relative z-10 py-16 sm:py-20 lg:py-24">
         <div className="mx-auto max-w-3xl text-center">
           <p className="text-[0.8125rem] font-medium tracking-[0.16em] text-forest uppercase">
-            Дигитално село
+            {translate(locale, "Дигитално село", "Digital village")}
           </p>
           <h1 className="editorial-serif mt-4 text-4xl leading-[1.08] font-medium text-forest-deep sm:text-5xl lg:text-[3.5rem]">
-            Разхождай се. Слушай. Остани колкото искаш.
+            {translate(
+              locale,
+              "Разхождай се. Слушай. Остани колкото искаш.",
+              "Walk. Listen. Stay as long as you want.",
+            )}
           </h1>
           <p className="mx-auto mt-6 max-w-xl text-base leading-8 text-stone-700/90 sm:text-lg sm:leading-9">
-            Тук няма решетка за пазаруване. Има ферми, които споделят сутринта
-            си, филми от полето и сезони, които узряват на бавен огън — като
-            истинско село, само по-спокойно.
+            {translate(
+              locale,
+              "Тук няма решетка за пазаруване. Има ферми, които споделят сутринта си, филми от полето и сезони, които узряват на бавен огън — като истинско село, само по-спокойно.",
+              "There is no shopping grid here. There are farms sharing their mornings, films from the field, and seasons that ripen slowly, like a real village, only calmer.",
+            )}
           </p>
 
           {hasStats ? (
             <ul
               className="mx-auto mt-8 flex flex-wrap justify-center gap-x-8 gap-y-2 text-sm text-soil"
-              aria-label="Какво те очаква в селото"
+              aria-label={translate(
+                locale,
+                "Какво те очаква в селото",
+                "What awaits you in the village",
+              )}
             >
               <SnapshotLine
                 value={snapshot.farmerCount}
-                label={
+                label={translate(
+                  locale,
                   snapshot.farmerCount === 1
                     ? "ферма споделя днес"
-                    : "ферми споделят днес"
-                }
+                    : "ферми споделят днес",
+                  snapshot.farmerCount === 1
+                    ? "farm is sharing today"
+                    : "farms are sharing today",
+                )}
               />
               <SnapshotLine
                 value={snapshot.filmCount}
-                label={
-                  snapshot.filmCount === 1
-                    ? "полски филм"
-                    : "полски филма"
-                }
+                label={translate(
+                  locale,
+                  snapshot.filmCount === 1 ? "полски филм" : "полски филма",
+                  snapshot.filmCount === 1 ? "field film" : "field films",
+                )}
               />
               <SnapshotLine
                 value={snapshot.momentCount}
-                label={
+                label={translate(
+                  locale,
                   snapshot.momentCount === 1
                     ? "сезонен момент"
-                    : "сезонни момента"
-                }
+                    : "сезонни момента",
+                  snapshot.momentCount === 1
+                    ? "seasonal moment"
+                    : "seasonal moments",
+                )}
               />
             </ul>
           ) : null}
 
           <div className="action-row mt-10 justify-center">
             <ButtonLink href="#village-path" variant="primary">
-              Започни разходката
+              {translate(locale, "Започни разходката", "Start the walk")}
             </ButtonLink>
             <ButtonLink href="#field-theatre" variant="quiet">
-              Гледай от полето
+              {translate(locale, "Гледай от полето", "Watch from the field")}
             </ButtonLink>
           </div>
         </div>

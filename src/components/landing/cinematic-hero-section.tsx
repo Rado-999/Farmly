@@ -1,8 +1,11 @@
 import { HeroScrollCue } from "@/components/landing/hero-scroll-cue";
 import { HeroStaticBackground } from "@/components/landing/hero-static-background";
-import { heroCopy } from "@/lib/landing/narrative";
+import type { Locale } from "@/lib/i18n/config";
+import { getHeroCopy } from "@/lib/landing/narrative";
 
-export function CinematicHeroSection() {
+export function CinematicHeroSection({ locale }: { locale: Locale }) {
+  const heroCopy = getHeroCopy(locale);
+
   return (
     <section
       data-landing-hero

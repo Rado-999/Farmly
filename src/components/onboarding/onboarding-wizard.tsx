@@ -5,11 +5,13 @@ import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import { useLocale } from "@/components/i18n/language-provider";
 import { OnboardingShell } from "@/components/onboarding/onboarding-shell";
 import { ProfileSkeleton } from "@/components/profile/profile-skeleton";
 import { PROFILE_PATH } from "@/lib/auth/constants";
 import { getProfileDisplayName } from "@/lib/auth/profile";
 import type { Result } from "@/lib/errors/result";
+import { translate } from "@/lib/i18n/translate";
 import {
   clampOnboardingStep,
   getOnboardingStepCount,
@@ -89,6 +91,7 @@ function StepLoadingFallback() {
 
 export function OnboardingWizard({ initialProfile }: OnboardingWizardProps) {
   const router = useRouter();
+  const { locale } = useLocale();
   const [profile, setProfile] = useState<OnboardingProfile | null>(initialProfile);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -118,11 +121,11 @@ export function OnboardingWizard({ initialProfile }: OnboardingWizardProps) {
     );
   }
 
-  const steps = getOnboardingSteps(profile.role);
-  const totalSteps = getOnboardingStepCount(profile.role);
+  const steps = getOnboardingSteps(profile.role, locale);
+  const totalSteps = getOnboardingStepCount(profile.role, locale);
   const currentStep = buyerFinishMode
     ? totalSteps
-    : clampOnboardingStep(profile.role, profile.onboardingStep);
+    : clampOnboardingStep(profile.role, profile.onboardingStep, locale);
   const stepMeta =
     steps.find((step) => step.id === currentStep) ?? steps[0]!;
 
@@ -133,7 +136,13 @@ export function OnboardingWizard({ initialProfile }: OnboardingWizardProps) {
     const supabase = await loadSupabaseClient();
 
     if (!supabase) {
-      setError("Удостоверяването все още не е конфигурирано.");
+      setError(
+        translate(
+          locale,
+          "Удостоверяването все още не е конфигурирано.",
+          "Authentication is not configured yet.",
+        ),
+      );
       return;
     }
 
@@ -145,7 +154,14 @@ export function OnboardingWizard({ initialProfile }: OnboardingWizardProps) {
     setIsSaving(false);
 
     if (!result.ok) {
-      setError(result.error.message ?? "Нещо се обърка. Моля, опитайте отново.");
+      setError(
+        result.error.message ??
+          translate(
+            locale,
+            "Нещо се обърка. Моля, опитайте отново.",
+            "Something went wrong. Please try again.",
+          ),
+      );
       return;
     }
 
@@ -182,6 +198,7 @@ export function OnboardingWizard({ initialProfile }: OnboardingWizardProps) {
           displayName={getProfileDisplayName({
             profileName: activeProfile.name,
             email: activeProfile.email,
+            locale,
           })}
           error={error}
           isLoading={isSaving}
@@ -216,7 +233,13 @@ export function OnboardingWizard({ initialProfile }: OnboardingWizardProps) {
             isLoading={isSaving}
             onContinue={(values) => {
               if (!values.name.trim()) {
-                setError("Моля, въведете името си.");
+                setError(
+                  translate(
+                    locale,
+                    "Моля, въведете името си.",
+                    "Please enter your name.",
+                  ),
+                );
                 return;
               }
 
@@ -242,11 +265,19 @@ export function OnboardingWizard({ initialProfile }: OnboardingWizardProps) {
             isLoading={isSaving}
             onBack={() => goToStep(1)}
             continueLabel={
-              activeProfile.role === "buyer" ? "Завърши настройката" : undefined
+              activeProfile.role === "buyer"
+                ? translate(locale, "Завърши настройката", "Finish setup")
+                : undefined
             }
             onContinue={(values) => {
               if (!values.city.trim() || !values.region.trim()) {
-                setError("Моля, добавете град и област.");
+                setError(
+                  translate(
+                    locale,
+                    "Моля, добавете град и област.",
+                    "Please add a town and region.",
+                  ),
+                );
                 return;
               }
 
@@ -285,7 +316,13 @@ export function OnboardingWizard({ initialProfile }: OnboardingWizardProps) {
                 !values.story.trim() ||
                 !values.philosophy.trim()
               ) {
-                setError("Моля, попълнете биото, историята и философията си.");
+                setError(
+                  translate(
+                    locale,
+                    "Моля, попълнете биото, историята и философията си.",
+                    "Please fill in your bio, story, and philosophy.",
+                  ),
+                );
                 return;
               }
 
@@ -358,10 +395,18 @@ export function OnboardingWizard({ initialProfile }: OnboardingWizardProps) {
       <OnboardingShell
         step={currentStep}
         totalSteps={totalSteps}
-        title={buyerFinishMode ? "Почти сте готови" : stepMeta.title}
+        title={
+          buyerFinishMode
+            ? translate(locale, "Почти сте готови", "You are almost ready")
+            : stepMeta.title
+        }
         subtitle={
           buyerFinishMode
-            ? "Прегледайте основните си данни и започнете да откривате Farmly."
+            ? translate(
+                locale,
+                "Прегледайте основните си данни и започнете да откривате Farmly.",
+                "Review your basics and start discovering Farmly.",
+              )
             : stepMeta.subtitle
         }
         onSkip={() => setShowSkipModal(true)}

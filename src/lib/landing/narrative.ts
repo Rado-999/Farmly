@@ -1,5 +1,8 @@
 /** Emotional beats — FEEL → TRUST → COMMERCE. Not a conversion funnel. */
 
+import type { Locale } from "@/lib/i18n/config";
+import { translate } from "@/lib/i18n/translate";
+
 export type AtmosphereChapter = {
   id: string;
   kicker: string;
@@ -23,44 +26,83 @@ export type SoundscapeIdea = {
   when: string;
 };
 
-export const heroCopy = {
-  whisper: "Преди зората",
-  headline: "Тук храната помни ръцете, които я отглеждат.",
-  subline:
-    "Не магазин. Не приложение. Сутрешна мъгла, дървена врата, куче, което тича напред — и човек, който те посреща без бързане.",
-} as const;
+export function getHeroCopy(locale: Locale) {
+  return {
+    whisper: translate(locale, "Преди зората", "Before sunrise"),
+    headline: translate(
+      locale,
+      "Тук храната помни ръцете, които я отглеждат.",
+      "Food remembers the hands that grow it here.",
+    ),
+    subline: translate(
+      locale,
+      "Не магазин. Не приложение. Сутрешна мъгла, дървена врата, куче, което тича напред — и човек, който те посреща без бързане.",
+      "Not a store. Not an app. Morning fog, a wooden gate, a dog running ahead, and a person who greets you without rushing.",
+    ),
+  } as const;
+}
 
-export const atmosphereChapters: AtmosphereChapter[] = [
-  {
-    id: "morning-fog",
-    kicker: "Сутрешна мъгла",
-    title: "Полето се събужда преди нас.",
-    body: "Вятърът носи миризма на влажна почва. Слънце, което още не е решило дали да излезе. Това е началото — не на покупка, а на присъствие.",
-    caption: "Несъвършена светлина. Истински ръце. Сезон, който почти можеш да помиришеш.",
-    imageKey: "morningFog",
-    align: "right",
-    tone: "mist",
-  },
-  {
-    id: "hands-soil",
-    kicker: "Ръце в земята",
-    title: "Доверието започва там, където пръстите докосват почвата.",
-    body: "Не сертификат. Не етикет. Времето по кожата, кал по ботушите, същите редове през пролет и жътва — доказателство, което не може да се фалшифицира.",
-    imageKey: "handsSoil",
-    align: "left",
-    tone: "dawn",
-  },
-  {
-    id: "village-calm",
-    kicker: "Селска тишина",
-    title: "Куче по пътя. Старо дърво. Оранжерия, която диша.",
-    body: "Селото не се представя. То просто е там — бавно, топло, истинско. Farmly е начин да влезеш внутри, без да развалиш спокойствието.",
-    caption: "Вятър в листата. Далечен лай. Момент, който не иска нищо от теб.",
-    imageKey: "greenhouse",
-    align: "right",
-    tone: "mist",
-  },
-];
+export function getAtmosphereChapters(locale: Locale): AtmosphereChapter[] {
+  return [
+    {
+      id: "morning-fog",
+      kicker: translate(locale, "Сутрешна мъгла", "Morning fog"),
+      title: translate(locale, "Полето се събужда преди нас.", "The field wakes before we do."),
+      body: translate(
+        locale,
+        "Вятърът носи миризма на влажна почва. Слънце, което още не е решило дали да излезе. Това е началото — не на покупка, а на присъствие.",
+        "The wind carries the smell of wet soil. Sunlight that still has not decided whether to appear. This is the beginning of presence, not a purchase.",
+      ),
+      caption: translate(
+        locale,
+        "Несъвършена светлина. Истински ръце. Сезон, който почти можеш да помиришеш.",
+        "Imperfect light. Real hands. A season you can almost smell.",
+      ),
+      imageKey: "morningFog",
+      align: "right",
+      tone: "mist",
+    },
+    {
+      id: "hands-soil",
+      kicker: translate(locale, "Ръце в земята", "Hands in the soil"),
+      title: translate(
+        locale,
+        "Доверието започва там, където пръстите докосват почвата.",
+        "Trust begins where fingers touch the soil.",
+      ),
+      body: translate(
+        locale,
+        "Не сертификат. Не етикет. Времето по кожата, кал по ботушите, същите редове през пролет и жътва — доказателство, което не може да се фалшифицира.",
+        "Not a certificate. Not a label. Time on the skin, mud on the boots, the same rows through spring and harvest. Proof that cannot be faked.",
+      ),
+      imageKey: "handsSoil",
+      align: "left",
+      tone: "dawn",
+    },
+    {
+      id: "village-calm",
+      kicker: translate(locale, "Селска тишина", "Village quiet"),
+      title: translate(
+        locale,
+        "Куче по пътя. Старо дърво. Оранжерия, която диша.",
+        "A dog on the road. An old tree. A greenhouse that breathes.",
+      ),
+      body: translate(
+        locale,
+        "Селото не се представя. То просто е там — бавно, топло, истинско. Farmly е начин да влезеш внутри, без да развалиш спокойствието.",
+        "The village does not introduce itself. It is simply there: slow, warm, real. Farmly is a way to step inside without disturbing the calm.",
+      ),
+      caption: translate(
+        locale,
+        "Вятър в листата. Далечен лай. Момент, който не иска нищо от теб.",
+        "Wind in the leaves. A distant bark. A moment that asks nothing from you.",
+      ),
+      imageKey: "greenhouse",
+      align: "right",
+      tone: "mist",
+    },
+  ];
+}
 
 /** Future hero background videos — drop files at paths in visuals.ts */
 export const heroVideoIdeas: HeroVideoIdea[] = [

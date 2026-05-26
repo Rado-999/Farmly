@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { DiscoverFeedMode } from "@/components/discover/discover-feed-mode";
 import { DiscoverPage } from "@/components/discover/discover-page";
 import { getOptionalServerViewerContext } from "@/lib/auth/server";
+import { getServerLocale } from "@/lib/i18n/server";
+import { translate } from "@/lib/i18n/translate";
 import {
   buildVillageSnapshot,
   getDiscoverVillageData,
@@ -19,13 +21,21 @@ const emptyDiscoverData = {
   snapshot: buildVillageSnapshot([], [], [], []),
 };
 
-export const metadata: Metadata = {
-  title: "Farmly | Разходка из селото",
-  description:
-    "Спокойна дигитална провинция — ферми, полски филми, сезонни моменти и истински хора. Без каталог, с любопитство.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getServerLocale();
+
+  return {
+    title: translate(locale, "Farmly | Разходка из селото", "Farmly | A walk through the village"),
+    description: translate(
+      locale,
+      "Спокойна дигитална провинция — ферми, полски филми, сезонни моменти и истински хора. Без каталог, с любопитство.",
+      "A calm digital countryside with farms, field films, seasonal moments, and real people. No catalog, just curiosity.",
+    ),
+  };
+}
 
 export default async function DiscoverRoute() {
+  const locale = await getServerLocale();
   const viewerContext = await getOptionalServerViewerContext();
 
   if (viewerContext) {
@@ -44,11 +54,11 @@ export default async function DiscoverRoute() {
       throw new Error(feedResult.error.message);
     }
 
-    return <DiscoverFeedMode initialData={feedResult.data} />;
+      return <DiscoverFeedMode initialData={feedResult.data} />;
   }
 
   if (!getSupabasePublicEnv()) {
-    return <DiscoverPage {...emptyDiscoverData} />;
+    return <DiscoverPage locale={locale} {...emptyDiscoverData} />;
   }
 
   const result = await getDiscoverVillageData();
@@ -62,6 +72,7 @@ export default async function DiscoverRoute() {
 
   return (
     <DiscoverPage
+      locale={locale}
       farmers={farmers}
       moments={moments}
       films={films}

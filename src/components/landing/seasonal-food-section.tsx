@@ -3,25 +3,36 @@ import Link from "next/link";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageSection } from "@/components/ui/page-section";
 import { RevealOnScroll } from "@/components/ui/reveal-on-scroll";
+import type { Locale } from "@/lib/i18n/config";
+import { translate } from "@/lib/i18n/translate";
 import type { SeasonalProduct } from "@/lib/landing/types";
 
 type SeasonalFoodSectionProps = {
+  locale: Locale;
   products: SeasonalProduct[];
 };
 
-export function SeasonalFoodSection({ products }: SeasonalFoodSectionProps) {
+export function SeasonalFoodSection({
+  products,
+  locale,
+}: SeasonalFoodSectionProps) {
   return (
     <PageSection id="seasonal-food" tone="earth" spacing="default">
       <div className="page-shell-wide">
         <RevealOnScroll>
           <div className="stack-relaxed">
-            <p className="type-kicker">Какво земята предлага сега</p>
+            <p className="type-kicker">
+              {translate(locale, "Какво земята предлага сега", "What the land offers now")}
+            </p>
             <h2 className="type-chapter max-w-2xl text-loam-900">
-              Жътвата е момент, не каталог.
+              {translate(locale, "Жътвата е момент, не каталог.", "Harvest is a moment, not a catalog.")}
             </h2>
             <p className="max-w-lg text-base leading-8 text-stone-700/90 sm:text-lg sm:leading-9">
-              Всяко име по-долу е нещо узряло днес — бележка прехвърлена през
-              оградата, не артикул в количка.
+              {translate(
+                locale,
+                "Всяко име по-долу е нещо узряло днес — бележка прехвърлена през оградата, не артикул в количка.",
+                "Each name below is something ripe today, a note passed over the fence, not an item in a cart.",
+              )}
             </p>
           </div>
         </RevealOnScroll>
@@ -29,8 +40,12 @@ export function SeasonalFoodSection({ products }: SeasonalFoodSectionProps) {
         {products.length === 0 ? (
           <RevealOnScroll className="content-after-head block">
             <EmptyState
-              title="Полетата са тихи засега"
-              description="Когато производителите споделят какво е готово, ще го прочетете тук — без натиск за покупка."
+              title={translate(locale, "Полетата са тихи засега", "The fields are quiet for now")}
+              description={translate(
+                locale,
+                "Когато производителите споделят какво е готово, ще го прочетете тук — без натиск за покупка.",
+                "When growers share what is ready, you will find it here without pressure to buy.",
+              )}
             />
           </RevealOnScroll>
         ) : (
@@ -60,7 +75,7 @@ export function SeasonalFoodSection({ products }: SeasonalFoodSectionProps) {
                         {product.name}
                       </h3>
                       <p className="text-sm text-soil">
-                        Отглеждано от{" "}
+                        {translate(locale, "Отглеждано от ", "Grown by ")}
                         {farmerHref ? (
                           <Link
                             href={farmerHref}
@@ -81,7 +96,7 @@ export function SeasonalFoodSection({ products }: SeasonalFoodSectionProps) {
                   </div>
                   {productHref ? (
                     <Link href={productHref} className="story-link hidden shrink-0 sm:inline-flex">
-                      Виж от къде идва
+                      {translate(locale, "Виж от къде идва", "See where it comes from")}
                     </Link>
                   ) : null}
                 </>

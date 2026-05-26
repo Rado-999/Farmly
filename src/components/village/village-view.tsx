@@ -7,13 +7,16 @@ import { PageSection } from "@/components/ui/page-section";
 import { RevealOnScroll } from "@/components/ui/reveal-on-scroll";
 import { RevealStagger } from "@/components/ui/reveal-stagger";
 import { StoryHeading } from "@/components/ui/story-heading";
+import type { Locale } from "@/lib/i18n/config";
+import { translate } from "@/lib/i18n/translate";
 import type { VillagePageData } from "@/lib/village/load-village";
 
 type VillageViewProps = {
   initialData: VillagePageData;
+  locale: Locale;
 };
 
-export function VillageView({ initialData }: VillageViewProps) {
+export function VillageView({ initialData, locale }: VillageViewProps) {
   const data = initialData;
   const hasRelationships = data.hasFollows || data.hasSavedOnly;
 
@@ -23,9 +26,17 @@ export function VillageView({ initialData }: VillageViewProps) {
         <div className="page-shell-wide">
           <RevealOnScroll>
             <StoryHeading
-              kicker="Моето село"
-              title="Твоето спокойно място в мрежата."
-              description="Кратък обиколка — ферми, които познаваш, сезонни бележки и срещи наблизо. Без безкраен скрол."
+              kicker={translate(locale, "Моето село", "My village")}
+              title={translate(
+                locale,
+                "Твоето спокойно място в мрежата.",
+                "Your calm place on the web.",
+              )}
+              description={translate(
+                locale,
+                "Кратък обиколка — ферми, които познаваш, сезонни бележки и срещи наблизо. Без безкраен скрол.",
+                "A short loop of farms you know, seasonal notes, and nearby gatherings. No endless scroll.",
+              )}
             />
           </RevealOnScroll>
         </div>
@@ -36,12 +47,16 @@ export function VillageView({ initialData }: VillageViewProps) {
           <div className="page-shell">
             <RevealOnScroll>
               <EmptyState
-                title="Селото ти е все още тихо"
-                description="Запази или следи ферма, когато срещнеш някой, на когото искаш да се връщаш — без натиск и без количка."
+                title={translate(locale, "Селото ти е все още тихо", "Your village is still quiet")}
+                description={translate(
+                  locale,
+                  "Запази или следи ферма, когато срещнеш някой, на когото искаш да се връщаш — без натиск и без количка.",
+                  "Save or follow a farm when you meet someone you want to return to, without pressure and without a cart.",
+                )}
               />
               <p className="mt-6 text-center">
                 <Link href="/farmers" className="story-link text-base">
-                  Запознай се с фермерите
+                  {translate(locale, "Запознай се с фермерите", "Meet the farmers")}
                 </Link>
               </p>
             </RevealOnScroll>
@@ -54,9 +69,13 @@ export function VillageView({ initialData }: VillageViewProps) {
               <div className="page-shell-wide">
                 <RevealOnScroll>
                   <StoryHeading
-                    kicker="Откакто не беше тук"
-                    title="Докато не беше тук"
-                    description="Нови бележки от фермите, които следиш."
+                    kicker={translate(locale, "Откакто не беше тук", "Since you were away")}
+                    title={translate(locale, "Докато не беше тук", "While you were away")}
+                    description={translate(
+                      locale,
+                      "Нови бележки от фермите, които следиш.",
+                      "New notes from the farms you follow.",
+                    )}
                     size="chapter"
                   />
                 </RevealOnScroll>
@@ -72,8 +91,12 @@ export function VillageView({ initialData }: VillageViewProps) {
               <div className="page-shell-wide">
                 <RevealOnScroll>
                   <StoryHeading
-                    kicker="От твоите ферми"
-                    title="Хората, чийто сезон следиш"
+                    kicker={translate(locale, "От твоите ферми", "From your farms")}
+                    title={translate(
+                      locale,
+                      "Хората, чийто сезон следиш",
+                      "The people whose seasons you follow",
+                    )}
                     size="chapter"
                   />
                 </RevealOnScroll>
@@ -89,9 +112,17 @@ export function VillageView({ initialData }: VillageViewProps) {
               <div className="page-shell">
                 <RevealOnScroll>
                   <StoryHeading
-                    kicker="Запазени ферми"
-                    title="На които искаш да се върнеш"
-                    description="Без известия — само врата, оставена отворена."
+                    kicker={translate(locale, "Запазени ферми", "Saved farms")}
+                    title={translate(
+                      locale,
+                      "На които искаш да се върнеш",
+                      "The ones you want to return to",
+                    )}
+                    description={translate(
+                      locale,
+                      "Без известия — само врата, оставена отворена.",
+                      "No notifications, just a door left open.",
+                    )}
                     size="chapter"
                   />
                 </RevealOnScroll>
@@ -106,7 +137,7 @@ export function VillageView({ initialData }: VillageViewProps) {
                       imageUrl={farmer.image}
                       gradientFrom={farmer.gradientFrom}
                       gradientTo={farmer.gradientTo}
-                      linkLabel="Отвори фермата"
+                      linkLabel={translate(locale, "Отвори фермата", "Open farm")}
                       surface="white"
                     />
                   ))}
@@ -120,9 +151,17 @@ export function VillageView({ initialData }: VillageViewProps) {
               <div className="page-shell-wide">
                 <RevealOnScroll>
                   <StoryHeading
-                    kicker="Сезон при теб"
-                    title="Какво земята предлага сега"
-                    description="От фермите, които държиш близо."
+                    kicker={translate(locale, "Сезон при теб", "Season near you")}
+                    title={translate(
+                      locale,
+                      "Какво земята предлага сега",
+                      "What the land offers now",
+                    )}
+                    description={translate(
+                      locale,
+                      "От фермите, които държиш близо.",
+                      "From the farms you keep close.",
+                    )}
                     size="chapter"
                   />
                 </RevealOnScroll>
@@ -138,8 +177,8 @@ export function VillageView({ initialData }: VillageViewProps) {
               <div className="page-shell-wide">
                 <RevealOnScroll>
                   <StoryHeading
-                    kicker="Срещи наблизо"
-                    title="Общност в твоя край"
+                    kicker={translate(locale, "Срещи наблизо", "Nearby gatherings")}
+                    title={translate(locale, "Общност в твоя край", "Community close to you")}
                     size="chapter"
                   />
                 </RevealOnScroll>
@@ -156,17 +195,23 @@ export function VillageView({ initialData }: VillageViewProps) {
                 <div className="rounded-sm border border-stone-300/40 bg-cream/60 px-6 py-8 text-center sm:px-8">
                   {data.hasAnyContent ? (
                     <p className="mx-auto max-w-xl text-base leading-8 text-stone-700/90">
-                      Още няма нищо ново. Ела пак следващата седмица.
+                      {translate(
+                        locale,
+                        "Още няма нищо ново. Ела пак следващата седмица.",
+                        "There is nothing new yet. Come back next week.",
+                      )}
                     </p>
                   ) : (
                     <>
                       <p className="text-[0.8125rem] font-medium uppercase tracking-[0.12em] text-soil">
-                        Тихо е в селото
+                        {translate(locale, "Тихо е в селото", "It is quiet in the village")}
                       </p>
                       <p className="mx-auto mt-3 max-w-xl text-base leading-8 text-stone-700/90">
-                        Когато фермерите, които следиш, споделят нещо ново, ще
-                        го видиш тук. Още няма нищо ново. Ела пак следващата
-                        седмица.
+                        {translate(
+                          locale,
+                          "Когато фермерите, които следиш, споделят нещо ново, ще го видиш тук. Още няма нищо ново. Ела пак следващата седмица.",
+                          "When the farmers you follow share something new, you will see it here. There is nothing new yet. Come back next week.",
+                        )}
                       </p>
                     </>
                   )}

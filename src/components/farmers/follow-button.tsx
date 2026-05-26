@@ -2,8 +2,10 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+import { useLocale } from "@/components/i18n/language-provider";
 import { useFarmerRelationship } from "@/components/farmers/farmer-relationship-provider";
 import { useAuthSession } from "@/lib/auth/use-auth-session";
+import { translate } from "@/lib/i18n/translate";
 import {
   deleteFollow,
   insertFollow,
@@ -32,6 +34,7 @@ export function FollowButton({
   followingLabel = "Следиш този сезон",
   followedVia = "profile",
 }: FollowButtonProps) {
+  const { locale } = useLocale();
   const auth = useAuthSession();
   const sharedRelationship = useFarmerRelationship(farmerProfileId);
   const [isFollowing, setIsFollowing] = useState(false);
@@ -136,7 +139,13 @@ export function FollowButton({
             setIsFollowing(false);
           }
         } else {
-          setNotice("Ще те посрещнем в Моето село, когато има нещо от полето.");
+          setNotice(
+            translate(
+              locale,
+              "Ще те посрещнем в Моето село, когато има нещо от полето.",
+              "We will meet you in My village when there is something new from the field.",
+            ),
+          );
         }
       } else {
         const { error } = await deleteFollow(
@@ -164,7 +173,9 @@ export function FollowButton({
     return null;
   }
 
-  const label = resolvedIsFollowing ? followingLabel : followLabel;
+  const label = resolvedIsFollowing
+    ? translate(locale, followingLabel, "Following this season")
+    : translate(locale, followLabel, "Follow this season");
 
   const sizeClassName =
     size === "compact"
@@ -183,8 +194,16 @@ export function FollowButton({
         aria-busy={isPending}
         aria-label={
           resolvedIsFollowing
-            ? `Спри да следваш фермата на ${farmerName}`
-            : `Следи сезона на ${farmerName}`
+            ? translate(
+                locale,
+                `Спри да следваш фермата на ${farmerName}`,
+                `Stop following ${farmerName}'s farm`,
+              )
+            : translate(
+                locale,
+                `Следи сезона на ${farmerName}`,
+                `Follow ${farmerName}'s season`,
+              )
         }
         className={`inline-flex items-center justify-center rounded-full border font-medium transition-[background-color,border-color,color,box-shadow] duration-500 ease-[var(--ease-organic)] disabled:opacity-60 ${sizeClassName} ${
           resolvedIsFollowing

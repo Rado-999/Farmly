@@ -7,17 +7,28 @@ import { RevealOnScroll } from "@/components/ui/reveal-on-scroll";
 import { RevealStagger } from "@/components/ui/reveal-stagger";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { listFarmers } from "@/lib/farmers/queries";
+import { getServerLocale } from "@/lib/i18n/server";
+import { translate } from "@/lib/i18n/translate";
 import { getSupabasePublicEnv } from "@/lib/supabase/env";
 
 export const revalidate = 60;
 
-export const metadata: Metadata = {
-  title: "Farmly | Фермери",
-  description:
-    "Отворете профил, за да следвате полски бележки, видеа и историята зад всяка жътва.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getServerLocale();
+
+  return {
+    title: translate(locale, "Farmly | Фермери", "Farmly | Farmers"),
+    description: translate(
+      locale,
+      "Отворете профил, за да следвате полски бележки, видеа и историята зад всяка жътва.",
+      "Open a profile to follow field notes, videos, and the story behind every harvest.",
+    ),
+  };
+}
 
 export default async function FarmersPage() {
+  const locale = await getServerLocale();
+
   if (!getSupabasePublicEnv()) {
     return (
       <main className="flex-1 bg-cream">
@@ -26,16 +37,28 @@ export default async function FarmersPage() {
             <RevealOnScroll>
               <SectionHeading
                 align="left"
-                eyebrow="Farmers"
-                title="Meet the growers behind the season"
-                description="Open a profile to follow field notes, videos, and the story behind each harvest."
+                eyebrow={translate(locale, "Фермери", "Farmers")}
+                title={translate(
+                  locale,
+                  "Запознай се с хората зад сезона",
+                  "Meet the growers behind the season",
+                )}
+                description={translate(
+                  locale,
+                  "Отворете профил, за да следвате полски бележки, видеа и историята зад всяка жътва.",
+                  "Open a profile to follow field notes, videos, and the story behind each harvest.",
+                )}
               />
             </RevealOnScroll>
 
             <RevealOnScroll className="content-after-head block">
               <EmptyState
-                title="No farmer profiles yet"
-                description="Grower profiles will appear here once they are added in Supabase."
+                title={translate(locale, "Все още няма фермерски профили", "No farmer profiles yet")}
+                description={translate(
+                  locale,
+                  "Фермерските профили ще се появят тук, след като бъдат добавени в Supabase.",
+                  "Grower profiles will appear here once they are added in Supabase.",
+                )}
               />
             </RevealOnScroll>
           </div>
@@ -59,17 +82,29 @@ export default async function FarmersPage() {
           <RevealOnScroll>
             <SectionHeading
               align="left"
-              eyebrow="Farmers"
-              title="Meet the growers behind the season"
-              description="Open a profile to follow field notes, videos, and the story behind each harvest."
+              eyebrow={translate(locale, "Фермери", "Farmers")}
+              title={translate(
+                locale,
+                "Запознай се с хората зад сезона",
+                "Meet the growers behind the season",
+              )}
+              description={translate(
+                locale,
+                "Отворете профил, за да следвате полски бележки, видеа и историята зад всяка жътва.",
+                "Open a profile to follow field notes, videos, and the story behind each harvest.",
+              )}
             />
           </RevealOnScroll>
 
           {farmers.length === 0 ? (
             <RevealOnScroll className="content-after-head block">
               <EmptyState
-                title="No farmer profiles yet"
-                description="Grower profiles will appear here once they are added in Supabase."
+                title={translate(locale, "Все още няма фермерски профили", "No farmer profiles yet")}
+                description={translate(
+                  locale,
+                  "Фермерските профили ще се появят тук, след като бъдат добавени в Supabase.",
+                  "Grower profiles will appear here once they are added in Supabase.",
+                )}
               />
             </RevealOnScroll>
           ) : (
@@ -84,7 +119,7 @@ export default async function FarmersPage() {
                 imageUrl={farmer.profileImage.imageUrl}
                 gradientFrom={farmer.profileImage.gradientFrom}
                 gradientTo={farmer.profileImage.gradientTo}
-                linkLabel="View profile"
+                linkLabel={translate(locale, "Виж профила", "View profile")}
                 surface="white"
               />
             ))}

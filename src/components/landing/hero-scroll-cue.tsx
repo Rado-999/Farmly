@@ -2,9 +2,13 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+import { useLocale } from "@/components/i18n/language-provider";
+import { translate } from "@/lib/i18n/translate";
+
 const SCROLL_TARGET_ID = "morning-fog";
 
 export function HeroScrollCue() {
+  const { locale } = useLocale();
   const [visible, setVisible] = useState(true);
 
   useEffect(() => {
@@ -50,10 +54,16 @@ export function HeroScrollCue() {
     <button
       type="button"
       onClick={scrollToContent}
-      aria-label="Превъртете до следващата секция"
+      aria-label={translate(
+        locale,
+        "Превъртете до следващата секция",
+        "Scroll to the next section",
+      )}
       className="absolute bottom-7 left-1/2 z-10 hidden -translate-x-1/2 cursor-pointer flex-col items-center gap-1.5 text-mist/45 transition-colors duration-300 hover:text-mist/75 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-mist/60 sm:flex"
     >
-      <span className="text-[0.625rem] tracking-[0.22em] uppercase">Надолу</span>
+      <span className="text-[0.625rem] tracking-[0.22em] uppercase">
+        {translate(locale, "Надолу", "Down")}
+      </span>
       <span
         aria-hidden
         className="h-8 w-px bg-gradient-to-b from-mist/55 to-forest-deep/80"

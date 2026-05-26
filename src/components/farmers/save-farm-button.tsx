@@ -2,7 +2,9 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+import { useLocale } from "@/components/i18n/language-provider";
 import { useAuthSession } from "@/lib/auth/use-auth-session";
+import { translate } from "@/lib/i18n/translate";
 import {
   addGuestSavedFarmerId,
   deleteSavedFarm,
@@ -24,6 +26,7 @@ export function SaveFarmButton({
   farmerName,
   className = "",
 }: SaveFarmButtonProps) {
+  const { locale } = useLocale();
   const auth = useAuthSession();
   const [isSaved, setIsSaved] = useState(false);
   const [isPending, setIsPending] = useState(false);
@@ -91,7 +94,13 @@ export function SaveFarmButton({
       const next = !isSaved;
       if (next) {
         addGuestSavedFarmerId(farmerProfileId);
-        setNotice("Фермата е запазена. Влез, за да я държиш в селото си.");
+        setNotice(
+          translate(
+            locale,
+            "Фермата е запазена. Влез, за да я държиш в селото си.",
+            "The farm is saved. Sign in to keep it in your village.",
+          ),
+        );
       } else {
         removeGuestSavedFarmerId(farmerProfileId);
       }
@@ -118,7 +127,13 @@ export function SaveFarmButton({
         if (error) {
           setIsSaved(false);
         } else {
-          setNotice("Фермата е в личния ти списък.");
+          setNotice(
+            translate(
+              locale,
+              "Фермата е в личния ти списък.",
+              "The farm is in your personal list.",
+            ),
+          );
         }
       } else {
         const { error } = await deleteSavedFarm(
@@ -139,7 +154,9 @@ export function SaveFarmButton({
     return null;
   }
 
-  const label = isSaved ? "Запазена" : "Запази фермата";
+  const label = isSaved
+    ? translate(locale, "Запазена", "Saved")
+    : translate(locale, "Запази фермата", "Save farm");
 
   return (
     <div className={`flex flex-col items-start gap-2 ${className}`}>
@@ -151,8 +168,16 @@ export function SaveFarmButton({
         aria-busy={isPending}
         aria-label={
           isSaved
-            ? `Премахни ${farmerName} от запазени`
-            : `Запази фермата на ${farmerName}`
+            ? translate(
+                locale,
+                `Премахни ${farmerName} от запазени`,
+                `Remove ${farmerName} from saved farms`,
+              )
+            : translate(
+                locale,
+                `Запази фермата на ${farmerName}`,
+                `Save ${farmerName}'s farm`,
+              )
         }
         className="inline-flex items-center justify-center rounded-full border border-stone-400/35 bg-white/80 px-4 py-2 text-sm font-medium text-soil transition-[background-color,border-color,color] duration-500 ease-[var(--ease-organic)] hover:border-forest/30 hover:bg-white hover:text-forest-deep disabled:opacity-60"
       >

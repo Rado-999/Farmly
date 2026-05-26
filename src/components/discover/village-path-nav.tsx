@@ -1,14 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-const pathStops = [
-  { id: "village-ring", label: "Срещи" },
-  { id: "village-path", label: "Пътека" },
-  { id: "neighbourhoods", label: "Квартали" },
-] as const;
+import { useLocale } from "@/components/i18n/language-provider";
+import { translate } from "@/lib/i18n/translate";
 
 export function VillagePathNav() {
+  const { locale } = useLocale();
+  const pathStops = useMemo(
+    () =>
+      [
+        { id: "village-ring", label: translate(locale, "Срещи", "Encounters") },
+        { id: "village-path", label: translate(locale, "Пътека", "Path") },
+        {
+          id: "neighbourhoods",
+          label: translate(locale, "Квартали", "Neighbourhoods"),
+        },
+      ] as const,
+    [locale],
+  );
   const [activeId, setActiveId] = useState<string>(pathStops[0].id);
 
   useEffect(() => {
@@ -38,11 +48,11 @@ export function VillagePathNav() {
     }
 
     return () => observer.disconnect();
-  }, []);
+  }, [pathStops]);
 
   return (
     <nav
-      aria-label="Път из селото"
+      aria-label={translate(locale, "Път из селото", "Path through the village")}
       className="sticky top-[var(--site-header-height)] z-20 border-b border-stone-400/25 bg-cream/85 backdrop-blur-md"
     >
       <div className="page-shell-wide flex gap-1 overflow-x-auto py-3 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">

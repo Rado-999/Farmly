@@ -1,3 +1,8 @@
+"use client";
+
+import { useLocale } from "@/components/i18n/language-provider";
+import { translate } from "@/lib/i18n/translate";
+
 type SkipWarningModalProps = {
   isOpen: boolean;
   isLoading?: boolean;
@@ -11,6 +16,8 @@ export function SkipWarningModal({
   onCancel,
   onConfirm,
 }: SkipWarningModalProps) {
+  const { locale } = useLocale();
+
   if (!isOpen) {
     return null;
   }
@@ -29,17 +36,24 @@ export function SkipWarningModal({
         onClick={(event) => event.stopPropagation()}
       >
         <p className="text-sm font-medium uppercase tracking-[0.2em] text-forest">
-          Преди да тръгнете
+          {translate(locale, "Преди да тръгнете", "Before you go")}
         </p>
         <h2
           id="skip-onboarding-title"
           className="mt-2 text-xl font-semibold text-stone-900"
         >
-          Да пропуснете настройката на профила?
+          {translate(
+            locale,
+            "Да пропуснете настройката на профила?",
+            "Skip profile setup?",
+          )}
         </h2>
         <p className="mt-3 text-sm leading-6 text-stone-600">
-          Профилът ви няма да е напълно видим за другите и това може да намали
-          доверието. Винаги можете да довършите по-късно от акаунта си.
+          {translate(
+            locale,
+            "Профилът ви няма да е напълно видим за другите и това може да намали доверието. Винаги можете да довършите по-късно от акаунта си.",
+            "Your profile will not be fully visible to others and that can reduce trust. You can always finish later from your account.",
+          )}
         </p>
 
         <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
@@ -49,7 +63,7 @@ export function SkipWarningModal({
             disabled={isLoading}
             className="inline-flex justify-center rounded-full border border-stone-300/90 bg-white px-5 py-2.5 text-sm font-medium text-stone-800 transition-colors hover:border-forest/35 hover:text-forest disabled:opacity-60"
           >
-            Продължи
+            {translate(locale, "Продължи", "Continue")}
           </button>
           <button
             type="button"
@@ -57,7 +71,9 @@ export function SkipWarningModal({
             disabled={isLoading}
             className="inline-flex justify-center rounded-full bg-stone-900 px-5 py-2.5 text-sm font-medium text-white transition-opacity hover:bg-stone-800 disabled:opacity-60"
           >
-            {isLoading ? "Пропускане..." : "Пропусни засега"}
+            {isLoading
+              ? translate(locale, "Пропускане...", "Skipping...")
+              : translate(locale, "Пропусни засега", "Skip for now")}
           </button>
         </div>
       </div>

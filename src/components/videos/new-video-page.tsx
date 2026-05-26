@@ -5,8 +5,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
+import { useLocale } from "@/components/i18n/language-provider";
 import { VideoDropzone } from "@/components/videos/video-dropzone";
 import { PROFILE_PATH } from "@/lib/auth/constants";
+import { translate } from "@/lib/i18n/translate";
 import type { FarmerProductAccess } from "@/lib/products/types";
 import type { ProductListItem } from "@/lib/products/types";
 import { formatDurationSeconds } from "@/lib/videos/format-duration";
@@ -23,7 +25,7 @@ const VideoUploadForm = dynamic(
       (module) => module.VideoUploadForm,
     ),
   {
-    loading: () => <p className="text-sm text-stone-500">Зареждане на формата...</p>,
+    loading: () => null,
   },
 );
 
@@ -36,6 +38,7 @@ const INITIAL_VALUES: VideoFormValues = {
 
 export function NewVideoForm({ access }: { access: FarmerProductAccess }) {
   const router = useRouter();
+  const { locale } = useLocale();
   const previewRef = useRef<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -131,7 +134,13 @@ export function NewVideoForm({ access }: { access: FarmerProductAccess }) {
       setPosterBlob(null);
       setDurationSeconds(null);
       previewRef.current = null;
-      setError("Не успяхме да обработим видеото. Опитайте с друг файл.");
+      setError(
+        translate(
+          locale,
+          "Не успяхме да обработим видеото. Опитайте с друг файл.",
+          "We could not process the video. Try another file.",
+        ),
+      );
     } finally {
       setIsProcessing(false);
     }
@@ -153,14 +162,26 @@ export function NewVideoForm({ access }: { access: FarmerProductAccess }) {
 
   async function handlePublish() {
     if (!file || !posterBlob || durationSeconds === null) {
-      setError("Първо изберете видео файл.");
+      setError(
+        translate(
+          locale,
+          "Първо изберете видео файл.",
+          "Choose a video file first.",
+        ),
+      );
       return;
     }
 
     const supabase = await loadSupabaseClient();
 
     if (!supabase) {
-      setError("Няма връзка със сървъра. Опитайте отново.");
+      setError(
+        translate(
+          locale,
+          "Няма връзка със сървъра. Опитайте отново.",
+          "No connection to the server. Please try again.",
+        ),
+      );
       return;
     }
 
@@ -191,21 +212,24 @@ export function NewVideoForm({ access }: { access: FarmerProductAccess }) {
   const durationLabel =
     durationSeconds !== null
       ? formatDurationSeconds(durationSeconds)
-      : "—";
+      : translate(locale, "—", "—");
 
   return (
     <div className="page-shell max-w-2xl page-y">
       <div className="stack-relaxed">
         <div className="stack-tight">
           <p className="text-sm font-medium uppercase tracking-[0.24em] text-forest">
-            Видео
+            {translate(locale, "Видео", "Video")}
           </p>
           <h1 className="text-3xl font-semibold tracking-tight text-stone-900">
-            Качи видео
+            {translate(locale, "Качи видео", "Upload video")}
           </h1>
           <p className="text-sm leading-6 text-stone-600">
-            Споделете как отглеждате — купувачите виждат историята зад всяка
-            кошница.
+            {translate(
+              locale,
+              "Споделете как отглеждате — купувачите виждат историята зад всяка кошница.",
+              "Share how you grow. Buyers can see the story behind every basket.",
+            )}
           </p>
         </div>
 
@@ -229,7 +253,9 @@ export function NewVideoForm({ access }: { access: FarmerProductAccess }) {
               </div>
 
               {isProcessing ? (
-                <p className="text-sm text-stone-500">Обработване на видеото...</p>
+                <p className="text-sm text-stone-500">
+                  {translate(locale, "Обработване на видеото...", "Processing video...")}
+                </p>
               ) : (
                 <VideoUploadForm
                   values={values}
@@ -248,7 +274,7 @@ export function NewVideoForm({ access }: { access: FarmerProductAccess }) {
                   disabled={isPublishing || isProcessing}
                   className="cursor-pointer rounded-full border border-stone-300/90 px-4 py-2 text-sm font-medium text-stone-800 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  Избери друго видео
+                  {translate(locale, "Избери друго видео", "Choose another video")}
                 </button>
                 <button
                   type="button"
@@ -256,7 +282,9 @@ export function NewVideoForm({ access }: { access: FarmerProductAccess }) {
                   disabled={isPublishing || isProcessing || !posterBlob}
                   className="cursor-pointer rounded-full bg-forest px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#324a2f] disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {isPublishing ? "Качване..." : "Публикувай видео"}
+                  {isPublishing
+                    ? translate(locale, "Качване...", "Uploading...")
+                    : translate(locale, "Публикувай видео", "Publish video")}
                 </button>
               </div>
             </div>
@@ -272,7 +300,7 @@ export function NewVideoForm({ access }: { access: FarmerProductAccess }) {
             href={PROFILE_PATH}
             className="inline-flex text-sm font-medium text-forest hover:underline"
           >
-            Към профила
+            {translate(locale, "Към профила", "Back to profile")}
           </Link>
         </div>
       </div>

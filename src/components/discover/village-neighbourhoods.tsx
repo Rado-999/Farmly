@@ -8,30 +8,42 @@ import { RevealStagger } from "@/components/ui/reveal-stagger";
 import { StoryHeading } from "@/components/ui/story-heading";
 import { getProfileInitials } from "@/lib/auth/profile";
 import type { VillageNeighbourhood } from "@/lib/discover/types";
+import type { Locale } from "@/lib/i18n/config";
+import { translate } from "@/lib/i18n/translate";
 
 type VillageNeighbourhoodsProps = {
+  locale: Locale;
   neighbourhoods: VillageNeighbourhood[];
 };
 
 export function VillageNeighbourhoods({
   neighbourhoods,
+  locale,
 }: VillageNeighbourhoodsProps) {
   return (
     <PageSection id="neighbourhoods" tone="mist" spacing="default">
       <div className="page-shell-wide">
         <RevealOnScroll>
           <StoryHeading
-            kicker="Квартали по селото"
-            title="Следвай местата, не категориите."
-            description="Всяка местност събира свои ферми — различен ритъм, различен сезон, същото спокойствие."
+            kicker={translate(locale, "Квартали по селото", "Neighbourhoods in the village")}
+            title={translate(locale, "Следвай местата, не категориите.", "Follow places, not categories.")}
+            description={translate(
+              locale,
+              "Всяка местност събира свои ферми — различен ритъм, различен сезон, същото спокойствие.",
+              "Each area gathers its own farms with a different rhythm, a different season, and the same calm.",
+            )}
           />
         </RevealOnScroll>
 
         {neighbourhoods.length === 0 ? (
           <RevealOnScroll className="content-after-head block">
             <EmptyState
-              title="Картата се оформя"
-              description="С производителите идат и местата — постепенно, с истински имена."
+              title={translate(locale, "Картата се оформя", "The map is taking shape")}
+              description={translate(
+                locale,
+                "С производителите идат и местата — постепенно, с истински имена.",
+                "As growers arrive, places do too: gradually and with real names.",
+              )}
             />
           </RevealOnScroll>
         ) : (

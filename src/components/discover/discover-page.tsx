@@ -5,6 +5,7 @@ import { VillagePathNav } from "@/components/discover/village-path-nav";
 import { VillageRing } from "@/components/discover/village-ring";
 import { VillageWander } from "@/components/discover/village-wander";
 import { buildVillageFeed } from "@/lib/discover/feed";
+import type { Locale } from "@/lib/i18n/config";
 import type {
   VillageFarmer,
   VillageFilm,
@@ -15,6 +16,7 @@ import type {
 } from "@/lib/discover/types";
 
 type DiscoverPageProps = {
+  locale: Locale;
   farmers: VillageFarmer[];
   moments: VillageMoment[];
   films: VillageFilm[];
@@ -24,6 +26,7 @@ type DiscoverPageProps = {
 };
 
 export function DiscoverPage({
+  locale,
   farmers,
   moments,
   films,
@@ -35,12 +38,12 @@ export function DiscoverPage({
 
   return (
     <main className="flex-1 bg-cream">
-      <VillageEntrance snapshot={snapshot} />
+      <VillageEntrance locale={locale} snapshot={snapshot} />
       <VillagePathNav />
-      <VillageRing farmers={farmers} />
-      <VillageFeed items={feedItems} />
-      <VillageNeighbourhoods neighbourhoods={neighbourhoods} />
-      <VillageWander farmers={farmers} />
+      <VillageRing farmers={farmers} locale={locale} />
+      <VillageFeed items={feedItems} locale={locale} />
+      <VillageNeighbourhoods neighbourhoods={neighbourhoods} locale={locale} />
+      <VillageWander farmers={farmers} locale={locale} />
     </main>
   );
 }

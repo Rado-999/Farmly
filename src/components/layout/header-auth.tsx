@@ -3,9 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { useLocale } from "@/components/i18n/language-provider";
 import { ProfileImage } from "@/components/ui/profile-image";
 import { PROFILE_PATH } from "@/lib/auth/constants";
 import { getProfileInitials } from "@/lib/auth/profile";
+import { translate } from "@/lib/i18n/translate";
 import type { LayoutViewer } from "@/lib/auth/viewer";
 
 const loginLinkClassName =
@@ -51,6 +53,7 @@ function ProfileAvatar({
 
 export function HeaderAuth({ viewer }: { viewer: LayoutViewer }) {
   const pathname = usePathname();
+  const { locale } = useLocale();
 
   if (viewer.status === "authenticated") {
     const displayName = viewer.displayName;
@@ -70,7 +73,7 @@ export function HeaderAuth({ viewer }: { viewer: LayoutViewer }) {
               isFarmerPageActive ? "border-forest/35 bg-white text-forest" : ""
             }`}
           >
-            Моята ферма
+            {translate(locale, "Моята ферма", "My farm")}
           </Link>
         ) : null}
 
@@ -80,14 +83,18 @@ export function HeaderAuth({ viewer }: { viewer: LayoutViewer }) {
           className={`${navActionClassName} ${
             isProfileActive ? "border-forest/35 bg-white text-forest" : ""
           }`}
-          title={`Влезли сте като ${displayName}`}
+          title={translate(
+            locale,
+            `Влезли сте като ${displayName}`,
+            `Signed in as ${displayName}`,
+          )}
         >
           <ProfileAvatar
             label={displayName}
             initials={initials}
             avatarUrl={viewer.avatarUrl}
           />
-          <span>Профил</span>
+          <span>{translate(locale, "Профил", "Profile")}</span>
         </Link>
       </div>
     );
@@ -96,10 +103,10 @@ export function HeaderAuth({ viewer }: { viewer: LayoutViewer }) {
   return (
     <>
       <Link href="/login" className={loginLinkClassName}>
-        Вход
+        {translate(locale, "Вход", "Log in")}
       </Link>
       <Link href="/signup" className={joinLinkClassName}>
-        Регистрация
+        {translate(locale, "Регистрация", "Sign up")}
       </Link>
     </>
   );

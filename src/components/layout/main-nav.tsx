@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { useLocale } from "@/components/i18n/language-provider";
 import { VILLAGE_PATH } from "@/lib/auth/constants";
-import { mainNavLinks } from "@/lib/site-navigation";
+import { getMainNavLinks } from "@/lib/site-navigation";
+import { translate } from "@/lib/i18n/translate";
 
 const navLinkClassName =
   "px-1 py-1 text-sm font-medium text-stone-700/90 transition-colors duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:text-forest";
@@ -20,10 +22,14 @@ export function MainNav({
   isAuthenticated = false,
 }: MainNavProps) {
   const pathname = usePathname();
-  const links = [...mainNavLinks];
+  const { locale } = useLocale();
+  const links = [...getMainNavLinks(locale)];
 
   if (isAuthenticated) {
-    links.push({ href: VILLAGE_PATH, label: "Моето село" });
+    links.push({
+      href: VILLAGE_PATH,
+      label: translate(locale, "Моето село", "My village"),
+    });
   }
 
   const linkClass =

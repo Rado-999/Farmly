@@ -1,19 +1,28 @@
+import type { Locale } from "@/lib/i18n/config";
+import { translate } from "@/lib/i18n/translate";
+
 export type SiteNavLink = {
   href: string;
   label: string;
 };
 
-export const mainNavLinks: SiteNavLink[] = [
-  { href: "/discover", label: "Открий" },
-  { href: "/farmers", label: "Фермери" },
-];
+export function getMainNavLinks(locale: Locale): SiteNavLink[] {
+  return [
+    { href: "/discover", label: translate(locale, "Открий", "Discover") },
+    { href: "/farmers", label: translate(locale, "Фермери", "Farmers") },
+  ];
+}
 
-export const footerExploreLinks: SiteNavLink[] = [
-  { href: "/discover", label: "Открий" },
-  { href: "/farmers", label: "Фермери" },
-];
+export function getFooterExploreLinks(locale: Locale): SiteNavLink[] {
+  return [
+    { href: "/discover", label: translate(locale, "Открий", "Discover") },
+    { href: "/farmers", label: translate(locale, "Фермери", "Farmers") },
+  ];
+}
 
-export const footerAccountLinks: SiteNavLink[] = [
-  { href: "/login", label: "Вход" },
-  { href: "/signup", label: "Регистрация" },
-];
+export function getFooterAccountLinks(locale: Locale): SiteNavLink[] {
+  return [
+    { href: "/login", label: translate(locale, "Вход", "Log in") },
+    { href: "/signup", label: translate(locale, "Регистрация", "Sign up") },
+  ];
+}

@@ -7,7 +7,9 @@ import { type FormEvent, useState } from "react";
 import { AuthButton } from "@/components/auth/auth-button";
 import { AuthCard } from "@/components/auth/auth-card";
 import { AuthInput } from "@/components/auth/auth-input";
+import { useLocale } from "@/components/i18n/language-provider";
 import type { AuthFieldErrors, SignupFormValues } from "@/lib/auth/types";
+import { translate } from "@/lib/i18n/translate";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { loadSupabaseClient } from "@/lib/supabase/load-client";
 
@@ -19,6 +21,7 @@ const initialValues: SignupFormValues = {
 
 export function SignupForm() {
   const router = useRouter();
+  const { locale } = useLocale();
   const [values, setValues] = useState(initialValues);
   const [fieldErrors, setFieldErrors] =
     useState<AuthFieldErrors<keyof SignupFormValues>>({});
@@ -32,7 +35,7 @@ export function SignupForm() {
     setSuccessMessage(null);
 
     const { validateSignupForm } = await import("@/lib/auth/validation");
-    const nextFieldErrors = validateSignupForm(values);
+    const nextFieldErrors = validateSignupForm(values, locale);
     setFieldErrors(nextFieldErrors);
 
     if (Object.keys(nextFieldErrors).length > 0) {
@@ -40,21 +43,33 @@ export function SignupForm() {
     }
 
     if (!isSupabaseConfigured()) {
-      setFormError("Удостоверяването все още не е конфигурирано.");
+      setFormError(
+        translate(
+          locale,
+          "Удостоверяването все още не е конфигурирано.",
+          "Authentication is not configured yet.",
+        ),
+      );
       return;
     }
 
     const supabase = await loadSupabaseClient();
 
     if (!supabase) {
-      setFormError("Удостоверяването все още не е конфигурирано.");
+      setFormError(
+        translate(
+          locale,
+          "Удостоверяването все още не е конфигурирано.",
+          "Authentication is not configured yet.",
+        ),
+      );
       return;
     }
 
     setIsLoading(true);
 
     const { completeSignup } = await import("@/lib/auth/complete-signup");
-    const result = await completeSignup(supabase, values);
+    const result = await completeSignup(supabase, values, locale);
 
     setIsLoading(false);
 
@@ -70,20 +85,28 @@ export function SignupForm() {
     }
 
     setSuccessMessage(
-      "Акаунтът ви е готов. Проверете имейла си за потвърждение, след което влезте.",
+      translate(
+        locale,
+        "Акаунтът ви е готов. Проверете имейла си за потвърждение, след което влезте.",
+        "Your account is ready. Check your email for confirmation, then sign in.",
+      ),
     );
     setValues(initialValues);
   }
 
   return (
     <AuthCard
-      title="Присъединете се към Farmly"
-      message="Запознайте се с хората зад храната си и изградете доверие сезон след сезон."
+      title={translate(locale, "Присъединете се към Farmly", "Join Farmly")}
+      message={translate(
+        locale,
+        "Запознайте се с хората зад храната си и изградете доверие сезон след сезон.",
+        "Meet the people behind your food and build trust season after season.",
+      )}
       footer={
         <>
-          Вече имате акаунт?{" "}
+          {translate(locale, "Вече имате акаунт? ", "Already have an account? ")}
           <Link href="/login" className="text-link">
-            Вход
+            {translate(locale, "Вход", "Log in")}
           </Link>
         </>
       }
@@ -91,7 +114,7 @@ export function SignupForm() {
       <form className="space-y-5" onSubmit={handleSubmit} noValidate>
         <AuthInput
           id="signup-full-name"
-          label="Пълно име"
+          label={translate(locale, "Пълно име", "Full name")}
           type="text"
           autoComplete="name"
           value={values.fullName}
@@ -106,7 +129,7 @@ export function SignupForm() {
 
         <AuthInput
           id="signup-email"
-          label="Имейл"
+          label={translate(locale, "Имейл", "Email")}
           type="email"
           autoComplete="email"
           value={values.email}
@@ -118,7 +141,7 @@ export function SignupForm() {
 
         <AuthInput
           id="signup-password"
-          label="Парола"
+          label={translate(locale, "Парола", "Password")}
           type="password"
           autoComplete="new-password"
           value={values.password}
@@ -132,8 +155,11 @@ export function SignupForm() {
         />
 
         <p className="rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm leading-6 text-stone-600">
-          Всеки нов акаунт започва като купувач. Ако по-късно искате да публикувате
-          като фермер, можете да активирате фермерски профил от акаунта си.
+          {translate(
+            locale,
+            "Всеки нов акаунт започва като купувач. Ако по-късно искате да публикувате като фермер, можете да активирате фермерски профил от акаунта си.",
+            "Every new account starts as a buyer. If you want to publish as a farmer later, you can enable a farmer profile from your account.",
+          )}
         </p>
 
         {formError ? (
@@ -154,8 +180,11 @@ export function SignupForm() {
           </p>
         ) : null}
 
-        <AuthButton isLoading={isLoading} loadingLabel="Създаване на акаунт">
-          Създай акаунт
+        <AuthButton
+          isLoading={isLoading}
+          loadingLabel={translate(locale, "Създаване на акаунт", "Creating account")}
+        >
+          {translate(locale, "Създай акаунт", "Create account")}
         </AuthButton>
       </form>
     </AuthCard>

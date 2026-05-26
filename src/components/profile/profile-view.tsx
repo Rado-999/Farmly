@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 
+import { useLocale } from "@/components/i18n/language-provider";
 import { BecomeFarmerButton } from "@/components/profile/become-farmer-button";
 import { IncompleteProfileBanner } from "@/components/profile/incomplete-profile-banner";
 import { ProfileSkeleton } from "@/components/profile/profile-skeleton";
@@ -15,6 +16,8 @@ import {
   isFarmerUser,
 } from "@/lib/auth/profile";
 import { formatLocation } from "@/lib/data/formatters";
+import { getLocaleDateFormat } from "@/lib/i18n/config";
+import { translate } from "@/lib/i18n/translate";
 import { fetchOnboardingProfile } from "@/lib/onboarding/state";
 import type { OnboardingProfile } from "@/lib/onboarding/types";
 import { loadSupabaseClient } from "@/lib/supabase/load-client";
@@ -43,7 +46,10 @@ const FarmerProductsList = dynamic(
   { loading: () => <p className="text-sm text-stone-500">Зареждане на продукти...</p> },
 );
 
-function formatMemberSince(createdAt: string | null): string | null {
+function formatMemberSince(
+  createdAt: string | null,
+  locale: "bg" | "en",
+): string | null {
   if (!createdAt) {
     return null;
   }
@@ -54,7 +60,7 @@ function formatMemberSince(createdAt: string | null): string | null {
     return null;
   }
 
-  return new Intl.DateTimeFormat("bg-BG", {
+  return new Intl.DateTimeFormat(getLocaleDateFormat(locale), {
     month: "long",
     year: "numeric",
   }).format(date);
@@ -87,6 +93,7 @@ export function ProfileView({
   sessionMetadataName,
 }: ProfileViewProps) {
   const router = useRouter();
+  const { locale } = useLocale();
   const [profile, setProfile] = useState<OnboardingProfile | null>(initialProfile);
   const [isProfileLoading, setIsProfileLoading] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
@@ -135,9 +142,13 @@ export function ProfileView({
     profileName: profile?.name,
     metadataName: sessionMetadataName,
     email: profile?.email ?? sessionEmail,
+    locale,
   });
-  const email = profile?.email ?? sessionEmail ?? "Няма информация";
-  const memberSince = formatMemberSince(profile?.createdAt ?? null);
+  const email =
+    profile?.email ??
+    sessionEmail ??
+    translate(locale, "Няма информация", "No information");
+  const memberSince = formatMemberSince(profile?.createdAt ?? null, locale);
   const isFarmer = profile ? isFarmerUser(profile) : false;
   const farmerSlug = profile?.farmerProfile?.slug;
   const showIncompleteBanner = profile && !profile.isProfileComplete;
@@ -164,18 +175,20 @@ export function ProfileView({
 
           <div className="stack-tight">
             <p className="text-sm font-medium uppercase tracking-[0.24em] text-forest">
-              Вашият акаунт
+              {translate(locale, "Вашият акаунт", "Your account")}
             </p>
             <h1 className="text-3xl font-semibold tracking-tight text-stone-900 sm:text-4xl">
               {displayName}
             </h1>
             <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
               <p className="inline-flex rounded-full border border-forest/15 bg-forest/8 px-3 py-1 text-sm font-medium text-forest">
-                {isFarmer ? "Купувач и фермер" : "Купувач"}
+                {isFarmer
+                  ? translate(locale, "Купувач и фермер", "Buyer and farmer")
+                  : translate(locale, "Купувач", "Buyer")}
               </p>
               {!profile?.isProfileComplete ? (
                 <p className="inline-flex rounded-full border border-amber-300/80 bg-amber-50 px-3 py-1 text-sm font-medium text-amber-900">
-                  Непълен профил
+                  {translate(locale, "Непълен профил", "Incomplete profile")}
                 </p>
               ) : null}
             </div>
@@ -186,10 +199,14 @@ export function ProfileView({
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <h2 className="text-lg font-semibold text-stone-900">
-                Данни за акаунта
+                {translate(locale, "Данни за акаунта", "Account details")}
               </h2>
               <p className="mt-1 text-sm text-stone-600">
-                Една самоличност за разглеждане и отглеждане в Farmly.
+                {translate(
+                  locale,
+                  "Една самоличност за разглеждане и отглеждане в Farmly.",
+                  "One identity for browsing and growing on Farmly.",
+                )}
               </p>
             </div>
             {profile ? (
@@ -198,26 +215,49 @@ export function ProfileView({
                 onClick={() => setIsEditOpen(true)}
                 className="inline-flex shrink-0 justify-center rounded-full border border-stone-300/90 bg-white px-4 py-2 text-sm font-medium text-stone-800 transition-[background-color,border-color,color] duration-300 hover:border-forest/35 hover:text-forest"
               >
-                Редактирай профила
+                {translate(locale, "Редактирай профила", "Edit profile")}
               </button>
             ) : null}
           </div>
 
           <dl className="mt-6">
-            <AccountDetail label="Име" value={displayName} />
-            <AccountDetail label="Имейл" value={email} />
+            <AccountDetail
+              label={translate(locale, "Име", "Name")}
+              value={displayName}
+            />
+            <AccountDetail
+              label={translate(locale, "Имейл", "Email")}
+              value={email}
+            />
             {location ? (
-              <AccountDetail label="Местоположение" value={location} />
+              <AccountDetail
+                label={translate(locale, "Местоположение", "Location")}
+                value={location}
+              />
             ) : null}
             <AccountDetail
-              label="Членство"
-              value={isFarmer ? "Купувач с фермерски профил" : "Купувач"}
+              label={translate(locale, "Членство", "Membership")}
+              value={
+                isFarmer
+                  ? translate(
+                      locale,
+                      "Купувач с фермерски профил",
+                      "Buyer with farmer profile",
+                    )
+                  : translate(locale, "Купувач", "Buyer")
+              }
             />
             {profile?.role ? (
-              <AccountDetail label="Роля" value={formatUserRole(profile.role)} />
+              <AccountDetail
+                label={translate(locale, "Роля", "Role")}
+                value={formatUserRole(profile.role, locale)}
+              />
             ) : null}
             {memberSince ? (
-              <AccountDetail label="Член от" value={memberSince} />
+              <AccountDetail
+                label={translate(locale, "Член от", "Member since")}
+                value={memberSince}
+              />
             ) : null}
           </dl>
         </section>
@@ -226,11 +266,14 @@ export function ProfileView({
           <>
             <section className="rounded-[1.75rem] border border-forest/15 bg-forest/5 p-6 sm:p-8">
               <h2 className="text-lg font-semibold text-stone-900">
-                Фермерски профил
+                {translate(locale, "Фермерски профил", "Farmer profile")}
               </h2>
               <p className="mt-2 text-sm leading-6 text-stone-600">
-                Публичната ви страница е активна. Можете да разглеждате и купувате
-                като купувач със същия акаунт.
+                {translate(
+                  locale,
+                  "Публичната ви страница е активна. Можете да разглеждате и купувате като купувач със същия акаунт.",
+                  "Your public page is active. You can still browse and buy as a buyer with the same account.",
+                )}
               </p>
               <div className="mt-5 flex flex-wrap gap-3">
                 {profile?.isProfileComplete ? (
@@ -238,18 +281,22 @@ export function ProfileView({
                     href="/farmer/products/new"
                     className="inline-flex rounded-full bg-forest px-5 py-2.5 text-sm font-medium text-white transition-[background-color] duration-300 hover:bg-[#324a2f]"
                   >
-                    Добави продукт
+                    {translate(locale, "Добави продукт", "Add product")}
                   </Link>
                 ) : (
                   <p className="text-sm text-amber-900">
-                    Попълнете профила си, за да добавяте продукти.
+                    {translate(
+                      locale,
+                      "Попълнете профила си, за да добавяте продукти.",
+                      "Complete your profile to add products.",
+                    )}
                   </p>
                 )}
                 <Link
                   href={`/farmers/${farmerSlug}`}
                   className="inline-flex rounded-full border border-forest/25 bg-white/80 px-5 py-2.5 text-sm font-medium text-forest transition-[background-color,border-color] duration-300 hover:bg-white"
                 >
-                  Виж публичната страница
+                  {translate(locale, "Виж публичната страница", "View public page")}
                 </Link>
               </div>
             </section>
@@ -260,10 +307,14 @@ export function ProfileView({
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div>
                       <h2 className="text-lg font-semibold text-stone-900">
-                        Моите видеа
+                        {translate(locale, "Моите видеа", "My videos")}
                       </h2>
                       <p className="mt-1 text-sm text-stone-600">
-                        Полски истории, които изграждат доверие във вашия профил.
+                        {translate(
+                          locale,
+                          "Полски истории, които изграждат доверие във вашия профил.",
+                          "Field stories that build trust in your profile.",
+                        )}
                       </p>
                     </div>
                     {profile?.isProfileComplete ? (
@@ -271,7 +322,7 @@ export function ProfileView({
                         href="/farmer/videos/new"
                         className="inline-flex shrink-0 justify-center rounded-full bg-forest px-5 py-2.5 text-sm font-medium text-white transition-[background-color] duration-300 hover:bg-[#324a2f]"
                       >
-                        Качи видео
+                        {translate(locale, "Качи видео", "Upload video")}
                       </Link>
                     ) : null}
                   </div>
@@ -285,10 +336,14 @@ export function ProfileView({
 
                 <section className="rounded-[1.75rem] border border-stone-200/80 bg-white/92 p-6 sm:p-8">
                   <h2 className="text-lg font-semibold text-stone-900">
-                    Моите продукти
+                    {translate(locale, "Моите продукти", "My products")}
                   </h2>
                   <p className="mt-1 text-sm text-stone-600">
-                    Чернови и публикувани сезонни продукти.
+                    {translate(
+                      locale,
+                      "Чернови и публикувани сезонни продукти.",
+                      "Draft and published seasonal products.",
+                    )}
                   </p>
                   <div className="mt-5">
                     <FarmerProductsList
@@ -302,10 +357,15 @@ export function ProfileView({
           </>
         ) : (
           <section className="rounded-[1.75rem] border border-dashed border-stone-200/90 bg-stone-50/80 p-6 sm:p-8">
-            <h2 className="text-lg font-semibold text-stone-900">Станете фермер</h2>
+            <h2 className="text-lg font-semibold text-stone-900">
+              {translate(locale, "Станете фермер", "Become a farmer")}
+            </h2>
             <p className="mt-2 text-sm leading-6 text-stone-600">
-              Споделете историята, продуктите и сезонните си новини без нов акаунт.
-              Запазвате пълен достъп като купувач.
+              {translate(
+                locale,
+                "Споделете историята, продуктите и сезонните си новини без нов акаунт. Запазвате пълен достъп като купувач.",
+                "Share your story, products, and seasonal updates without creating a new account. You keep full access as a buyer.",
+              )}
             </p>
             <div className="mt-5">
               <BecomeFarmerButton />
@@ -315,7 +375,8 @@ export function ProfileView({
 
         <div className="flex flex-col gap-3 border-t border-stone-200/80 pt-8 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-stone-600">
-            Влезли сте като <span className="font-medium text-stone-900">{email}</span>
+            {translate(locale, "Влезли сте като ", "Signed in as ")}
+            <span className="font-medium text-stone-900">{email}</span>
           </p>
 
           <div className="flex flex-wrap gap-3">
@@ -323,7 +384,7 @@ export function ProfileView({
               href="/discover"
               className="inline-flex rounded-full border border-stone-300/90 bg-white/85 px-4 py-2 text-sm font-medium text-stone-800 transition-[background-color,border-color,color] duration-300 hover:border-forest/35 hover:text-forest"
             >
-              Разгледай фермерите
+              {translate(locale, "Разгледай фермерите", "Browse farmers")}
             </Link>
             <button
               type="button"
@@ -331,7 +392,9 @@ export function ProfileView({
               disabled={isSigningOut}
               className="inline-flex rounded-full bg-stone-900 px-4 py-2 text-sm font-medium text-white transition-[background-color,opacity] duration-300 hover:bg-stone-800 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isSigningOut ? "Излизане..." : "Изход"}
+              {isSigningOut
+                ? translate(locale, "Излизане...", "Signing out...")
+                : translate(locale, "Изход", "Sign out")}
             </button>
           </div>
         </div>

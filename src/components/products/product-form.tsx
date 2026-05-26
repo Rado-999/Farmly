@@ -6,12 +6,14 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { AuthInput } from "@/components/auth/auth-input";
+import { useLocale } from "@/components/i18n/language-provider";
 import { FormSelect } from "@/components/ui/form-select";
 import { OnboardingTextarea } from "@/components/onboarding/onboarding-textarea";
 import {
   PRODUCT_CATEGORIES,
   PRODUCT_PRICE_UNITS,
 } from "@/lib/products/constants";
+import { translate } from "@/lib/i18n/translate";
 import { buildImageDraftsFromProduct } from "@/lib/products/image-drafts";
 import type { ProductImageDraft } from "@/lib/products/image-drafts";
 import type { FarmerProductAccess } from "@/lib/products/types";
@@ -25,11 +27,7 @@ const ProductImagePicker = dynamic(
       (module) => module.ProductImagePicker,
     ),
   {
-    loading: () => (
-      <div className="rounded-2xl border border-stone-200/80 bg-stone-50/80 px-6 py-8 text-center text-sm text-stone-500">
-        Зареждане на снимките...
-      </div>
-    ),
+    loading: () => null,
   },
 );
 
@@ -59,6 +57,7 @@ export function ProductForm({
   initialVideoIds = [],
 }: ProductFormProps) {
   const router = useRouter();
+  const { locale } = useLocale();
   const [values, setValues] = useState<ProductFormValues>(() => ({
     ...buildInitialValues(product),
     videoIds: initialVideoIds,
@@ -114,8 +113,11 @@ export function ProductForm({
   }, [access.farmerProfileId]);
 
   const pageTitle = useMemo(
-    () => (isEditing ? "Редактирай продукт" : "Добави продукт"),
-    [isEditing],
+    () =>
+      isEditing
+        ? translate(locale, "Редактирай продукт", "Edit product")
+        : translate(locale, "Добави продукт", "Add product"),
+    [isEditing, locale],
   );
 
   function updateValues(patch: Partial<ProductFormValues>) {
@@ -140,7 +142,13 @@ export function ProductForm({
     const supabase = await loadSupabaseClient();
 
     if (!supabase) {
-      setError("Няма връзка със сървъра. Опитайте отново.");
+      setError(
+        translate(
+          locale,
+          "Няма връзка със сървъра. Опитайте отново.",
+          "No connection to the server. Please try again.",
+        ),
+      );
       return;
     }
 
@@ -174,7 +182,7 @@ export function ProductForm({
       <div className="stack-relaxed">
         <div className="stack-tight">
           <p className="text-sm font-medium uppercase tracking-[0.24em] text-forest">
-            Продукт
+            {translate(locale, "Продукт", "Product")}
           </p>
           <h1 className="text-3xl font-semibold tracking-tight text-stone-900">
             {pageTitle}
@@ -188,7 +196,7 @@ export function ProductForm({
           <div className="stack">
             <AuthInput
               id="product-title"
-              label="Заглавие"
+              label={translate(locale, "Заглавие", "Title")}
               value={values.title}
               onChange={(event) => updateValues({ title: event.target.value })}
               required
@@ -197,7 +205,7 @@ export function ProductForm({
             <div className="grid gap-4 sm:grid-cols-2">
               <AuthInput
                 id="product-price"
-                label="Цена (€)"
+                label={translate(locale, "Цена (€)", "Price (€)")}
                 type="number"
                 min="0"
                 step="0.01"
@@ -207,7 +215,7 @@ export function ProductForm({
 
               <FormSelect
                 id="product-price-unit"
-                label="Мерна единица"
+                label={translate(locale, "Мерна единица", "Unit")}
                 value={values.priceUnit}
                 onChange={(event) =>
                   updateValues({
@@ -226,13 +234,15 @@ export function ProductForm({
 
             <FormSelect
               id="product-category"
-              label="Категория"
+              label={translate(locale, "Категория", "Category")}
               value={values.category}
               onChange={(event) =>
                 updateValues({ category: event.target.value })
               }
             >
-              <option value="">Изберете категория</option>
+              <option value="">
+                {translate(locale, "Изберете категория", "Choose a category")}
+              </option>
               {PRODUCT_CATEGORIES.map((category) => (
                 <option key={category.value} value={category.value}>
                   {category.label}
@@ -241,7 +251,9 @@ export function ProductForm({
             </FormSelect>
 
             <div>
-              <p className="mb-2 text-sm font-medium text-stone-700">Снимки</p>
+              <p className="mb-2 text-sm font-medium text-stone-700">
+                {translate(locale, "Снимки", "Images")}
+              </p>
               <ProductImagePicker
                 images={imageDrafts}
                 onChange={setImageDrafts}
@@ -250,33 +262,35 @@ export function ProductForm({
 
             <OnboardingTextarea
               id="product-description"
-              label="Описание (по избор)"
+              label={translate(locale, "Описание (по избор)", "Description (optional)")}
               value={values.description}
               onChange={(value) => updateValues({ description: value })}
             />
 
             <AuthInput
               id="product-season"
-              label="Сезон (по избор)"
+              label={translate(locale, "Сезон (по избор)", "Season (optional)")}
               value={values.season}
               onChange={(event) => updateValues({ season: event.target.value })}
-              placeholder="напр. пролет, лято"
+              placeholder={translate(locale, "напр. пролет, лято", "e.g. spring, summer")}
             />
 
             <div>
               <p className="text-sm font-medium text-stone-700">
-                Свързани видеа (по избор)
+                {translate(locale, "Свързани видеа (по избор)", "Related videos (optional)")}
               </p>
               {isLoadingVideos ? (
-                <p className="mt-2 text-sm text-stone-500">Зареждане...</p>
+                <p className="mt-2 text-sm text-stone-500">
+                  {translate(locale, "Зареждане...", "Loading...")}
+                </p>
               ) : videos.length === 0 ? (
                 <p className="mt-2 text-sm text-stone-500">
-                  Все още няма качени видеа.{" "}
+                  {translate(locale, "Все още няма качени видеа. ", "No videos have been uploaded yet. ")}
                   <Link
                     href="/farmer/videos/new"
                     className="font-medium text-forest hover:underline"
                   >
-                    Качете видео в профила си
+                    {translate(locale, "Качете видео в профила си", "Upload a video in your profile")}
                   </Link>
                   .
                 </p>
@@ -293,12 +307,13 @@ export function ProductForm({
                         />
                         <span>
                           <span className="block font-medium text-stone-900">
-                            {video.title ?? "Видео история"}
+                            {video.title ??
+                              translate(locale, "Видео история", "Video story")}
                           </span>
                           {video.product_id &&
                           video.product_id !== product?.id ? (
                             <span className="text-xs text-amber-800">
-                              Свързано с друг продукт
+                              {translate(locale, "Свързано с друг продукт", "Linked to another product")}
                             </span>
                           ) : null}
                         </span>
@@ -323,7 +338,9 @@ export function ProductForm({
               onClick={() => void handleSave("draft")}
               className="inline-flex cursor-pointer justify-center rounded-full border border-stone-300/90 bg-white px-5 py-2.5 text-sm font-medium text-stone-800 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isSaving ? "Запазване..." : "Запази като чернова"}
+              {isSaving
+                ? translate(locale, "Запазване...", "Saving...")
+                : translate(locale, "Запази като чернова", "Save as draft")}
             </button>
             <button
               type="button"
@@ -331,7 +348,9 @@ export function ProductForm({
               onClick={() => void handleSave("publish")}
               className="inline-flex cursor-pointer justify-center rounded-full bg-forest px-5 py-2.5 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isSaving ? "Публикуване..." : "Публикувай"}
+              {isSaving
+                ? translate(locale, "Публикуване...", "Publishing...")
+                : translate(locale, "Публикувай", "Publish")}
             </button>
           </div>
         </form>

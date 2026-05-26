@@ -1,6 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import type { UserRole } from "@/lib/auth/types";
+import type { Locale } from "@/lib/i18n/config";
+import { translate } from "@/lib/i18n/translate";
 
 export type FarmerProfileSummary = {
   id: string;
@@ -40,13 +42,13 @@ type ProfileRow = {
     | null;
 };
 
-export function formatUserRole(role: string): string {
+export function formatUserRole(role: string, locale: Locale = "bg"): string {
   if (role === "farmer") {
-    return "Фермер";
+    return translate(locale, "Фермер", "Farmer");
   }
 
   if (role === "buyer") {
-    return "Купувач";
+    return translate(locale, "Купувач", "Buyer");
   }
 
   return role.charAt(0).toUpperCase() + role.slice(1);
@@ -60,10 +62,12 @@ export function getProfileDisplayName({
   profileName,
   metadataName,
   email,
+  locale = "bg",
 }: {
   profileName?: string | null;
   metadataName?: string | null;
   email?: string | null;
+  locale?: Locale;
 }): string {
   const trimmedProfileName = profileName?.trim();
   if (trimmedProfileName) {
@@ -76,10 +80,13 @@ export function getProfileDisplayName({
   }
 
   if (email) {
-    return email.split("@")[0] ?? "Член на Farmly";
+    return (
+      email.split("@")[0] ??
+      translate(locale, "Член на Farmly", "Farmly member")
+    );
   }
 
-  return "Член на Farmly";
+  return translate(locale, "Член на Farmly", "Farmly member");
 }
 
 export function getProfileInitials(name: string): string {

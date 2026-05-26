@@ -3,11 +3,13 @@
 import { useState } from "react";
 
 import { AuthInput } from "@/components/auth/auth-input";
+import { useLocale } from "@/components/i18n/language-provider";
 import { formSelectClassName } from "@/components/ui/form-select";
 import { AvatarPhotoPicker } from "@/components/onboarding/avatar-photo-picker";
 import { CoverPhotoPicker } from "@/components/profile/cover-photo-picker";
 import { OnboardingTextarea } from "@/components/onboarding/onboarding-textarea";
 import { BULGARIA_REGIONS } from "@/lib/onboarding/regions";
+import { translate } from "@/lib/i18n/translate";
 import type { OnboardingProfile } from "@/lib/onboarding/types";
 import { loadSupabaseClient } from "@/lib/supabase/load-client";
 
@@ -24,6 +26,7 @@ export function ProfileEditForm({
   onSaved,
   onCancel,
 }: ProfileEditFormProps) {
+  const { locale } = useLocale();
   const [name, setName] = useState(profile.name ?? "");
   const [city, setCity] = useState(profile.city ?? "");
   const [region, setRegion] = useState(profile.region ?? "");
@@ -45,14 +48,26 @@ export function ProfileEditForm({
     setError(null);
 
     if (isAdjustingPhoto) {
-      setError('Натиснете „Използвай тази снимка“, преди да запазите.');
+      setError(
+        translate(
+          locale,
+          'Натиснете „Използвай тази снимка“, преди да запазите.',
+          'Press "Use this photo" before saving.',
+        ),
+      );
       return;
     }
 
     const supabase = await loadSupabaseClient();
 
     if (!supabase) {
-      setError("Не успяхме да се свържем. Опитайте отново.");
+      setError(
+        translate(
+          locale,
+          "Не успяхме да се свържем. Опитайте отново.",
+          "We could not connect. Please try again.",
+        ),
+      );
       return;
     }
 
@@ -105,19 +120,19 @@ export function ProfileEditForm({
 
       <AuthInput
         id="profile-edit-name"
-        label="Вашето име"
+        label={translate(locale, "Вашето име", "Your name")}
         value={name}
         onChange={(event) => setName(event.target.value)}
         autoComplete="name"
-        placeholder="Как да ви поздравим?"
+        placeholder={translate(locale, "Как да ви поздравим?", "How should we greet you?")}
       />
 
       <AuthInput
         id="profile-edit-city"
-        label="Град или село"
+        label={translate(locale, "Град или село", "Town or village")}
         value={city}
         onChange={(event) => setCity(event.target.value)}
-        placeholder="напр. Пловдив"
+        placeholder={translate(locale, "напр. Пловдив", "e.g. Plovdiv")}
       />
 
       <div className="space-y-2">
@@ -125,7 +140,7 @@ export function ProfileEditForm({
           htmlFor="profile-edit-region"
           className="block text-sm font-medium text-stone-700"
         >
-          Област в България
+          {translate(locale, "Област в България", "Region in Bulgaria")}
         </label>
         <select
           id="profile-edit-region"
@@ -133,7 +148,9 @@ export function ProfileEditForm({
           onChange={(event) => setRegion(event.target.value)}
           className={formSelectClassName}
         >
-          <option value="">Изберете област</option>
+          <option value="">
+            {translate(locale, "Изберете област", "Choose a region")}
+          </option>
           {BULGARIA_REGIONS.map((item) => (
             <option key={item} value={item}>
               {item}
@@ -149,28 +166,42 @@ export function ProfileEditForm({
             initialImageUrl={profile.farmerProfile?.coverImageUrl}
             onFileChange={setCoverFile}
           />
-          <p className="text-sm font-medium text-stone-700">Фермерска история</p>
+          <p className="text-sm font-medium text-stone-700">
+            {translate(locale, "Фермерска история", "Farmer story")}
+          </p>
           <OnboardingTextarea
             id="profile-edit-bio"
-            label="Кратко представяне на фермата"
+            label={translate(locale, "Кратко представяне на фермата", "Short farm introduction")}
             value={bio}
             onChange={setBio}
-            placeholder="Кратко представяне на фермата ви"
+            placeholder={translate(
+              locale,
+              "Кратко представяне на фермата ви",
+              "A short introduction to your farm",
+            )}
           />
           <OnboardingTextarea
             id="profile-edit-story"
-            label="Фермерска история"
+            label={translate(locale, "Фермерска история", "Farmer story")}
             value={story}
             onChange={setStory}
-            placeholder="Как започна фермата ви?"
+            placeholder={translate(
+              locale,
+              "Как започна фермата ви?",
+              "How did your farm begin?",
+            )}
             rows={4}
           />
           <OnboardingTextarea
             id="profile-edit-philosophy"
-            label="Философия"
+            label={translate(locale, "Философия", "Philosophy")}
             value={philosophy}
             onChange={setPhilosophy}
-            placeholder="Какви принципи насочват начина, по който отглеждате храна?"
+            placeholder={translate(
+              locale,
+              "Какви принципи насочват начина, по който отглеждате храна?",
+              "What principles guide the way you grow food?",
+            )}
           />
         </div>
       ) : null}
@@ -191,7 +222,7 @@ export function ProfileEditForm({
           disabled={isSaving}
           className="inline-flex justify-center rounded-full border border-stone-300/90 bg-white px-5 py-2.5 text-sm font-medium text-stone-800 transition-colors hover:border-forest/35 hover:text-forest disabled:opacity-60"
         >
-          Отказ
+          {translate(locale, "Отказ", "Cancel")}
         </button>
         <button
           type="button"
@@ -199,7 +230,9 @@ export function ProfileEditForm({
           disabled={isSaving || isAdjustingPhoto}
           className="inline-flex justify-center rounded-full bg-forest px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#324a2f] disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {isSaving ? "Запазване..." : "Запази промените"}
+          {isSaving
+            ? translate(locale, "Запазване...", "Saving...")
+            : translate(locale, "Запази промените", "Save changes")}
         </button>
       </div>
     </div>

@@ -1,9 +1,11 @@
 import Link from "next/link";
 
 import {
-  footerAccountLinks,
-  footerExploreLinks,
+  getFooterAccountLinks,
+  getFooterExploreLinks,
 } from "@/lib/site-navigation";
+import { getServerLocale } from "@/lib/i18n/server";
+import { translate } from "@/lib/i18n/translate";
 
 const footerLinkClassName =
   "text-sm text-stone-700/90 transition-colors duration-500 hover:text-forest";
@@ -33,7 +35,11 @@ function FooterLinkGroup({
   );
 }
 
-export function Footer() {
+export async function Footer() {
+  const locale = await getServerLocale();
+  const footerExploreLinks = getFooterExploreLinks(locale);
+  const footerAccountLinks = getFooterAccountLinks(locale);
+
   return (
     <footer className="mt-auto border-t border-stone-400/30 bg-[linear-gradient(180deg,#e0d8c8_0%,#e8e2d4_100%)]">
       <div className="page-shell-wide page-y">
@@ -46,13 +52,22 @@ export function Footer() {
               Farmly
             </Link>
             <p className="max-w-sm text-sm leading-7 text-stone-700/90">
-              Спокойна дигитална провинция — истински ферми, истински хора,
-              истински сезони. Създадено за принадлежност, преди покупката.
+              {translate(
+                locale,
+                "Спокойна дигитална провинция — истински ферми, истински хора, истински сезони. Създадено за принадлежност, преди покупката.",
+                "A calm digital countryside with real farms, real people, and real seasons. Built for belonging before the purchase.",
+              )}
             </p>
           </div>
 
-          <FooterLinkGroup title="Открий" links={footerExploreLinks} />
-          <FooterLinkGroup title="Акаунт" links={footerAccountLinks} />
+          <FooterLinkGroup
+            title={translate(locale, "Открий", "Explore")}
+            links={footerExploreLinks}
+          />
+          <FooterLinkGroup
+            title={translate(locale, "Акаунт", "Account")}
+            links={footerAccountLinks}
+          />
         </div>
 
         <div className="mt-10 border-t border-stone-400/25 pt-6 text-sm text-stone-600/80 lg:mt-12">

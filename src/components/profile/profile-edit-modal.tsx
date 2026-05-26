@@ -2,7 +2,9 @@
 
 import { useEffect } from "react";
 
+import { useLocale } from "@/components/i18n/language-provider";
 import { ProfileEditForm } from "@/components/profile/profile-edit-form";
+import { translate } from "@/lib/i18n/translate";
 import type { OnboardingProfile } from "@/lib/onboarding/types";
 
 type ProfileEditModalProps = {
@@ -20,6 +22,8 @@ export function ProfileEditModal({
   onClose,
   onSaved,
 }: ProfileEditModalProps) {
+  const { locale } = useLocale();
+
   useEffect(() => {
     if (!isOpen) {
       return;
@@ -66,19 +70,19 @@ export function ProfileEditModal({
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="text-sm font-medium uppercase tracking-[0.2em] text-forest">
-                Вашият акаунт
+                {translate(locale, "Вашият акаунт", "Your account")}
               </p>
               <h2
                 id="profile-edit-title"
                 className="mt-1 text-xl font-semibold text-stone-900"
               >
-                Редактирай профила
+                {translate(locale, "Редактирай профила", "Edit profile")}
               </h2>
             </div>
             <button
               type="button"
               onClick={onClose}
-              aria-label="Затвори"
+              aria-label={translate(locale, "Затвори", "Close")}
               className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-stone-200/90 bg-white text-stone-600 transition-colors hover:border-stone-300 hover:text-stone-900"
             >
               <span aria-hidden>×</span>
