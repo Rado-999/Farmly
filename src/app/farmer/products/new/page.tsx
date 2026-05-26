@@ -4,6 +4,8 @@ import { FarmerProductBlocked } from "@/components/products/farmer-product-block
 import { ProductForm } from "@/components/products/product-form";
 import { requireServerFarmerProductAccess } from "@/lib/auth/server";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Добави продукт | Farmly",
   description: "Добавете сезонен продукт към вашия фермерски профил.",

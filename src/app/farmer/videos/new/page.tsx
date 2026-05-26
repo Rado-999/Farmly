@@ -4,6 +4,8 @@ import { FarmerProductBlocked } from "@/components/products/farmer-product-block
 import { NewVideoForm } from "@/components/videos/new-video-page";
 import { requireServerFarmerProductAccess } from "@/lib/auth/server";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Качи видео | Farmly",
   description: "Качете полско видео към вашия фермерски профил.",

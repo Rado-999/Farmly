@@ -5,6 +5,8 @@ import { OnboardingWizard } from "@/components/onboarding/onboarding-wizard";
 import { ONBOARDING_PATH, PROFILE_PATH } from "@/lib/auth/constants";
 import { requireServerProfile } from "@/lib/auth/server";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Настройка на профила | Farmly",
   description:

@@ -4,6 +4,8 @@ import { ProfileView } from "@/components/profile/profile-view";
 import { PROFILE_PATH } from "@/lib/auth/constants";
 import { requireServerProfile } from "@/lib/auth/server";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Вашият профил | Farmly",
   description:

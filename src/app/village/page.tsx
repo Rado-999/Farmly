@@ -5,6 +5,8 @@ import { VILLAGE_PATH } from "@/lib/auth/constants";
 import { requireServerUser } from "@/lib/auth/server";
 import { loadVillagePageData } from "@/lib/village/load-village";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Моето село | Farmly",
   description:
