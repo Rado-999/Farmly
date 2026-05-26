@@ -2,10 +2,21 @@ import type { SupabaseClient, User } from "@supabase/supabase-js";
 
 import { becomeFarmer } from "@/lib/auth/become-farmer";
 
+export type ExistingProfileSnapshot = {
+  email: string | null;
+  name: string | null;
+  role: "buyer" | "farmer";
+  farmerProfileId: string | null;
+};
+
+export type EnsureProfileForAuthUserResult = {
+  didChangeProfile: boolean;
+};
+
 async function ensureFarmerProfileExists(
   supabase: SupabaseClient,
   userId: string,
-): Promise<void> {
+): Promise<boolean> {
   const { data: farmerProfile, error } = await supabase
     .from("farmer_profiles")
     .select("id")
@@ -18,11 +29,11 @@ async function ensureFarmerProfileExists(
       userId,
       error,
     );
-    return;
+    return false;
   }
 
   if (farmerProfile) {
-    return;
+    return false;
   }
 
   const result = await becomeFarmer(supabase);
@@ -33,7 +44,36 @@ async function ensureFarmerProfileExists(
       userId,
       result.message,
     );
+    return false;
   }
+
+  return true;
+}
+
+type ExistingProfileRow = {
+  email: string | null;
+  name: string | null;
+  role: string;
+  farmer_profiles: { id: string } | { id: string }[] | null;
+};
+
+function mapExistingProfile(
+  row: ExistingProfileRow | null,
+): ExistingProfileSnapshot | null {
+  if (!row) {
+    return null;
+  }
+
+  const farmerProfile = Array.isArray(row.farmer_profiles)
+    ? (row.farmer_profiles[0] ?? null)
+    : row.farmer_profiles;
+
+  return {
+    email: row.email,
+    name: row.name,
+    role: row.role === "farmer" ? "farmer" : "buyer",
+    farmerProfileId: farmerProfile?.id ?? null,
+  };
 }
 
 /**
@@ -43,22 +83,30 @@ async function ensureFarmerProfileExists(
 export async function ensureProfileForAuthUser(
   supabase: SupabaseClient,
   user: User,
-): Promise<void> {
-  const { data: existing, error: selectError } = await supabase
-    .from("profiles")
-    .select("id, role, name, email")
-    .eq("id", user.id)
-    .maybeSingle();
+  options?: {
+    existingProfile?: ExistingProfileSnapshot | null;
+  },
+): Promise<EnsureProfileForAuthUserResult> {
+  const existingProfileFromOptions = options?.existingProfile;
+  let existing = existingProfileFromOptions;
 
-  if (selectError) {
-    console.error(
-      "[ensureProfileForAuthUser] select failed",
-      user.id,
-      selectError,
-    );
-    throw new Error(
-      `Failed to load profile: ${selectError.message}`,
-    );
+  if (existing === undefined) {
+    const { data, error: selectError } = await supabase
+      .from("profiles")
+      .select("name, email, role, farmer_profiles ( id )")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (selectError) {
+      console.error(
+        "[ensureProfileForAuthUser] select failed",
+        user.id,
+        selectError,
+      );
+      throw new Error(`Failed to load profile: ${selectError.message}`);
+    }
+
+    existing = mapExistingProfile((data as ExistingProfileRow | null) ?? null);
   }
 
   if (existing) {
@@ -75,6 +123,7 @@ export async function ensureProfileForAuthUser(
       name?: string | null;
       updated_at?: string;
     } = {};
+    let didChangeProfile = false;
 
     if (!existing.email && email.length > 0) {
       updates.email = email;
@@ -99,14 +148,17 @@ export async function ensureProfileForAuthUser(
           user.id,
           updateError.message,
         );
+      } else {
+        didChangeProfile = true;
       }
     }
 
-    if (existing.role === "farmer") {
-      await ensureFarmerProfileExists(supabase, user.id);
+    if (existing.role === "farmer" && !existing.farmerProfileId) {
+      didChangeProfile =
+        (await ensureFarmerProfileExists(supabase, user.id)) || didChangeProfile;
     }
 
-    return;
+    return { didChangeProfile };
   }
 
   const email = user.email?.trim() ?? "";
@@ -139,5 +191,5 @@ export async function ensureProfileForAuthUser(
     throw new Error(`Failed to create profile: ${upsertError.message}`);
   }
 
-  return;
+  return { didChangeProfile: true };
 }

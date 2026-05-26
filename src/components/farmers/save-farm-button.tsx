@@ -11,7 +11,7 @@ import {
   removeGuestSavedFarmerId,
 } from "@/lib/marketplace/saved-farms";
 import { isSelfFarmerFollow } from "@/lib/marketplace/follows";
-import { createSupabaseClient } from "@/lib/supabase";
+import { loadSupabaseClient } from "@/lib/supabase/load-client";
 
 type SaveFarmButtonProps = {
   farmerProfileId: string;
@@ -37,7 +37,7 @@ export function SaveFarmButton({
       return;
     }
 
-    const supabase = createSupabaseClient();
+    const supabase = await loadSupabaseClient();
     if (!supabase) {
       return;
     }
@@ -47,9 +47,14 @@ export function SaveFarmButton({
       auth.user.id,
       farmerProfileId,
     );
-    setIsSelf(self);
+    if (!self.ok) {
+      setIsSelf(false);
+      return;
+    }
 
-    if (self) {
+    setIsSelf(self.data);
+
+    if (self.data) {
       setIsSaved(false);
       return;
     }
@@ -94,7 +99,7 @@ export function SaveFarmButton({
       return;
     }
 
-    const supabase = createSupabaseClient();
+    const supabase = await loadSupabaseClient();
     if (!supabase) {
       return;
     }

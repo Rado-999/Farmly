@@ -10,6 +10,8 @@ import {
   getFarmerRowAvatarUrl,
   getFarmerRowName,
 } from "@/lib/farmers/farmer-profile-row";
+import { queryDatabaseError, type QueryResult } from "@/lib/errors/query-result";
+import { ok } from "@/lib/errors/result";
 import type { MyVillageData } from "@/lib/village/types";
 import { formatDurationSeconds } from "@/lib/videos/format-duration";
 import type { FarmerProfileRow } from "@/lib/supabase/database.types";
@@ -34,7 +36,7 @@ function unwrapFarmer(
 export async function fetchMyVillageData(
   supabase: SupabaseClient,
   userId: string,
-): Promise<MyVillageData> {
+): Promise<QueryResult<MyVillageData>> {
   const { data: followRows, error: followsError } = await supabase
     .from("follows")
     .select(`farmer_id, created_at, farmer_profiles (${FARMER_PROFILE_SELECT})`)
@@ -42,14 +44,14 @@ export async function fetchMyVillageData(
     .order("created_at", { ascending: false });
 
   if (followsError) {
-    throw new Error(followsError.message);
+    return queryDatabaseError(followsError.message);
   }
 
   const follows = (followRows ?? []) as FollowRow[];
   const farmerIds = follows.map((row) => row.farmer_id);
 
   if (farmerIds.length === 0) {
-    return { farmers: [], videos: [], products: [] };
+    return ok({ farmers: [], videos: [], products: [] });
   }
 
   const farmers = follows
@@ -109,11 +111,11 @@ export async function fetchMyVillageData(
     ]);
 
   if (videosError) {
-    throw new Error(videosError.message);
+    return queryDatabaseError(videosError.message);
   }
 
   if (productsError) {
-    throw new Error(productsError.message);
+    return queryDatabaseError(productsError.message);
   }
 
   const videos = (videoRows ?? []).map((video) => {
@@ -165,5 +167,5 @@ export async function fetchMyVillageData(
     };
   });
 
-  return { farmers, videos, products };
+  return ok({ farmers, videos, products });
 }

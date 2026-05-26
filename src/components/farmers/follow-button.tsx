@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+import { useFarmerRelationship } from "@/components/farmers/farmer-relationship-provider";
 import { useAuthSession } from "@/lib/auth/use-auth-session";
 import {
   deleteFollow,
@@ -9,7 +10,7 @@ import {
   isSelfFarmerFollow,
   type FollowedVia,
 } from "@/lib/marketplace/follows";
-import { createSupabaseClient } from "@/lib/supabase";
+import { loadSupabaseClient } from "@/lib/supabase/load-client";
 
 type FollowButtonProps = {
   farmerProfileId: string;
@@ -32,6 +33,7 @@ export function FollowButton({
   followedVia = "profile",
 }: FollowButtonProps) {
   const auth = useAuthSession();
+  const sharedRelationship = useFarmerRelationship(farmerProfileId);
   const [isFollowing, setIsFollowing] = useState(false);
   const [isPending, setIsPending] = useState(false);
   const [isSelf, setIsSelf] = useState(false);
@@ -44,7 +46,7 @@ export function FollowButton({
       return;
     }
 
-    const supabase = createSupabaseClient();
+    const supabase = await loadSupabaseClient();
     if (!supabase) {
       return;
     }
@@ -54,9 +56,14 @@ export function FollowButton({
       auth.user.id,
       farmerProfileId,
     );
-    setIsSelf(self);
+    if (!self.ok) {
+      setIsSelf(false);
+      return;
+    }
 
-    if (self) {
+    setIsSelf(self.data);
+
+    if (self.data) {
       setIsFollowing(false);
       return;
     }
@@ -72,8 +79,12 @@ export function FollowButton({
   }, [auth, farmerProfileId]);
 
   useEffect(() => {
+    if (sharedRelationship) {
+      return;
+    }
+
     void loadFollowState();
-  }, [loadFollowState]);
+  }, [loadFollowState, sharedRelationship]);
 
   useEffect(() => {
     if (!notice) {
@@ -90,17 +101,24 @@ export function FollowButton({
       return;
     }
 
-    if (isSelf || isPending) {
+    const currentIsFollowing = sharedRelationship?.isFollowing ?? isFollowing;
+    const currentIsSelf = sharedRelationship?.isSelf ?? isSelf;
+
+    if (currentIsSelf || isPending) {
       return;
     }
 
-    const supabase = createSupabaseClient();
+    const supabase = await loadSupabaseClient();
     if (!supabase) {
       return;
     }
 
-    const nextFollowing = !isFollowing;
-    setIsFollowing(nextFollowing);
+    const nextFollowing = !currentIsFollowing;
+    if (sharedRelationship) {
+      sharedRelationship.setIsFollowing(nextFollowing);
+    } else {
+      setIsFollowing(nextFollowing);
+    }
     setIsPending(true);
 
     try {
@@ -112,7 +130,11 @@ export function FollowButton({
           { followedVia },
         );
         if (error) {
-          setIsFollowing(false);
+          if (sharedRelationship) {
+            sharedRelationship.setIsFollowing(false);
+          } else {
+            setIsFollowing(false);
+          }
         } else {
           setNotice("Ще те посрещнем в Моето село, когато има нещо от полето.");
         }
@@ -123,7 +145,11 @@ export function FollowButton({
           farmerProfileId,
         );
         if (error) {
-          setIsFollowing(true);
+          if (sharedRelationship) {
+            sharedRelationship.setIsFollowing(true);
+          } else {
+            setIsFollowing(true);
+          }
         }
       }
     } finally {
@@ -131,11 +157,14 @@ export function FollowButton({
     }
   }
 
-  if (isSelf) {
+  const resolvedIsFollowing = sharedRelationship?.isFollowing ?? isFollowing;
+  const resolvedIsSelf = sharedRelationship?.isSelf ?? isSelf;
+
+  if (resolvedIsSelf) {
     return null;
   }
 
-  const label = isFollowing ? followingLabel : followLabel;
+  const label = resolvedIsFollowing ? followingLabel : followLabel;
 
   const sizeClassName =
     size === "compact"
@@ -150,15 +179,15 @@ export function FollowButton({
         type="button"
         onClick={() => void handleToggle()}
         disabled={isPending || auth.status === "loading"}
-        aria-pressed={isFollowing}
+        aria-pressed={resolvedIsFollowing}
         aria-busy={isPending}
         aria-label={
-          isFollowing
+          resolvedIsFollowing
             ? `Спри да следваш фермата на ${farmerName}`
             : `Следи сезона на ${farmerName}`
         }
         className={`inline-flex items-center justify-center rounded-full border font-medium transition-[background-color,border-color,color,box-shadow] duration-500 ease-[var(--ease-organic)] disabled:opacity-60 ${sizeClassName} ${
-          isFollowing
+          resolvedIsFollowing
             ? size === "prominent"
               ? "border-moss-700/40 bg-moss-700/12 text-moss-900 shadow-[0_12px_32px_-18px_rgba(31,48,34,0.35)]"
               : "border-forest/25 bg-forest/10 text-forest-deep"

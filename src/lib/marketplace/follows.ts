@@ -1,19 +1,36 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import { logger } from "@/lib/logger";
+import { err, ok, type Result } from "@/lib/errors/result";
+
 /** True if this user is the owner of the farmer account (cannot follow themselves). */
 export async function isSelfFarmerFollow(
   supabase: SupabaseClient,
   profileId: string,
   farmerId: string,
-): Promise<boolean> {
-  const { data } = await supabase
+): Promise<Result<boolean, "follows.self_check_failed">> {
+  const { data, error } = await supabase
     .from("farmer_profiles")
     .select("id")
     .eq("id", farmerId)
     .eq("profile_id", profileId)
     .maybeSingle();
 
-  return data != null;
+  if (error) {
+    logger.error({
+      operation: "follows.isSelfFarmerFollow",
+      message: "Failed to resolve self-follow relationship.",
+      userId: profileId,
+      farmerId,
+      errorCode: error.code ?? "follows.self_check_failed",
+      context: { table: "farmer_profiles" },
+      error,
+    });
+
+    return err("follows.self_check_failed", error.message);
+  }
+
+  return ok(data != null);
 }
 
 export type FollowNotifyLevel = "off" | "digest" | "harvest" | "all_gentle";
@@ -30,12 +47,29 @@ export async function insertFollow(
     followedVia?: FollowedVia;
   },
 ) {
-  return supabase.from("follows").insert({
+  const result = await supabase.from("follows").insert({
     user_id: userId,
     farmer_id: farmerId,
     notify_level: options?.notifyLevel ?? "digest",
     followed_via: options?.followedVia ?? "profile",
   });
+
+  if (result.error) {
+    logger.error({
+      operation: "follows.insertFollow",
+      message: "Failed to insert follow.",
+      userId,
+      farmerId,
+      errorCode: result.error.code ?? "follows.insert_failed",
+      context: {
+        notifyLevel: options?.notifyLevel ?? "digest",
+        followedVia: options?.followedVia ?? "profile",
+      },
+      error: result.error,
+    });
+  }
+
+  return result;
 }
 
 export async function deleteFollow(
@@ -43,18 +77,32 @@ export async function deleteFollow(
   userId: string,
   farmerId: string,
 ) {
-  return supabase
+  const result = await supabase
     .from("follows")
     .delete()
     .eq("user_id", userId)
     .eq("farmer_id", farmerId);
+
+  if (result.error) {
+    logger.error({
+      operation: "follows.deleteFollow",
+      message: "Failed to delete follow.",
+      userId,
+      farmerId,
+      errorCode: result.error.code ?? "follows.delete_failed",
+      context: { table: "follows" },
+      error: result.error,
+    });
+  }
+
+  return result;
 }
 
 /** Whether the user follows at least one farmer (for gentle return routing). */
 export async function userHasFollows(
   supabase: SupabaseClient,
   userId: string,
-): Promise<boolean> {
+): Promise<Result<boolean, "follows.lookup_failed">> {
   const { data, error } = await supabase
     .from("follows")
     .select("farmer_id")
@@ -62,25 +110,43 @@ export async function userHasFollows(
     .limit(1);
 
   if (error) {
-    return false;
+    logger.error({
+      operation: "follows.userHasFollows",
+      message: "Failed to resolve whether the user has follows.",
+      userId,
+      errorCode: error.code ?? "follows.lookup_failed",
+      context: { table: "follows" },
+      error,
+    });
+
+    return err("follows.lookup_failed", error.message);
   }
 
-  return (data?.length ?? 0) > 0;
+  return ok((data?.length ?? 0) > 0);
 }
 
 /** Follower count — visible to the farm owner via RLS only. */
 export async function getFarmerFollowerCount(
   supabase: SupabaseClient,
   farmerProfileId: string,
-): Promise<number | null> {
+): Promise<Result<number, "follows.count_failed">> {
   const { count, error } = await supabase
     .from("follows")
     .select("farmer_id", { count: "exact", head: true })
     .eq("farmer_id", farmerProfileId);
 
   if (error) {
-    return null;
+    logger.error({
+      operation: "follows.getFarmerFollowerCount",
+      message: "Failed to fetch farmer follower count.",
+      farmerId: farmerProfileId,
+      errorCode: error.code ?? "follows.count_failed",
+      context: { table: "follows" },
+      error,
+    });
+
+    return err("follows.count_failed", error.message);
   }
 
-  return count ?? 0;
+  return ok(count ?? 0);
 }

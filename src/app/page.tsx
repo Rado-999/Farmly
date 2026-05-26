@@ -6,6 +6,7 @@ import {
   getFeaturedFarmers,
   getSeasonalProducts,
 } from "@/lib/landing/queries";
+import { getSupabasePublicEnv } from "@/lib/supabase/env";
 
 export const revalidate = 60;
 
@@ -16,9 +17,36 @@ export const metadata: Metadata = {
 };
 
 export default async function Home() {
-  const [featuredFarmers, seasonalProducts, farmerStories] = await Promise.all(
+  if (!getSupabasePublicEnv()) {
+    return (
+      <LandingPage
+        featuredFarmers={[]}
+        seasonalProducts={[]}
+        farmerStories={[]}
+      />
+    );
+  }
+
+  const [featuredFarmersResult, seasonalProductsResult, farmerStoriesResult] =
+    await Promise.all(
     [getFeaturedFarmers(), getSeasonalProducts(), getFarmerStories()],
   );
+
+  if (!featuredFarmersResult.ok) {
+    throw new Error(featuredFarmersResult.error.message);
+  }
+
+  if (!seasonalProductsResult.ok) {
+    throw new Error(seasonalProductsResult.error.message);
+  }
+
+  if (!farmerStoriesResult.ok) {
+    throw new Error(farmerStoriesResult.error.message);
+  }
+
+  const featuredFarmers = featuredFarmersResult.data;
+  const seasonalProducts = seasonalProductsResult.data;
+  const farmerStories = farmerStoriesResult.data;
 
   return (
     <LandingPage

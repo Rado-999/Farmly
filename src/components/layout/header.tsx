@@ -1,9 +1,12 @@
 import Link from "next/link";
 
+import { getLayoutViewer } from "@/lib/auth/server";
 import { HeaderAuth } from "@/components/layout/header-auth";
 import { MainNav } from "@/components/layout/main-nav";
 
-export function Header() {
+export async function Header() {
+  const viewer = await getLayoutViewer();
+
   return (
     <header className="sticky top-0 z-50 shrink-0 border-b border-stone-400/25 bg-cream/90 backdrop-blur-sm">
       <div className="page-shell-wide flex items-center justify-between gap-4 py-4 sm:py-5">
@@ -16,7 +19,7 @@ export function Header() {
           </Link>
 
           <nav aria-label="Основна" className="hidden items-center gap-6 md:flex">
-            <MainNav />
+            <MainNav isAuthenticated={viewer.status === "authenticated"} />
           </nav>
         </div>
 
@@ -29,11 +32,14 @@ export function Header() {
               aria-label="Мобилна"
               className="absolute right-0 mt-3 min-w-44 rounded-sm border border-stone-300/50 bg-mist/95 p-3 shadow-[0_20px_44px_-24px_rgba(26,22,16,0.28)] backdrop-blur-sm"
             >
-              <MainNav variant="menu" />
+              <MainNav
+                variant="menu"
+                isAuthenticated={viewer.status === "authenticated"}
+              />
             </nav>
           </details>
 
-          <HeaderAuth />
+          <HeaderAuth viewer={viewer} />
         </div>
       </div>
     </header>

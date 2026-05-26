@@ -26,6 +26,7 @@ export type OnboardingProfile = {
   isProfileComplete: boolean;
   onboardingStep: number;
   onboardingSkippedAt: string | null;
+  villageLastVisitedAt: string | null;
   createdAt: string | null;
   farmerProfile: FarmerProfileDraft | null;
 };

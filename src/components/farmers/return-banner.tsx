@@ -1,18 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-import { useAuthSession } from "@/lib/auth/use-auth-session";
+import { useFarmerRelationship } from "@/components/farmers/farmer-relationship-provider";
 import {
   readFarmerVisitSnapshot,
   writeFarmerVisitSnapshot,
 } from "@/lib/farmers/profile-helpers";
-import { createSupabaseClient } from "@/lib/supabase";
 
 type ReturnBannerProps = {
   farmerSlug: string;
   farmerProfileId: string;
-  farmerName: string;
   videoCount: number;
 };
 
@@ -28,11 +26,12 @@ export function ReturnBanner({
   farmerProfileId,
   videoCount,
 }: ReturnBannerProps) {
-  const auth = useAuthSession();
+  const relationship = useFarmerRelationship(farmerProfileId);
+  const initialIsFollowingRef = useRef(relationship?.isFollowing ?? false);
   const [message, setMessage] = useState<string | null>(null);
   const [visible, setVisible] = useState(false);
 
-  const evaluateReturn = useCallback(async () => {
+  useEffect(() => {
     const prior = readFarmerVisitSnapshot(farmerSlug);
     const isReturnVisit = prior != null;
     const newFilms =
@@ -40,25 +39,11 @@ export function ReturnBanner({
         ? videoCount - prior.videoCount
         : 0;
 
-    let isFollowing = false;
-    if (auth.status === "authenticated") {
-      const supabase = createSupabaseClient();
-      if (supabase) {
-        const { data } = await supabase
-          .from("follows")
-          .select("farmer_id")
-          .eq("user_id", auth.user.id)
-          .eq("farmer_id", farmerProfileId)
-          .maybeSingle();
-        isFollowing = Boolean(data);
-      }
-    }
-
     if (newFilms > 0) {
       const filmWord = newFilms === 1 ? "ново полско видео" : "нови полски видеа";
       setMessage(`От последното ти посещение: ${newFilms} ${filmWord}`);
       setVisible(true);
-    } else if (isReturnVisit || isFollowing) {
+    } else if (isReturnVisit || initialIsFollowingRef.current) {
       setMessage("Тази ферма се е променила, откакто беше тук");
       setVisible(true);
     } else {
@@ -66,11 +51,7 @@ export function ReturnBanner({
     }
 
     writeFarmerVisitSnapshot(farmerSlug, videoCount);
-  }, [auth, farmerProfileId, farmerSlug, videoCount]);
-
-  useEffect(() => {
-    void evaluateReturn();
-  }, [evaluateReturn]);
+  }, [farmerSlug, videoCount]);
 
   if (!visible || !message) {
     return null;

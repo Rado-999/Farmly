@@ -7,6 +7,7 @@ import { RevealOnScroll } from "@/components/ui/reveal-on-scroll";
 import { RevealStagger } from "@/components/ui/reveal-stagger";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { listFarmers } from "@/lib/farmers/queries";
+import { getSupabasePublicEnv } from "@/lib/supabase/env";
 
 export const revalidate = 60;
 
@@ -17,7 +18,39 @@ export const metadata: Metadata = {
 };
 
 export default async function FarmersPage() {
-  const farmers = await listFarmers();
+  if (!getSupabasePublicEnv()) {
+    return (
+      <main className="flex-1 bg-cream">
+        <PageSection tone="cream">
+          <div className="page-shell">
+            <RevealOnScroll>
+              <SectionHeading
+                align="left"
+                eyebrow="Farmers"
+                title="Meet the growers behind the season"
+                description="Open a profile to follow field notes, videos, and the story behind each harvest."
+              />
+            </RevealOnScroll>
+
+            <RevealOnScroll className="content-after-head block">
+              <EmptyState
+                title="No farmer profiles yet"
+                description="Grower profiles will appear here once they are added in Supabase."
+              />
+            </RevealOnScroll>
+          </div>
+        </PageSection>
+      </main>
+    );
+  }
+
+  const farmersResult = await listFarmers();
+
+  if (!farmersResult.ok) {
+    throw new Error(farmersResult.error.message);
+  }
+
+  const farmers = farmersResult.data;
 
   return (
     <main className="flex-1 bg-cream">

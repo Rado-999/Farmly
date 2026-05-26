@@ -1,14 +1,22 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useState } from "react";
 
 import { MediaPanel } from "@/components/ui/media-panel";
 import { RevealStagger } from "@/components/ui/reveal-stagger";
-import { VideoPlayerModal } from "@/components/videos/video-player-modal";
 import { formatVideoStage } from "@/lib/data/formatters";
 import type { VideoPlaybackItem } from "@/lib/landing/story-to-video";
 import type { FarmerVideo } from "@/lib/farmers/types";
 import type { VideoPlaybackSource } from "@/lib/videos/playback-types";
+
+const VideoPlayerModal = dynamic(
+  () =>
+    import("@/components/videos/video-player-modal").then(
+      (module) => module.VideoPlayerModal,
+    ),
+  { ssr: false },
+);
 
 function toPlayback(video: FarmerVideo): VideoPlaybackSource {
   return {
@@ -161,10 +169,12 @@ export function VideoPlaybackList({
         <div className={gridClassName}>{cards}</div>
       )}
 
-      <VideoPlayerModal
-        video={activeVideo ? toPlayback(activeVideo) : null}
-        onClose={() => setActiveVideo(null)}
-      />
+      {activeVideo ? (
+        <VideoPlayerModal
+          video={toPlayback(activeVideo)}
+          onClose={() => setActiveVideo(null)}
+        />
+      ) : null}
     </>
   );
 }

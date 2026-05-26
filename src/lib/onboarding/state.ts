@@ -14,6 +14,7 @@ type ProfileRow = {
   is_profile_complete: boolean;
   onboarding_step: number;
   onboarding_skipped_at: string | null;
+  village_last_visited_at: string | null;
   created_at: string | null;
   farmer_profiles:
     | {
@@ -67,6 +68,7 @@ function mapRow(row: ProfileRow): OnboardingProfile {
     isProfileComplete: row.is_profile_complete,
     onboardingStep: row.onboarding_step,
     onboardingSkippedAt: row.onboarding_skipped_at,
+    villageLastVisitedAt: row.village_last_visited_at,
     createdAt: row.created_at,
     farmerProfile: farmerRow
       ? {
@@ -103,6 +105,7 @@ export async function fetchOnboardingProfile(
       is_profile_complete,
       onboarding_step,
       onboarding_skipped_at,
+      village_last_visited_at,
       created_at,
       farmer_profiles (
         id,

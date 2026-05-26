@@ -1,14 +1,25 @@
 import "server-only";
 
 import { unstable_cache } from "next/cache";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
+import {
+  queryDatabaseError,
+  queryNotFound,
+  type QueryResult,
+} from "@/lib/errors/query-result";
+import { ok } from "@/lib/errors/result";
 import {
   FARMER_PROFILE_SELECT,
   getFarmerRowAvatarUrl,
   getFarmerRowName,
 } from "@/lib/farmers/farmer-profile-row";
 import { mapFarmerProfile } from "@/lib/farmers/mappers";
-import type { FarmerDirectoryEntry, FarmerProfile } from "@/lib/farmers/types";
+import type {
+  FarmerDirectoryEntry,
+  FarmerProfile,
+  FarmerViewerRelationship,
+} from "@/lib/farmers/types";
 import { createFarmerImage, formatLocation } from "@/lib/data/formatters";
 import type {
   FarmerProfileRow,
@@ -20,8 +31,16 @@ import { createServerPublicSupabaseClientOrThrow } from "@/lib/supabase/server";
 
 const REVALIDATE_SECONDS = 60;
 
-function getSupabaseOrThrow() {
-  return createServerPublicSupabaseClientOrThrow();
+function getSupabaseResult(): QueryResult<SupabaseClient> {
+  try {
+    return ok(createServerPublicSupabaseClientOrThrow());
+  } catch (error) {
+    return queryDatabaseError(
+      error instanceof Error
+        ? error.message
+        : "Could not create the public Supabase client.",
+    );
+  }
 }
 
 function isFarmerUuid(value: string) {
@@ -30,8 +49,14 @@ function isFarmerUuid(value: string) {
   );
 }
 
-async function getFarmerRow(slugOrId: string): Promise<FarmerProfileRow | null> {
-  const supabase = getSupabaseOrThrow();
+async function getFarmerRow(slugOrId: string): Promise<QueryResult<FarmerProfileRow>> {
+  const supabaseResult = getSupabaseResult();
+
+  if (!supabaseResult.ok) {
+    return supabaseResult;
+  }
+
+  const supabase = supabaseResult.data;
   const column = isFarmerUuid(slugOrId) ? "id" : "slug";
 
   const { data, error } = await supabase
@@ -41,14 +66,26 @@ async function getFarmerRow(slugOrId: string): Promise<FarmerProfileRow | null> 
     .maybeSingle();
 
   if (error) {
-    throw new Error(error.message);
+    return queryDatabaseError(error.message);
   }
 
-  return data;
+  if (!data) {
+    return queryNotFound("Farmer not found.");
+  }
+
+  return ok(data as FarmerProfileRow);
 }
 
-async function getFarmerRelations(farmerId: string) {
-  const supabase = getSupabaseOrThrow();
+async function getFarmerRelations(
+  farmerId: string,
+): Promise<QueryResult<{ products: ProductRow[]; videos: VideoRow[]; reviews: ReviewRow[] }>> {
+  const supabaseResult = getSupabaseResult();
+
+  if (!supabaseResult.ok) {
+    return supabaseResult;
+  }
+
+  const supabase = supabaseResult.data;
 
   const [{ data: products, error: productsError }, { data: videos, error: videosError }, { data: reviews, error: reviewsError }] =
     await Promise.all([
@@ -75,36 +112,43 @@ async function getFarmerRelations(farmerId: string) {
     ]);
 
   if (productsError) {
-    throw new Error(productsError.message);
+    return queryDatabaseError(productsError.message);
   }
 
   if (videosError) {
-    throw new Error(videosError.message);
+    return queryDatabaseError(videosError.message);
   }
 
   if (reviewsError) {
-    throw new Error(reviewsError.message);
+    return queryDatabaseError(reviewsError.message);
   }
 
-  return {
+  return ok({
     products: (products ?? []) as ProductRow[],
     videos: (videos ?? []) as VideoRow[],
     reviews: (reviews ?? []) as ReviewRow[],
-  };
+  });
 }
 
 async function fetchFarmerProfile(
   slugOrId: string,
-): Promise<FarmerProfile | null> {
-  const farmer = await getFarmerRow(slugOrId);
+): Promise<QueryResult<FarmerProfile>> {
+  const farmerResult = await getFarmerRow(slugOrId);
 
-  if (!farmer) {
-    return null;
+  if (!farmerResult.ok) {
+    return farmerResult;
   }
 
-  const { products, videos, reviews } = await getFarmerRelations(farmer.id);
+  const farmer = farmerResult.data;
+  const relationsResult = await getFarmerRelations(farmer.id);
 
-  return mapFarmerProfile(farmer, products, videos, reviews);
+  if (!relationsResult.ok) {
+    return relationsResult;
+  }
+
+  const { products, videos, reviews } = relationsResult.data;
+
+  return ok(mapFarmerProfile(farmer, products, videos, reviews));
 }
 
 const getCachedFarmerProfile = unstable_cache(
@@ -115,12 +159,69 @@ const getCachedFarmerProfile = unstable_cache(
 
 export async function getFarmerProfile(
   slugOrId: string,
-): Promise<FarmerProfile | null> {
+): Promise<QueryResult<FarmerProfile>> {
   return getCachedFarmerProfile(slugOrId);
 }
 
-async function fetchFarmerSlugs(): Promise<string[]> {
-  const supabase = getSupabaseOrThrow();
+export async function getFarmerViewerRelationship(
+  supabase: SupabaseClient,
+  userId: string,
+  farmerProfileId: string,
+  options?: {
+    viewerFarmerProfileId: string | null;
+  },
+): Promise<QueryResult<FarmerViewerRelationship>> {
+  const knownIsSelf = options?.viewerFarmerProfileId === farmerProfileId;
+  const [
+    { data: selfFarmer, error: selfError },
+    { data: followRow, error: followError },
+  ] = await Promise.all([
+    options
+      ? Promise.resolve({
+          data: knownIsSelf ? { id: farmerProfileId } : null,
+          error: null,
+        })
+      : supabase
+          .from("farmer_profiles")
+          .select("id")
+          .eq("id", farmerProfileId)
+          .eq("profile_id", userId)
+          .maybeSingle(),
+    knownIsSelf
+      ? Promise.resolve({ data: null, error: null })
+      : supabase
+          .from("follows")
+          .select("farmer_id")
+          .eq("user_id", userId)
+          .eq("farmer_id", farmerProfileId)
+          .maybeSingle(),
+  ]);
+
+  if (selfError) {
+    return queryDatabaseError(selfError.message);
+  }
+
+  if (followError) {
+    return queryDatabaseError(followError.message);
+  }
+
+  const isSelf = options ? knownIsSelf : Boolean(selfFarmer);
+
+  return ok({
+    farmerProfileId,
+    isFollowing: !isSelf && Boolean(followRow),
+    isSelf,
+  });
+}
+
+async function fetchFarmerSlugs(): Promise<QueryResult<string[]>> {
+  const supabaseResult = getSupabaseResult();
+
+  if (!supabaseResult.ok) {
+    return supabaseResult;
+  }
+
+  const supabase = supabaseResult.data;
 
   const { data, error } = await supabase
     .from("farmer_profiles")
@@ -128,10 +229,10 @@ async function fetchFarmerSlugs(): Promise<string[]> {
     .order("created_at", { ascending: true });
 
   if (error) {
-    throw new Error(error.message);
+    return queryDatabaseError(error.message);
   }
 
-  return (data ?? []).map((farmer) => farmer.slug);
+  return ok((data ?? []).map((farmer) => farmer.slug));
 }
 
 const getCachedFarmerSlugs = unstable_cache(
@@ -140,12 +241,18 @@ const getCachedFarmerSlugs = unstable_cache(
   { revalidate: REVALIDATE_SECONDS },
 );
 
-export async function getFarmerSlugs(): Promise<string[]> {
+export async function getFarmerSlugs(): Promise<QueryResult<string[]>> {
   return getCachedFarmerSlugs();
 }
 
-async function fetchFarmerDirectoryEntries(): Promise<FarmerDirectoryEntry[]> {
-  const supabase = getSupabaseOrThrow();
+async function fetchFarmerDirectoryEntries(): Promise<QueryResult<FarmerDirectoryEntry[]>> {
+  const supabaseResult = getSupabaseResult();
+
+  if (!supabaseResult.ok) {
+    return supabaseResult;
+  }
+
+  const supabase = supabaseResult.data;
 
   const { data, error } = await supabase
     .from("farmer_profiles")
@@ -154,23 +261,25 @@ async function fetchFarmerDirectoryEntries(): Promise<FarmerDirectoryEntry[]> {
     .order("created_at", { ascending: true });
 
   if (error) {
-    throw new Error(error.message);
+    return queryDatabaseError(error.message);
   }
 
   const farmers = (data ?? []) as FarmerProfileRow[];
 
-  return farmers.map((farmer) => {
-    const name = getFarmerRowName(farmer);
-    const avatarUrl = getFarmerRowAvatarUrl(farmer);
+  return ok(
+    farmers.map((farmer) => {
+      const name = getFarmerRowName(farmer);
+      const avatarUrl = getFarmerRowAvatarUrl(farmer);
 
-    return {
-      id: farmer.slug,
-      name,
-      location: formatLocation(farmer.location, farmer.region),
-      bio: farmer.bio ?? farmer.story ?? "",
-      profileImage: createFarmerImage(`${name} profile`, avatarUrl, farmer.id),
-    };
-  });
+      return {
+        id: farmer.slug,
+        name,
+        location: formatLocation(farmer.location, farmer.region),
+        bio: farmer.bio ?? farmer.story ?? "",
+        profileImage: createFarmerImage(`${name} profile`, avatarUrl, farmer.id),
+      };
+    }),
+  );
 }
 
 export const listFarmers = unstable_cache(

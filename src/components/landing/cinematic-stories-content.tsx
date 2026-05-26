@@ -1,15 +1,23 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useState } from "react";
 
 import { EmptyState } from "@/components/ui/empty-state";
 import { MediaPanel } from "@/components/ui/media-panel";
 import { RevealOnScroll } from "@/components/ui/reveal-on-scroll";
 import { StoryHeading } from "@/components/ui/story-heading";
-import { VideoPlayerModal } from "@/components/videos/video-player-modal";
 import { farmerStoryToVideo } from "@/lib/landing/story-to-video";
 import type { FarmerStory } from "@/lib/landing/types";
 import type { VideoPlaybackSource } from "@/lib/videos/playback-types";
+
+const VideoPlayerModal = dynamic(
+  () =>
+    import("@/components/videos/video-player-modal").then(
+      (module) => module.VideoPlayerModal,
+    ),
+  { ssr: false },
+);
 
 type CinematicStoriesContentProps = {
   stories: FarmerStory[];
@@ -154,10 +162,12 @@ export function CinematicStoriesContent({ stories }: CinematicStoriesContentProp
         </div>
       )}
 
-      <VideoPlayerModal
-        video={activeStory ? toPlayback(activeStory) : null}
-        onClose={() => setActiveStory(null)}
-      />
+      {activeStory ? (
+        <VideoPlayerModal
+          video={toPlayback(activeStory)}
+          onClose={() => setActiveStory(null)}
+        />
+      ) : null}
     </>
   );
 }

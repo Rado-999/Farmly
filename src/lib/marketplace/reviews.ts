@@ -1,5 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import { logger } from "@/lib/logger";
+
 /** Inserts a review. Caller must load `farmer_id` from the product row (app-layer rule). */
 export async function insertProductReview(
   supabase: SupabaseClient,
@@ -12,7 +14,7 @@ export async function insertProductReview(
     comment: string | null;
   },
 ) {
-  return supabase.from("reviews").insert({
+  const result = await supabase.from("reviews").insert({
     user_id: args.userId,
     product_id: args.productId,
     farmer_id: args.farmerId,
@@ -20,4 +22,22 @@ export async function insertProductReview(
     rating: args.rating,
     comment: args.comment,
   });
+
+  if (result.error) {
+    logger.error({
+      operation: "reviews.insertProductReview",
+      message: "Failed to insert product review.",
+      userId: args.userId,
+      farmerId: args.farmerId,
+      errorCode: result.error.code ?? "reviews.insert_failed",
+      context: {
+        productId: args.productId,
+        rating: args.rating,
+        hasComment: Boolean(args.comment),
+      },
+      error: result.error,
+    });
+  }
+
+  return result;
 }

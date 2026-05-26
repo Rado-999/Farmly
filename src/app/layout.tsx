@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Geist_Mono, Newsreader, Source_Sans_3 } from "next/font/google";
 
 import { Footer } from "@/components/layout/footer";
-import { HeaderHeightSync } from "@/components/layout/header-height-sync";
 import { Header } from "@/components/layout/header";
 import { NavigationShell } from "@/components/layout/navigation-shell";
 
@@ -47,12 +46,11 @@ export default function RootLayout({
       >
         <NavigationShell />
         <Header />
-        <HeaderHeightSync />
         <div className="flex flex-1 flex-col">{children}</div>
         <Footer />
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){function s(){var h=document.querySelector("header");if(!h)return;var hh=Math.round(h.getBoundingClientRect().height);document.documentElement.style.setProperty("--site-header-height",hh+"px");}if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",s);else s();})();`,
+            __html: `(function(){function start(){var header=document.querySelector("header");if(!header)return;function sync(){var height=Math.round(header.getBoundingClientRect().height);document.documentElement.style.setProperty("--site-header-height",height+"px");}sync();if("ResizeObserver"in window){var observer=new ResizeObserver(sync);observer.observe(header);}window.addEventListener("resize",sync,{passive:true});}if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",start,{once:true});else start();})();`,
           }}
         />
       </body>

@@ -13,6 +13,8 @@ import {
   getFarmerRowAvatarUrl,
   getFarmerRowName,
 } from "@/lib/farmers/farmer-profile-row";
+import { queryDatabaseError, type QueryResult } from "@/lib/errors/query-result";
+import { ok } from "@/lib/errors/result";
 import { shouldShowSinceYouWereHere } from "@/lib/village/visit";
 import type { FarmerProfileRow } from "@/lib/supabase/database.types";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -140,8 +142,12 @@ export async function getVillageFeed(
   supabase: SupabaseClient,
   userId: string,
   options?: { lastVisitedAt?: string | null; region?: string | null },
-): Promise<VillageFeedSections> {
-  const [{ data: profile }, { data: followRows }, { data: savedRows }] =
+): Promise<QueryResult<VillageFeedSections>> {
+  const [
+    { data: profile, error: profileError },
+    { data: followRows, error: followsError },
+    { data: savedRows, error: savedError },
+  ] =
     await Promise.all([
       options?.lastVisitedAt !== undefined && options?.region !== undefined
         ? Promise.resolve({
@@ -149,6 +155,7 @@ export async function getVillageFeed(
               village_last_visited_at: options.lastVisitedAt,
               region: options.region,
             },
+            error: null,
           })
         : supabase
             .from("profiles")
@@ -164,6 +171,18 @@ export async function getVillageFeed(
         .select(`farmer_id, farmer_profiles (${FARMER_PROFILE_SELECT})`)
         .eq("user_id", userId),
     ]);
+
+  if (profileError) {
+    return queryDatabaseError(profileError.message);
+  }
+
+  if (followsError) {
+    return queryDatabaseError(followsError.message);
+  }
+
+  if (savedError) {
+    return queryDatabaseError(savedError.message);
+  }
 
   const lastVisitedAt = profile?.village_last_visited_at ?? null;
   const userRegion = profile?.region ?? null;
@@ -215,7 +234,7 @@ export async function getVillageFeed(
   const allFarmerIds = [...farmerById.keys()];
 
   if (allFarmerIds.length === 0) {
-    return {
+    return ok({
       showSinceYouWereHere: false,
       sinceYouWereHere: [],
       fromYourFarms: [],
@@ -225,7 +244,7 @@ export async function getVillageFeed(
       hasFollows: false,
       hasSavedOnly: false,
       hasAnyContent: false,
-    };
+    });
   }
 
   const now = new Date();
@@ -233,10 +252,10 @@ export async function getVillageFeed(
   eventCutoff.setDate(eventCutoff.getDate() + EVENT_WINDOW_DAYS);
 
   const [
-    { data: postRows },
-    { data: videoRows },
-    { data: productRows },
-    { data: eventRows },
+    { data: postRows, error: postsError },
+    { data: videoRows, error: videosError },
+    { data: productRows, error: productsError },
+    { data: eventRows, error: eventsError },
   ] = await Promise.all([
     followedFarmerIds.length > 0
       ? supabase
@@ -248,7 +267,7 @@ export async function getVillageFeed(
           .in("kind", ["field_note", "harvest", "season"])
           .order("created_at", { ascending: false })
           .limit(FETCH_POOL)
-      : Promise.resolve({ data: [] }),
+      : Promise.resolve({ data: [], error: null }),
     followedFarmerIds.length > 0
       ? supabase
           .from("videos")
@@ -258,7 +277,7 @@ export async function getVillageFeed(
           .in("farmer_id", followedFarmerIds)
           .order("created_at", { ascending: false })
           .limit(FETCH_POOL)
-      : Promise.resolve({ data: [] }),
+      : Promise.resolve({ data: [], error: null }),
     followedFarmerIds.length > 0
       ? supabase
           .from("products")
@@ -268,7 +287,7 @@ export async function getVillageFeed(
           .not("season", "is", null)
           .order("created_at", { ascending: false })
           .limit(FETCH_POOL)
-      : Promise.resolve({ data: [] }),
+      : Promise.resolve({ data: [], error: null }),
     userRegion
       ? supabase
           .from("local_events")
@@ -280,8 +299,24 @@ export async function getVillageFeed(
           .lte("starts_at", eventCutoff.toISOString())
           .order("starts_at", { ascending: true })
           .limit(8)
-      : Promise.resolve({ data: [] }),
+      : Promise.resolve({ data: [], error: null }),
   ]);
+
+  if (postsError) {
+    return queryDatabaseError(postsError.message);
+  }
+
+  if (videosError) {
+    return queryDatabaseError(videosError.message);
+  }
+
+  if (productsError) {
+    return queryDatabaseError(productsError.message);
+  }
+
+  if (eventsError) {
+    return queryDatabaseError(eventsError.message);
+  }
 
   const rawItems: VillageFeedItem[] = [];
 
@@ -425,7 +460,7 @@ export async function getVillageFeed(
     seasonNearYou.length > 0 ||
     localGatherings.length > 0;
 
-  return {
+  return ok({
     showSinceYouWereHere: showSinceYouWereHere && sinceYouWereHere.length > 0,
     sinceYouWereHere,
     fromYourFarms: fromYourFarmsExSeason,
@@ -435,5 +470,5 @@ export async function getVillageFeed(
     hasFollows: followedIds.size > 0,
     hasSavedOnly: savedOnlyCards.length > 0,
     hasAnyContent,
-  };
+  });
 }

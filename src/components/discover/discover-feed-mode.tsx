@@ -1,86 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
 
 import { VillageFeedList } from "@/components/village/village-feed-list";
 import { EmptyState } from "@/components/ui/empty-state";
-import { PageLoadingShell } from "@/components/ui/page-loading-shell";
 import { PageSection } from "@/components/ui/page-section";
 import { RevealOnScroll } from "@/components/ui/reveal-on-scroll";
 import { StoryHeading } from "@/components/ui/story-heading";
-import { getVillageFeed } from "@/lib/feed/getVillageFeed";
-import type { VillageFeedItem } from "@/lib/feed/types";
-import { createSupabaseClient } from "@/lib/supabase";
+import type { DiscoverFeedModeData } from "@/lib/discover/types";
 
 type DiscoverFeedModeProps = {
-  userId: string;
+  initialData: DiscoverFeedModeData;
 };
 
-function flattenFeedSections(
-  feed: Awaited<ReturnType<typeof getVillageFeed>>,
-): VillageFeedItem[] {
-  return [
-    ...feed.sinceYouWereHere,
-    ...feed.fromYourFarms,
-    ...feed.seasonNearYou,
-    ...feed.localGatherings,
-  ].slice(0, 15);
-}
-
-export function DiscoverFeedMode({ userId }: DiscoverFeedModeProps) {
-  const [items, setItems] = useState<VillageFeedItem[]>([]);
-  const [hasFollows, setHasFollows] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const loadFeed = useCallback(async () => {
-    const supabase = createSupabaseClient();
-
-    if (!supabase) {
-      setError("Свързването със селото не е налично.");
-      setIsLoading(false);
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const feed = await getVillageFeed(supabase, userId);
-      setItems(flattenFeedSections(feed));
-      setHasFollows(feed.hasFollows);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Неуспешно зареждане на лентата.",
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  }, [userId]);
-
-  useEffect(() => {
-    void loadFeed();
-  }, [loadFeed]);
-
-  if (isLoading) {
-    return <PageLoadingShell />;
-  }
-
-  if (error) {
-    return (
-      <main className="flex-1 bg-cream">
-        <div className="page-shell py-16">
-          <p
-            role="alert"
-            className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
-          >
-            {error}
-          </p>
-        </div>
-      </main>
-    );
-  }
+export function DiscoverFeedMode({ initialData }: DiscoverFeedModeProps) {
+  const { items, hasFollows } = initialData;
 
   return (
     <main className="flex-1 bg-cream">

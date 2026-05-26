@@ -3,6 +3,7 @@ import {
   ONBOARDING_PATH,
   VILLAGE_PATH,
 } from "@/lib/auth/constants";
+import { logger } from "@/lib/logger";
 import { userHasFollows } from "@/lib/marketplace/follows";
 import { fetchOnboardingProfile, needsOnboarding } from "@/lib/onboarding/state";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -36,8 +37,19 @@ export async function resolvePostAuthPath(
     return safeNext;
   }
 
-  const hasFollows = await userHasFollows(supabase, userId);
-  if (hasFollows) {
+  const hasFollowsResult = await userHasFollows(supabase, userId);
+  if (!hasFollowsResult.ok) {
+    logger.warn({
+      operation: "auth.resolvePostAuthPath.userHasFollows",
+      message: "Failed to resolve post-auth follow state. Falling back to discover.",
+      userId,
+      errorCode: hasFollowsResult.error.code,
+      error: hasFollowsResult.error.message,
+    });
+    return DISCOVER_PATH;
+  }
+
+  if (hasFollowsResult.data) {
     return VILLAGE_PATH;
   }
 

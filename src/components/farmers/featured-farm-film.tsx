@@ -1,11 +1,11 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useMemo, useState } from "react";
 
 import { MediaPanel } from "@/components/ui/media-panel";
 import { PageSection } from "@/components/ui/page-section";
 import { RevealOnScroll } from "@/components/ui/reveal-on-scroll";
-import { VideoPlayerModal } from "@/components/videos/video-player-modal";
 import { formatVideoStage } from "@/lib/data/formatters";
 import {
   formatFieldFilmDate,
@@ -14,6 +14,14 @@ import {
 } from "@/lib/farmers/profile-helpers";
 import type { FarmerVideo } from "@/lib/farmers/types";
 import type { VideoPlaybackSource } from "@/lib/videos/playback-types";
+
+const VideoPlayerModal = dynamic(
+  () =>
+    import("@/components/videos/video-player-modal").then(
+      (module) => module.VideoPlayerModal,
+    ),
+  { ssr: false },
+);
 
 type FeaturedFarmFilmProps = {
   videos: FarmerVideo[];
@@ -194,10 +202,12 @@ export function FeaturedFarmFilm({ videos }: FeaturedFarmFilmProps) {
         </div>
       </div>
 
-      <VideoPlayerModal
-        video={activeVideo ? toPlayback(activeVideo) : null}
-        onClose={() => setActiveVideo(null)}
-      />
+      {activeVideo ? (
+        <VideoPlayerModal
+          video={toPlayback(activeVideo)}
+          onClose={() => setActiveVideo(null)}
+        />
+      ) : null}
     </PageSection>
   );
 }

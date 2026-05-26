@@ -51,6 +51,12 @@ export type FarmerDirectoryEntry = {
   profileImage: FarmerImage;
 };
 
+export type FarmerViewerRelationship = {
+  farmerProfileId: string;
+  isFollowing: boolean;
+  isSelf: boolean;
+};
+
 export type FarmerProfile = {
   /** Public slug for URLs (`/farmers/[slug]`) */
   id: string;

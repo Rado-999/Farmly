@@ -2,7 +2,12 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { FarmerProfileView } from "@/components/farmers/farmer-profile-view";
-import { getFarmerProfile, getFarmerSlugs } from "@/lib/farmers/queries";
+import { getOptionalServerViewerContext } from "@/lib/auth/server";
+import {
+  getFarmerProfile,
+  getFarmerSlugs,
+  getFarmerViewerRelationship,
+} from "@/lib/farmers/queries";
 
 export const revalidate = 60;
 
@@ -11,19 +16,32 @@ type FarmerPageProps = {
 };
 
 export async function generateStaticParams() {
-  try {
-    const slugs = await getFarmerSlugs();
-    return slugs.map((slug) => ({ slug }));
-  } catch {
+  const result = await getFarmerSlugs();
+
+  if (!result.ok) {
     return [];
   }
+
+  return result.data.map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({
   params,
 }: FarmerPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const farmer = await getFarmerProfile(slug);
+  const farmerResult = await getFarmerProfile(slug);
+
+  if (!farmerResult.ok) {
+    if (farmerResult.error.code === "query.not_found") {
+      return {
+        title: "Farmer not found | Farmly",
+      };
+    }
+
+    throw new Error(farmerResult.error.message);
+  }
+
+  const farmer = farmerResult.data;
 
   if (!farmer) {
     return {
@@ -39,11 +57,53 @@ export async function generateMetadata({
 
 export default async function FarmerPage({ params }: FarmerPageProps) {
   const { slug } = await params;
-  const farmer = await getFarmerProfile(slug);
+  const farmerResult = await getFarmerProfile(slug);
+
+  if (!farmerResult.ok) {
+    if (farmerResult.error.code === "query.not_found") {
+      notFound();
+    }
+
+    throw new Error(farmerResult.error.message);
+  }
+
+  const farmer = farmerResult.data;
 
   if (!farmer) {
     notFound();
   }
 
-  return <FarmerProfileView farmer={farmer} />;
+  const viewerContext = await getOptionalServerViewerContext();
+
+  const viewerRelationship = viewerContext
+    ? await getFarmerViewerRelationship(
+        viewerContext.supabase,
+        viewerContext.user.id,
+        farmer.farmerProfileId,
+        viewerContext.profile
+          ? {
+              viewerFarmerProfileId:
+                viewerContext.profile.farmerProfile?.id ?? null,
+            }
+          : undefined,
+      )
+    : {
+        ok: true as const,
+        data: {
+          farmerProfileId: farmer.farmerProfileId,
+          isFollowing: false,
+          isSelf: false,
+        },
+      };
+
+  if (!viewerRelationship.ok) {
+    throw new Error(viewerRelationship.error.message);
+  }
+
+  return (
+    <FarmerProfileView
+      farmer={farmer}
+      viewerRelationship={viewerRelationship.data}
+    />
+  );
 }

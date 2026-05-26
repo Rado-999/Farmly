@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { VILLAGE_PATH } from "@/lib/auth/constants";
-import { useAuthSession } from "@/lib/auth/use-auth-session";
 import { mainNavLinks } from "@/lib/site-navigation";
 
 const navLinkClassName =
@@ -13,15 +12,17 @@ const navLinkClassName =
 type MainNavProps = {
   /** Mobile dropdown vs desktop inline */
   variant?: "inline" | "menu";
+  isAuthenticated?: boolean;
 };
 
-export function MainNav({ variant = "inline" }: MainNavProps) {
+export function MainNav({
+  variant = "inline",
+  isAuthenticated = false,
+}: MainNavProps) {
   const pathname = usePathname();
-  const auth = useAuthSession();
-
   const links = [...mainNavLinks];
 
-  if (auth.status === "authenticated") {
+  if (isAuthenticated) {
     links.push({ href: VILLAGE_PATH, label: "Моето село" });
   }
 

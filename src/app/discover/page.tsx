@@ -2,8 +2,22 @@ import type { Metadata } from "next";
 
 import { DiscoverFeedMode } from "@/components/discover/discover-feed-mode";
 import { DiscoverPage } from "@/components/discover/discover-page";
-import { getDiscoverVillageData } from "@/lib/discover/queries";
-import { createServerSupabaseClientOrThrow } from "@/lib/supabase/server";
+import { getOptionalServerViewerContext } from "@/lib/auth/server";
+import {
+  buildVillageSnapshot,
+  getDiscoverVillageData,
+  loadDiscoverFeedModeData,
+} from "@/lib/discover/queries";
+import { getSupabasePublicEnv } from "@/lib/supabase/env";
+
+const emptyDiscoverData = {
+  farmers: [],
+  moments: [],
+  films: [],
+  whispers: [],
+  neighbourhoods: [],
+  snapshot: buildVillageSnapshot([], [], [], []),
+};
 
 export const metadata: Metadata = {
   title: "Farmly | Разходка из селото",
@@ -12,17 +26,39 @@ export const metadata: Metadata = {
 };
 
 export default async function DiscoverRoute() {
-  const supabase = await createServerSupabaseClientOrThrow();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const viewerContext = await getOptionalServerViewerContext();
 
-  if (user) {
-    return <DiscoverFeedMode userId={user.id} />;
+  if (viewerContext) {
+    const feedResult = await loadDiscoverFeedModeData(
+      viewerContext.supabase,
+      viewerContext.user.id,
+      viewerContext.profile
+        ? {
+            lastVisitedAt: viewerContext.profile.villageLastVisitedAt,
+            region: viewerContext.profile.region,
+          }
+        : undefined,
+    );
+
+    if (!feedResult.ok) {
+      throw new Error(feedResult.error.message);
+    }
+
+    return <DiscoverFeedMode initialData={feedResult.data} />;
+  }
+
+  if (!getSupabasePublicEnv()) {
+    return <DiscoverPage {...emptyDiscoverData} />;
+  }
+
+  const result = await getDiscoverVillageData();
+
+  if (!result.ok) {
+    throw new Error(result.error.message);
   }
 
   const { farmers, moments, films, whispers, neighbourhoods, snapshot } =
-    await getDiscoverVillageData();
+    result.data;
 
   return (
     <DiscoverPage

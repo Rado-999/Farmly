@@ -1,6 +1,14 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import { logger } from "@/lib/logger";
+import { err, ok, type Result } from "@/lib/errors/result";
+
 export const GUEST_SAVED_FARMER_IDS_KEY = "farmly_saved_farmer_ids";
+
+export type SyncGuestSavedFarmsResult = Result<
+  void,
+  "saved_farms.sync_failed"
+>;
 
 export function readGuestSavedFarmerIds(): string[] {
   if (typeof window === "undefined") {
@@ -19,7 +27,14 @@ export function readGuestSavedFarmerIds(): string[] {
     }
 
     return parsed.filter((id): id is string => typeof id === "string" && id.length > 0);
-  } catch {
+  } catch (error) {
+    logger.warn({
+      operation: "savedFarms.readGuestSavedFarmerIds",
+      message: "Failed to read guest saved farms from localStorage.",
+      errorCode: "saved_farms.local_storage_read_failed",
+      context: { storageKey: GUEST_SAVED_FARMER_IDS_KEY },
+      error,
+    });
     return [];
   }
 }
@@ -30,7 +45,23 @@ export function writeGuestSavedFarmerIds(ids: string[]) {
   }
 
   const unique = [...new Set(ids)];
-  window.localStorage.setItem(GUEST_SAVED_FARMER_IDS_KEY, JSON.stringify(unique));
+  try {
+    window.localStorage.setItem(
+      GUEST_SAVED_FARMER_IDS_KEY,
+      JSON.stringify(unique),
+    );
+  } catch (error) {
+    logger.error({
+      operation: "savedFarms.writeGuestSavedFarmerIds",
+      message: "Failed to persist guest saved farms to localStorage.",
+      errorCode: "saved_farms.local_storage_write_failed",
+      context: {
+        storageKey: GUEST_SAVED_FARMER_IDS_KEY,
+        savedCount: unique.length,
+      },
+      error,
+    });
+  }
 }
 
 export function addGuestSavedFarmerId(farmerId: string) {
@@ -49,7 +80,23 @@ export async function insertSavedFarm(
   userId: string,
   farmerId: string,
 ) {
-  return supabase.from("saved_farms").insert({ user_id: userId, farmer_id: farmerId });
+  const result = await supabase
+    .from("saved_farms")
+    .insert({ user_id: userId, farmer_id: farmerId });
+
+  if (result.error) {
+    logger.error({
+      operation: "savedFarms.insertSavedFarm",
+      message: "Failed to insert saved farm.",
+      userId,
+      farmerId,
+      errorCode: result.error.code ?? "saved_farms.insert_failed",
+      context: { table: "saved_farms" },
+      error: result.error,
+    });
+  }
+
+  return result;
 }
 
 export async function deleteSavedFarm(
@@ -57,21 +104,35 @@ export async function deleteSavedFarm(
   userId: string,
   farmerId: string,
 ) {
-  return supabase
+  const result = await supabase
     .from("saved_farms")
     .delete()
     .eq("user_id", userId)
     .eq("farmer_id", farmerId);
+
+  if (result.error) {
+    logger.error({
+      operation: "savedFarms.deleteSavedFarm",
+      message: "Failed to delete saved farm.",
+      userId,
+      farmerId,
+      errorCode: result.error.code ?? "saved_farms.delete_failed",
+      context: { table: "saved_farms" },
+      error: result.error,
+    });
+  }
+
+  return result;
 }
 
 /** Merge guest localStorage saves into the database after login. */
 export async function syncGuestSavedFarms(
   supabase: SupabaseClient,
   userId: string,
-): Promise<void> {
+): Promise<SyncGuestSavedFarmsResult> {
   const guestIds = readGuestSavedFarmerIds();
   if (guestIds.length === 0) {
-    return;
+    return ok();
   }
 
   const rows = guestIds.map((farmer_id) => ({
@@ -80,8 +141,31 @@ export async function syncGuestSavedFarms(
   }));
 
   for (const row of rows) {
-    await supabase.from("saved_farms").insert(row).select("id").maybeSingle();
+    const { error } = await supabase
+      .from("saved_farms")
+      .insert(row)
+      .select("id")
+      .maybeSingle();
+
+    if (error) {
+      logger.error({
+        operation: "savedFarms.syncGuestSavedFarms",
+        message: "Failed to sync guest saved farms into the database.",
+        userId,
+        farmerId: row.farmer_id,
+        errorCode: error.code ?? "saved_farms.sync_failed",
+        context: { guestSavedCount: guestIds.length, table: "saved_farms" },
+        error,
+      });
+
+      return err(
+        "saved_farms.sync_failed",
+        error.message,
+      );
+    }
   }
 
   writeGuestSavedFarmerIds([]);
+
+  return ok();
 }
