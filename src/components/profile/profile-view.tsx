@@ -1,14 +1,12 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 
-import { FarmerProductsList } from "@/components/products/farmer-products-list";
-import { FarmerVideosList } from "@/components/videos/farmer-videos-list";
 import { BecomeFarmerButton } from "@/components/profile/become-farmer-button";
 import { IncompleteProfileBanner } from "@/components/profile/incomplete-profile-banner";
-import { ProfileEditModal } from "@/components/profile/profile-edit-modal";
 import { ProfileSkeleton } from "@/components/profile/profile-skeleton";
 import { UserAvatar } from "@/components/profile/user-avatar";
 import {
@@ -19,7 +17,31 @@ import {
 import { formatLocation } from "@/lib/data/formatters";
 import { fetchOnboardingProfile } from "@/lib/onboarding/state";
 import type { OnboardingProfile } from "@/lib/onboarding/types";
-import { createSupabaseClient } from "@/lib/supabase";
+import { loadSupabaseClient } from "@/lib/supabase/load-client";
+
+const ProfileEditModal = dynamic(
+  () =>
+    import("@/components/profile/profile-edit-modal").then(
+      (module) => module.ProfileEditModal,
+    ),
+  { ssr: false },
+);
+
+const FarmerVideosList = dynamic(
+  () =>
+    import("@/components/videos/farmer-videos-list").then(
+      (module) => module.FarmerVideosList,
+    ),
+  { loading: () => <p className="text-sm text-stone-500">Зареждане на видеа...</p> },
+);
+
+const FarmerProductsList = dynamic(
+  () =>
+    import("@/components/products/farmer-products-list").then(
+      (module) => module.FarmerProductsList,
+    ),
+  { loading: () => <p className="text-sm text-stone-500">Зареждане на продукти...</p> },
+);
 
 function formatMemberSince(createdAt: string | null): string | null {
   if (!createdAt) {
@@ -72,7 +94,7 @@ export function ProfileView({
   const profileId = initialProfile.id;
 
   const loadProfile = useCallback(async () => {
-    const supabase = createSupabaseClient();
+    const supabase = await loadSupabaseClient();
 
     if (!supabase) {
       setIsProfileLoading(false);
@@ -88,7 +110,7 @@ export function ProfileView({
   }, [profileId]);
 
   async function handleSignOut() {
-    const supabase = createSupabaseClient();
+    const supabase = await loadSupabaseClient();
 
     if (!supabase) {
       return;
@@ -315,7 +337,7 @@ export function ProfileView({
         </div>
       </div>
 
-      {profile ? (
+      {profile && isEditOpen ? (
         <ProfileEditModal
           isOpen={isEditOpen}
           profile={profile}

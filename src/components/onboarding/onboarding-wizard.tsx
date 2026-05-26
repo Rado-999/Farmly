@@ -1,44 +1,91 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { OnboardingShell } from "@/components/onboarding/onboarding-shell";
-import {
-  StepBuyerFinish,
-  StepIdentity,
-  StepLocation,
-  StepPractice,
-  StepPreview,
-  StepStory,
-} from "@/components/onboarding/onboarding-steps";
-import { SkipWarningModal } from "@/components/onboarding/skip-warning-modal";
 import { ProfileSkeleton } from "@/components/profile/profile-skeleton";
 import { PROFILE_PATH } from "@/lib/auth/constants";
 import { getProfileDisplayName } from "@/lib/auth/profile";
-import {
-  completeOnboarding,
-  saveIdentityStep,
-  saveLocationStep,
-  savePracticeStep,
-  saveStoryStep,
-  skipOnboarding,
-} from "@/lib/onboarding/persistence";
+import type { Result } from "@/lib/errors/result";
 import {
   clampOnboardingStep,
   getOnboardingStepCount,
   getOnboardingSteps,
 } from "@/lib/onboarding/steps";
-import {
-  fetchOnboardingProfile,
-  needsOnboarding,
-} from "@/lib/onboarding/state";
+import { needsOnboarding } from "@/lib/onboarding/state";
 import type { OnboardingProfile } from "@/lib/onboarding/types";
-import { createSupabaseClient } from "@/lib/supabase";
+import { loadSupabaseClient } from "@/lib/supabase/load-client";
+
+const StepIdentity = dynamic(
+  () =>
+    import("@/components/onboarding/onboarding-steps").then(
+      (module) => module.StepIdentity,
+    ),
+  { loading: () => <StepLoadingFallback /> },
+);
+
+const StepLocation = dynamic(
+  () =>
+    import("@/components/onboarding/onboarding-steps").then(
+      (module) => module.StepLocation,
+    ),
+  { loading: () => <StepLoadingFallback /> },
+);
+
+const StepStory = dynamic(
+  () =>
+    import("@/components/onboarding/onboarding-steps").then(
+      (module) => module.StepStory,
+    ),
+  { loading: () => <StepLoadingFallback /> },
+);
+
+const StepPractice = dynamic(
+  () =>
+    import("@/components/onboarding/onboarding-steps").then(
+      (module) => module.StepPractice,
+    ),
+  { loading: () => <StepLoadingFallback /> },
+);
+
+const StepPreview = dynamic(
+  () =>
+    import("@/components/onboarding/onboarding-steps").then(
+      (module) => module.StepPreview,
+    ),
+  { loading: () => <StepLoadingFallback /> },
+);
+
+const StepBuyerFinish = dynamic(
+  () =>
+    import("@/components/onboarding/onboarding-steps").then(
+      (module) => module.StepBuyerFinish,
+    ),
+  { loading: () => <StepLoadingFallback /> },
+);
+
+const SkipWarningModal = dynamic(
+  () =>
+    import("@/components/onboarding/skip-warning-modal").then(
+      (module) => module.SkipWarningModal,
+    ),
+);
 
 type OnboardingWizardProps = {
   initialProfile: OnboardingProfile;
 };
+
+function StepLoadingFallback() {
+  return (
+    <div className="space-y-4">
+      <div className="h-56 animate-pulse rounded-[1.5rem] bg-white/80" />
+      <div className="h-12 animate-pulse rounded-full bg-stone-100" />
+    </div>
+  );
+}
 
 export function OnboardingWizard({ initialProfile }: OnboardingWizardProps) {
   const router = useRouter();
@@ -50,12 +97,13 @@ export function OnboardingWizard({ initialProfile }: OnboardingWizardProps) {
   const profileId = initialProfile.id;
 
   const reloadProfile = useCallback(async () => {
-    const supabase = createSupabaseClient();
+    const supabase = await loadSupabaseClient();
 
     if (!supabase) {
       return;
     }
 
+    const { fetchOnboardingProfile } = await import("@/lib/onboarding/state");
     const nextProfile = await fetchOnboardingProfile(supabase, profileId);
     if (nextProfile) {
       setProfile(nextProfile);
@@ -79,12 +127,10 @@ export function OnboardingWizard({ initialProfile }: OnboardingWizardProps) {
     steps.find((step) => step.id === currentStep) ?? steps[0]!;
 
   async function persist(
-    action: (
-      supabase: NonNullable<ReturnType<typeof createSupabaseClient>>,
-    ) => Promise<{ ok: boolean; message?: string }>,
+    action: (supabase: SupabaseClient) => Promise<Result<void, string>>,
     onSuccess?: () => void,
   ) {
-    const supabase = createSupabaseClient();
+    const supabase = await loadSupabaseClient();
 
     if (!supabase) {
       setError("Удостоверяването все още не е конфигурирано.");
@@ -99,7 +145,7 @@ export function OnboardingWizard({ initialProfile }: OnboardingWizardProps) {
     setIsSaving(false);
 
     if (!result.ok) {
-      setError(result.message ?? "Нещо се обърка. Моля, опитайте отново.");
+      setError(result.error.message ?? "Нещо се обърка. Моля, опитайте отново.");
       return;
     }
 
@@ -120,7 +166,9 @@ export function OnboardingWizard({ initialProfile }: OnboardingWizardProps) {
     }
 
     await persist(async (supabase) =>
-      skipOnboarding(supabase, profile.id),
+      import("@/lib/onboarding/persistence").then(({ skipOnboarding }) =>
+        skipOnboarding(supabase, profile.id),
+      ),
     );
     setShowSkipModal(false);
     router.push(PROFILE_PATH);
@@ -142,10 +190,17 @@ export function OnboardingWizard({ initialProfile }: OnboardingWizardProps) {
             goToStep(2);
           }}
           onFinish={() =>
-            void persist((supabase) => completeOnboarding(supabase, activeProfile.id), () => {
-              router.push("/discover");
-              router.refresh();
-            })
+            void persist(
+              (supabase) =>
+                import("@/lib/onboarding/persistence").then(
+                  ({ completeOnboarding }) =>
+                    completeOnboarding(supabase, activeProfile.id),
+                ),
+              () => {
+                router.push("/discover");
+                router.refresh();
+              },
+            )
           }
         />
       );
@@ -166,7 +221,10 @@ export function OnboardingWizard({ initialProfile }: OnboardingWizardProps) {
               }
 
               void persist((supabase) =>
-                saveIdentityStep(supabase, activeProfile.id, values),
+                import("@/lib/onboarding/persistence").then(
+                  ({ saveIdentityStep }) =>
+                    saveIdentityStep(supabase, activeProfile.id, values),
+                ),
               );
             }}
           />
@@ -194,11 +252,14 @@ export function OnboardingWizard({ initialProfile }: OnboardingWizardProps) {
 
               void persist(
                 (supabase) =>
-                  saveLocationStep(
-                    supabase,
-                    activeProfile.id,
-                    activeProfile.role,
-                    values,
+                  import("@/lib/onboarding/persistence").then(
+                    ({ saveLocationStep }) =>
+                      saveLocationStep(
+                        supabase,
+                        activeProfile.id,
+                        activeProfile.role,
+                        values,
+                      ),
                   ),
                 () => {
                   if (activeProfile.role === "buyer") {
@@ -229,7 +290,10 @@ export function OnboardingWizard({ initialProfile }: OnboardingWizardProps) {
               }
 
               void persist((supabase) =>
-                saveStoryStep(supabase, activeProfile.id, values),
+                import("@/lib/onboarding/persistence").then(
+                  ({ saveStoryStep }) =>
+                    saveStoryStep(supabase, activeProfile.id, values),
+                ),
               );
             }}
           />
@@ -246,7 +310,10 @@ export function OnboardingWizard({ initialProfile }: OnboardingWizardProps) {
             onBack={() => goToStep(3)}
             onContinue={(values) =>
               void persist((supabase) =>
-                savePracticeStep(supabase, activeProfile.id, values),
+                import("@/lib/onboarding/persistence").then(
+                  ({ savePracticeStep }) =>
+                    savePracticeStep(supabase, activeProfile.id, values),
+                ),
               )
             }
           />
@@ -260,7 +327,11 @@ export function OnboardingWizard({ initialProfile }: OnboardingWizardProps) {
             onBack={() => goToStep(4)}
             onFinish={() =>
               void persist(
-                (supabase) => completeOnboarding(supabase, activeProfile.id),
+                (supabase) =>
+                  import("@/lib/onboarding/persistence").then(
+                    ({ completeOnboarding }) =>
+                      completeOnboarding(supabase, activeProfile.id),
+                  ),
                 () => {
                   router.push(
                     activeProfile.farmerProfile
@@ -303,12 +374,14 @@ export function OnboardingWizard({ initialProfile }: OnboardingWizardProps) {
         </div>
       </OnboardingShell>
 
-      <SkipWarningModal
-        isOpen={showSkipModal}
-        isLoading={isSaving}
-        onCancel={() => setShowSkipModal(false)}
-        onConfirm={() => void handleSkipConfirm()}
-      />
+      {showSkipModal ? (
+        <SkipWarningModal
+          isOpen={showSkipModal}
+          isLoading={isSaving}
+          onCancel={() => setShowSkipModal(false)}
+          onConfirm={() => void handleSkipConfirm()}
+        />
+      ) : null}
     </main>
   );
 }

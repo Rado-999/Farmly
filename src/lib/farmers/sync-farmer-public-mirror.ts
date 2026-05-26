@@ -1,5 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import { logger } from "@/lib/logger";
+
 /** Keeps listing-only columns in sync when `profiles` fields change (replaces DB trigger). */
 export async function syncFarmerPublicMirrorFromProfile(
   supabase: SupabaseClient,
@@ -10,11 +12,23 @@ export async function syncFarmerPublicMirrorFromProfile(
     is_profile_complete?: boolean;
   },
 ): Promise<void> {
-  const { data: row } = await supabase
+  const { data: row, error: lookupError } = await supabase
     .from("farmer_profiles")
     .select("id")
     .eq("profile_id", userId)
     .maybeSingle();
+
+  if (lookupError) {
+    logger.error({
+      operation: "farmers.syncFarmerPublicMirrorFromProfile.lookup",
+      message: "Failed to load farmer profile before mirror sync.",
+      userId,
+      errorCode: lookupError.code ?? "farmer_public_mirror.lookup_failed",
+      context: { fieldKeys: Object.keys(fields) },
+      error: lookupError,
+    });
+    return;
+  }
 
   if (!row) {
     return;
@@ -39,5 +53,20 @@ export async function syncFarmerPublicMirrorFromProfile(
     return;
   }
 
-  await supabase.from("farmer_profiles").update(patch).eq("profile_id", userId);
+  const { error: updateError } = await supabase
+    .from("farmer_profiles")
+    .update(patch)
+    .eq("profile_id", userId);
+
+  if (updateError) {
+    logger.error({
+      operation: "farmers.syncFarmerPublicMirrorFromProfile.update",
+      message: "Failed to update farmer public mirror.",
+      userId,
+      farmerId: row.id,
+      errorCode: updateError.code ?? "farmer_public_mirror.update_failed",
+      context: { patchKeys: Object.keys(patch) },
+      error: updateError,
+    });
+  }
 }

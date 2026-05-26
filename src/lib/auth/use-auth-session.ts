@@ -1,11 +1,11 @@
 "use client";
 
-import type { Session, User } from "@supabase/supabase-js";
-import { useEffect, useState } from "react";
+import type { Session, SupabaseClient, User } from "@supabase/supabase-js";
+import { useSyncExternalStore } from "react";
 
-import { ensureProfileForAuthUser } from "@/lib/auth/ensure-profile";
-import { syncGuestSavedFarms } from "@/lib/marketplace/saved-farms";
-import { createSupabaseClient, isSupabaseConfigured } from "@/lib/supabase";
+import { isSupabaseConfigured } from "@/lib/supabase";
+import { loadSupabaseClient } from "@/lib/supabase/load-client";
+import { logger } from "@/lib/logger";
 
 const SESSION_STUCK_MS = 8000;
 
@@ -15,103 +15,162 @@ export type AuthSessionState =
   | { status: "anonymous" }
   | { status: "authenticated"; session: Session; user: User };
 
+let authState: AuthSessionState = { status: "loading" };
+let isInitialized = false;
+let loadWatchdog: ReturnType<typeof setTimeout> | undefined;
+const listeners = new Set<() => void>();
+
+function emitChange() {
+  listeners.forEach((listener) => listener());
+}
+
+function setAuthState(next: AuthSessionState) {
+  if (next.status === "authenticated" && authState.status === "authenticated") {
+    if (
+      authState.user.id === next.user.id &&
+      authState.session.access_token === next.session.access_token
+    ) {
+      return;
+    }
+  } else if (authState.status === next.status) {
+    return;
+  }
+
+  authState = next;
+  emitChange();
+}
+
+function disarmLoadWatchdog() {
+  if (loadWatchdog !== undefined) {
+    clearTimeout(loadWatchdog);
+    loadWatchdog = undefined;
+  }
+}
+
+function armLoadWatchdog() {
+  disarmLoadWatchdog();
+  loadWatchdog = setTimeout(() => {
+    if (authState.status === "loading") {
+      setAuthState({ status: "anonymous" });
+    }
+  }, SESSION_STUCK_MS);
+}
+
 function scheduleEnsureProfile(
-  supabase: NonNullable<ReturnType<typeof createSupabaseClient>>,
+  supabase: SupabaseClient,
   user: User,
 ) {
   setTimeout(() => {
-    void ensureProfileForAuthUser(supabase, user)
-      .then(() => syncGuestSavedFarms(supabase, user.id))
+    void Promise.all([
+      import("@/lib/auth/ensure-profile"),
+      import("@/lib/marketplace/saved-farms"),
+    ])
+      .then(([{ ensureProfileForAuthUser }, { syncGuestSavedFarms }]) =>
+        ensureProfileForAuthUser(supabase, user).then(() =>
+          syncGuestSavedFarms(supabase, user.id),
+        ),
+      )
+      .then((syncResult) => {
+        if (syncResult && !syncResult.ok) {
+          logger.error({
+            operation: "auth.useAuthSession.syncGuestSavedFarms",
+            message: "Failed to sync guest saved farms after authentication.",
+            userId: user.id,
+            errorCode: syncResult.error.code,
+            error: syncResult.error.message,
+          });
+        }
+      })
       .catch((err) => {
         console.error("[useAuthSession] ensureProfileForAuthUser failed", err);
       });
   }, 0);
 }
 
-export function useAuthSession(): AuthSessionState {
-  const [state, setState] = useState<AuthSessionState>({ status: "loading" });
+function setSessionState(session: Session | null) {
+  disarmLoadWatchdog();
 
-  useEffect(() => {
+  if (session?.user) {
+    setAuthState({
+      status: "authenticated",
+      session,
+      user: session.user,
+    });
+    return;
+  }
+
+  setAuthState({ status: "anonymous" });
+}
+
+function initializeAuthSessionStore() {
+  if (isInitialized) {
+    return;
+  }
+
+  isInitialized = true;
+
+  void (async () => {
     if (!isSupabaseConfigured()) {
-      setState({ status: "unconfigured" });
+      setAuthState({ status: "unconfigured" });
       return;
     }
 
-    const supabase = createSupabaseClient();
+    const supabase = await loadSupabaseClient();
 
     if (!supabase) {
-      setState({ status: "unconfigured" });
+      setAuthState({ status: "unconfigured" });
       return;
-    }
-
-    const client = supabase;
-    let isMounted = true;
-    let loadWatchdog: ReturnType<typeof setTimeout> | undefined;
-
-    function disarmLoadWatchdog() {
-      if (loadWatchdog !== undefined) {
-        clearTimeout(loadWatchdog);
-        loadWatchdog = undefined;
-      }
-    }
-
-    function armLoadWatchdog() {
-      disarmLoadWatchdog();
-      loadWatchdog = setTimeout(() => {
-        setState((prev) =>
-          prev.status === "loading" ? { status: "anonymous" } : prev,
-        );
-      }, SESSION_STUCK_MS);
-    }
-
-    function setAuthState(session: Session | null) {
-      disarmLoadWatchdog();
-      setState((current) => {
-        if (session?.user) {
-          if (
-            current.status === "authenticated" &&
-            current.user.id === session.user.id
-          ) {
-            return current;
-          }
-
-          return {
-            status: "authenticated",
-            session,
-            user: session.user,
-          };
-        }
-
-        if (current.status === "anonymous") {
-          return current;
-        }
-
-        return { status: "anonymous" };
-      });
     }
 
     armLoadWatchdog();
 
+    void supabase.auth
+      .getSession()
+      .then(({ data, error }) => {
+        if (error) {
+          console.error("[useAuthSession] getSession failed", error);
+          setAuthState({ status: "anonymous" });
+          return;
+        }
+
+        setSessionState(data.session);
+
+        if (data.session?.user) {
+          scheduleEnsureProfile(supabase, data.session.user);
+        }
+      })
+      .catch((error) => {
+        console.error("[useAuthSession] getSession failed", error);
+        setAuthState({ status: "anonymous" });
+      });
+
     const {
       data: { subscription },
-    } = client.auth.onAuthStateChange((_event, session) => {
-      if (!isMounted) {
-        return;
-      }
-
-      setAuthState(session);
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSessionState(session);
 
       if (session?.user) {
-        scheduleEnsureProfile(client, session.user);
+        scheduleEnsureProfile(supabase, session.user);
       }
     });
 
-    return () => {
-      isMounted = false;
-      disarmLoadWatchdog();
-      subscription.unsubscribe();
-    };
-  }, []);
+    void subscription;
+  })();
+}
 
-  return state;
+function subscribe(listener: () => void) {
+  listeners.add(listener);
+  initializeAuthSessionStore();
+
+  return () => {
+    listeners.delete(listener);
+  };
+}
+
+function getSnapshot() {
+  return authState;
+}
+
+export function useAuthSession(): AuthSessionState {
+  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }

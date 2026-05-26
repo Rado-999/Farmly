@@ -7,10 +7,9 @@ import { type FormEvent, useState } from "react";
 import { AuthButton } from "@/components/auth/auth-button";
 import { AuthCard } from "@/components/auth/auth-card";
 import { AuthInput } from "@/components/auth/auth-input";
-import { completeSignup } from "@/lib/auth/complete-signup";
 import type { AuthFieldErrors, SignupFormValues } from "@/lib/auth/types";
-import { validateSignupForm } from "@/lib/auth/validation";
-import { createSupabaseClient, isSupabaseConfigured } from "@/lib/supabase";
+import { isSupabaseConfigured } from "@/lib/supabase";
+import { loadSupabaseClient } from "@/lib/supabase/load-client";
 
 const initialValues: SignupFormValues = {
   fullName: "",
@@ -32,6 +31,7 @@ export function SignupForm() {
     setFormError(null);
     setSuccessMessage(null);
 
+    const { validateSignupForm } = await import("@/lib/auth/validation");
     const nextFieldErrors = validateSignupForm(values);
     setFieldErrors(nextFieldErrors);
 
@@ -44,7 +44,7 @@ export function SignupForm() {
       return;
     }
 
-    const supabase = createSupabaseClient();
+    const supabase = await loadSupabaseClient();
 
     if (!supabase) {
       setFormError("Удостоверяването все още не е конфигурирано.");
@@ -53,6 +53,7 @@ export function SignupForm() {
 
     setIsLoading(true);
 
+    const { completeSignup } = await import("@/lib/auth/complete-signup");
     const result = await completeSignup(supabase, values);
 
     setIsLoading(false);

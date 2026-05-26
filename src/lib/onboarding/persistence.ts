@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import { err, ok, type Result } from "@/lib/errors/result";
 import { becomeFarmer } from "@/lib/auth/become-farmer";
 import { syncFarmerPublicMirrorFromProfile } from "@/lib/farmers/sync-farmer-public-mirror";
 import { uploadAvatar } from "@/lib/onboarding/storage";
@@ -10,18 +11,29 @@ import type {
   StepStoryValues,
 } from "@/lib/onboarding/types";
 
-type SaveResult = { ok: true } | { ok: false; message: string };
+type OnboardingPersistenceErrorCode =
+  | "onboarding.avatar_upload_failed"
+  | "onboarding.profile_update_failed"
+  | "onboarding.become_farmer_failed"
+  | "onboarding.farmer_update_failed"
+  | "onboarding.step_update_failed";
+
+type SaveResult = Result<void, OnboardingPersistenceErrorCode>;
+type FarmerProfileResult = Result<
+  { farmerProfileId: string },
+  "onboarding.become_farmer_failed"
+>;
 
 async function ensureFarmerProfile(
   supabase: SupabaseClient,
-): Promise<{ ok: true; farmerProfileId: string } | { ok: false; message: string }> {
+): Promise<FarmerProfileResult> {
   const result = await becomeFarmer(supabase);
 
   if (result.status === "error") {
-    return { ok: false, message: result.message };
+    return err("onboarding.become_farmer_failed", result.message);
   }
 
-  return { ok: true, farmerProfileId: result.farmerProfileId };
+  return ok({ farmerProfileId: result.farmerProfileId });
 }
 
 export async function saveIdentityStep(
@@ -35,7 +47,10 @@ export async function saveIdentityStep(
     const upload = await uploadAvatar(supabase, userId, values.avatarFile);
 
     if (upload.error || !upload.url) {
-      return { ok: false, message: upload.error ?? "Не успяхме да качим снимката." };
+      return err(
+        "onboarding.avatar_upload_failed",
+        upload.error ?? "Не успяхме да качим снимката.",
+      );
     }
 
     avatarUrl = upload.url;
@@ -52,7 +67,7 @@ export async function saveIdentityStep(
     .eq("id", userId);
 
   if (error) {
-    return { ok: false, message: error.message };
+    return err("onboarding.profile_update_failed", error.message);
   }
 
   await syncFarmerPublicMirrorFromProfile(supabase, userId, {
@@ -60,7 +75,7 @@ export async function saveIdentityStep(
     ...(avatarUrl ? { avatar_url: avatarUrl } : {}),
   });
 
-  return { ok: true };
+  return ok();
 }
 
 export async function saveLocationStep(
@@ -84,14 +99,14 @@ export async function saveLocationStep(
     .eq("id", userId);
 
   if (profileError) {
-    return { ok: false, message: profileError.message };
+    return err("onboarding.profile_update_failed", profileError.message);
   }
 
   if (role === "farmer") {
     const farmer = await ensureFarmerProfile(supabase);
 
     if (!farmer.ok) {
-      return farmer;
+      return err(farmer.error.code, farmer.error.message);
     }
 
     const { error: farmerError } = await supabase
@@ -104,11 +119,11 @@ export async function saveLocationStep(
       .eq("profile_id", userId);
 
     if (farmerError) {
-      return { ok: false, message: farmerError.message };
+      return err("onboarding.farmer_update_failed", farmerError.message);
     }
   }
 
-  return { ok: true };
+  return ok();
 }
 
 export async function saveStoryStep(
@@ -119,7 +134,7 @@ export async function saveStoryStep(
   const farmer = await ensureFarmerProfile(supabase);
 
   if (!farmer.ok) {
-    return farmer;
+    return err(farmer.error.code, farmer.error.message);
   }
 
   const { error } = await supabase
@@ -133,7 +148,7 @@ export async function saveStoryStep(
     .eq("profile_id", userId);
 
   if (error) {
-    return { ok: false, message: error.message };
+    return err("onboarding.farmer_update_failed", error.message);
   }
 
   const { error: stepError } = await supabase
@@ -142,10 +157,10 @@ export async function saveStoryStep(
     .eq("id", userId);
 
   if (stepError) {
-    return { ok: false, message: stepError.message };
+    return err("onboarding.step_update_failed", stepError.message);
   }
 
-  return { ok: true };
+  return ok();
 }
 
 export async function savePracticeStep(
@@ -153,6 +168,12 @@ export async function savePracticeStep(
   userId: string,
   values: StepPracticeValues,
 ): Promise<SaveResult> {
+  const farmer = await ensureFarmerProfile(supabase);
+
+  if (!farmer.ok) {
+    return err(farmer.error.code, farmer.error.message);
+  }
+
   const years = Number.parseInt(values.experienceYears, 10);
   const experienceYears = Number.isNaN(years) ? null : years;
 
@@ -166,7 +187,7 @@ export async function savePracticeStep(
     .eq("profile_id", userId);
 
   if (error) {
-    return { ok: false, message: error.message };
+    return err("onboarding.farmer_update_failed", error.message);
   }
 
   const { error: stepError } = await supabase
@@ -175,10 +196,10 @@ export async function savePracticeStep(
     .eq("id", userId);
 
   if (stepError) {
-    return { ok: false, message: stepError.message };
+    return err("onboarding.step_update_failed", stepError.message);
   }
 
-  return { ok: true };
+  return ok();
 }
 
 export async function completeOnboarding(
@@ -196,14 +217,14 @@ export async function completeOnboarding(
     .eq("id", userId);
 
   if (error) {
-    return { ok: false, message: error.message };
+    return err("onboarding.profile_update_failed", error.message);
   }
 
   await syncFarmerPublicMirrorFromProfile(supabase, userId, {
     is_profile_complete: true,
   });
 
-  return { ok: true };
+  return ok();
 }
 
 export async function skipOnboarding(
@@ -220,12 +241,12 @@ export async function skipOnboarding(
     .eq("id", userId);
 
   if (error) {
-    return { ok: false, message: error.message };
+    return err("onboarding.profile_update_failed", error.message);
   }
 
   await syncFarmerPublicMirrorFromProfile(supabase, userId, {
     is_profile_complete: false,
   });
 
-  return { ok: true };
+  return ok();
 }

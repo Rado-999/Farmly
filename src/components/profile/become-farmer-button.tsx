@@ -4,9 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { ONBOARDING_PATH } from "@/lib/auth/constants";
-import { becomeFarmer } from "@/lib/auth/become-farmer";
-import { getAuthErrorMessage } from "@/lib/auth/messages";
-import { createSupabaseClient } from "@/lib/supabase";
+import { loadSupabaseClient } from "@/lib/supabase/load-client";
 
 type BecomeFarmerButtonProps = {
   onSuccess?: () => void;
@@ -20,7 +18,7 @@ export function BecomeFarmerButton({ onSuccess }: BecomeFarmerButtonProps) {
   async function handleBecomeFarmer() {
     setError(null);
 
-    const supabase = createSupabaseClient();
+    const supabase = await loadSupabaseClient();
 
     if (!supabase) {
       setError("Удостоверяването все още не е конфигурирано.");
@@ -29,6 +27,10 @@ export function BecomeFarmerButton({ onSuccess }: BecomeFarmerButtonProps) {
 
     setIsLoading(true);
 
+    const [{ becomeFarmer }, { getAuthErrorMessage }] = await Promise.all([
+      import("@/lib/auth/become-farmer"),
+      import("@/lib/auth/messages"),
+    ]);
     const result = await becomeFarmer(supabase);
 
     setIsLoading(false);

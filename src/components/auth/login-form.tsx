@@ -7,12 +7,9 @@ import { type FormEvent, useState } from "react";
 import { AuthButton } from "@/components/auth/auth-button";
 import { AuthCard } from "@/components/auth/auth-card";
 import { AuthInput } from "@/components/auth/auth-input";
-import { ensureProfileForAuthUser } from "@/lib/auth/ensure-profile";
-import { getAuthErrorMessage } from "@/lib/auth/messages";
-import { resolvePostAuthPath } from "@/lib/auth/post-auth-redirect";
 import type { AuthFieldErrors, LoginFormValues } from "@/lib/auth/types";
-import { validateLoginForm } from "@/lib/auth/validation";
-import { createSupabaseClient, isSupabaseConfigured } from "@/lib/supabase";
+import { isSupabaseConfigured } from "@/lib/supabase";
+import { loadSupabaseClient } from "@/lib/supabase/load-client";
 
 const initialValues: LoginFormValues = {
   email: "",
@@ -32,6 +29,7 @@ export function LoginForm() {
     event.preventDefault();
     setFormError(null);
 
+    const { validateLoginForm } = await import("@/lib/auth/validation");
     const nextFieldErrors = validateLoginForm(values);
     setFieldErrors(nextFieldErrors);
 
@@ -44,7 +42,7 @@ export function LoginForm() {
       return;
     }
 
-    const supabase = createSupabaseClient();
+    const supabase = await loadSupabaseClient();
 
     if (!supabase) {
       setFormError("Удостоверяването все още не е конфигурирано.");
@@ -59,6 +57,7 @@ export function LoginForm() {
     });
 
     if (error) {
+      const { getAuthErrorMessage } = await import("@/lib/auth/messages");
       setIsLoading(false);
       setFormError(getAuthErrorMessage(error));
       return;
@@ -66,19 +65,22 @@ export function LoginForm() {
 
     if (data.user) {
       setTimeout(() => {
-        void ensureProfileForAuthUser(supabase, data.user!).catch((err) => {
-          console.error("[LoginForm] ensureProfileForAuthUser failed", err);
-        });
+        void import("@/lib/auth/ensure-profile")
+          .then(({ ensureProfileForAuthUser }) =>
+            ensureProfileForAuthUser(supabase, data.user!),
+          )
+          .catch((err) => {
+            console.error("[LoginForm] ensureProfileForAuthUser failed", err);
+          });
       }, 0);
     }
 
     const userId = data.user?.id;
     const redirectPath =
       userId != null
-        ? await resolvePostAuthPath(
-            supabase,
-            userId,
-            searchParams.get("next"),
+        ? await import("@/lib/auth/post-auth-redirect").then(
+            ({ resolvePostAuthPath }) =>
+              resolvePostAuthPath(supabase, userId, searchParams.get("next")),
           )
         : "/onboarding";
 

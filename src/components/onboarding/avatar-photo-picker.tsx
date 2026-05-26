@@ -1,12 +1,23 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { AvatarCropView } from "@/components/onboarding/avatar-crop-view";
 import { getProfileInitials } from "@/lib/auth/profile";
 import type { CropAreaPixels } from "@/lib/images/crop-image";
-import { getCroppedImageFile } from "@/lib/images/crop-image";
-import { prepareImageForCrop } from "@/lib/images/prepare-image-for-crop";
+
+const AvatarCropView = dynamic(
+  () =>
+    import("@/components/onboarding/avatar-crop-view").then(
+      (module) => module.AvatarCropView,
+    ),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="aspect-square w-full animate-pulse rounded-[1.5rem] border border-stone-200/80 bg-stone-100" />
+    ),
+  },
+);
 
 type AvatarPhotoPickerProps = {
   name: string;
@@ -65,6 +76,7 @@ export function AvatarPhotoPicker({
       return;
     }
 
+    const { getCroppedImageFile } = await import("@/lib/images/crop-image");
     const file = await getCroppedImageFile(cropSource.url, croppedAreaPixels);
     const previewUrl = URL.createObjectURL(file);
 
@@ -86,6 +98,7 @@ export function AvatarPhotoPicker({
     }
 
     setPickError(null);
+    const { prepareImageForCrop } = await import("@/lib/images/prepare-image-for-crop");
     const prepared = await prepareImageForCrop(file);
 
     if ("error" in prepared) {

@@ -9,11 +9,7 @@ import { CoverPhotoPicker } from "@/components/profile/cover-photo-picker";
 import { OnboardingTextarea } from "@/components/onboarding/onboarding-textarea";
 import { BULGARIA_REGIONS } from "@/lib/onboarding/regions";
 import type { OnboardingProfile } from "@/lib/onboarding/types";
-import {
-  updateAccountProfile,
-  updateFarmerDetails,
-} from "@/lib/profile/update-profile";
-import { createSupabaseClient } from "@/lib/supabase";
+import { loadSupabaseClient } from "@/lib/supabase/load-client";
 
 type ProfileEditFormProps = {
   profile: OnboardingProfile;
@@ -53,7 +49,7 @@ export function ProfileEditForm({
       return;
     }
 
-    const supabase = createSupabaseClient();
+    const supabase = await loadSupabaseClient();
 
     if (!supabase) {
       setError("Не успяхме да се свържем. Опитайте отново.");
@@ -62,6 +58,9 @@ export function ProfileEditForm({
 
     setIsSaving(true);
 
+    const { updateAccountProfile, updateFarmerDetails } = await import(
+      "@/lib/profile/update-profile"
+    );
     const accountResult = await updateAccountProfile(supabase, profile.id, {
       name,
       avatarFile,
@@ -71,7 +70,7 @@ export function ProfileEditForm({
 
     if (!accountResult.ok) {
       setIsSaving(false);
-      setError(accountResult.message);
+      setError(accountResult.error.message);
       return;
     }
 
@@ -85,7 +84,7 @@ export function ProfileEditForm({
 
       if (!farmerResult.ok) {
         setIsSaving(false);
-        setError(farmerResult.message);
+        setError(farmerResult.error.message);
         return;
       }
     }
