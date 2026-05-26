@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -7,19 +8,30 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { AuthInput } from "@/components/auth/auth-input";
 import { FormSelect } from "@/components/ui/form-select";
 import { OnboardingTextarea } from "@/components/onboarding/onboarding-textarea";
-import { ProductImagePicker } from "@/components/products/product-image-picker";
 import {
   PRODUCT_CATEGORIES,
   PRODUCT_PRICE_UNITS,
 } from "@/lib/products/constants";
 import { buildImageDraftsFromProduct } from "@/lib/products/image-drafts";
 import type { ProductImageDraft } from "@/lib/products/image-drafts";
-import { listFarmerVideosForPicker } from "@/lib/products/queries";
-import { saveProduct } from "@/lib/products/save-product";
 import type { FarmerProductAccess } from "@/lib/products/types";
 import type { ProductFormValues } from "@/lib/products/types";
 import type { ProductRow, VideoRow } from "@/lib/supabase/database.types";
-import { createSupabaseClient } from "@/lib/supabase";
+import { loadSupabaseClient } from "@/lib/supabase/load-client";
+
+const ProductImagePicker = dynamic(
+  () =>
+    import("@/components/products/product-image-picker").then(
+      (module) => module.ProductImagePicker,
+    ),
+  {
+    loading: () => (
+      <div className="rounded-2xl border border-stone-200/80 bg-stone-50/80 px-6 py-8 text-center text-sm text-stone-500">
+        Зареждане на снимките...
+      </div>
+    ),
+  },
+);
 
 type ProductFormProps = {
   access: FarmerProductAccess;
@@ -75,24 +87,27 @@ export function ProductForm({
 
   useEffect(() => {
     async function loadVideos() {
-      const supabase = createSupabaseClient();
+      const supabase = await loadSupabaseClient();
 
       if (!supabase) {
         setIsLoadingVideos(false);
         return;
       }
 
-      try {
-        const rows = await listFarmerVideosForPicker(
-          supabase,
-          access.farmerProfileId,
-        );
-        setVideos(rows);
-      } catch {
+      const { listFarmerVideosForPicker } = await import("@/lib/products/queries");
+      const result = await listFarmerVideosForPicker(
+        supabase,
+        access.farmerProfileId,
+      );
+
+      if (!result.ok) {
         setVideos([]);
-      } finally {
         setIsLoadingVideos(false);
+        return;
       }
+
+      setVideos(result.data);
+      setIsLoadingVideos(false);
     }
 
     void loadVideos();
@@ -122,7 +137,7 @@ export function ProductForm({
 
   async function handleSave(intent: "draft" | "publish") {
     setError(null);
-    const supabase = createSupabaseClient();
+    const supabase = await loadSupabaseClient();
 
     if (!supabase) {
       setError("Няма връзка със сървъра. Опитайте отново.");
@@ -131,6 +146,7 @@ export function ProductForm({
 
     setIsSaving(true);
 
+    const { saveProduct } = await import("@/lib/products/save-product");
     const result = await saveProduct({
       supabase,
       farmerProfileId: access.farmerProfileId,
@@ -143,12 +159,12 @@ export function ProductForm({
     setIsSaving(false);
 
     if (!result.ok) {
-      setError(result.message);
+      setError(result.error.message);
       return;
     }
 
     router.push(
-      `/farmers/${access.farmerSlug}/products/${result.productId}`,
+      `/farmers/${access.farmerSlug}/products/${result.data.productId}`,
     );
     router.refresh();
   }

@@ -1,5 +1,13 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import {
+  queryAllowed,
+  queryDatabaseError,
+  queryDenied,
+  type QueryAccessResult,
+  type QueryResult,
+} from "@/lib/errors/query-result";
+import { ok } from "@/lib/errors/result";
 import { mapVideoStage } from "@/lib/data/formatters";
 import { formatDurationSeconds } from "@/lib/videos/format-duration";
 import type { FarmerVideoListItem } from "@/lib/videos/types";
@@ -15,7 +23,7 @@ type VideoRowWithProduct = VideoRow & {
 export async function listFarmerVideosForManagement(
   supabase: SupabaseClient,
   farmerProfileId: string,
-): Promise<FarmerVideoListItem[]> {
+): Promise<QueryResult<FarmerVideoListItem[]>> {
   const { data, error } = await supabase
     .from("videos")
     .select(`${VIDEO_SELECT}, products ( title )`)
@@ -23,33 +31,35 @@ export async function listFarmerVideosForManagement(
     .order("created_at", { ascending: false });
 
   if (error) {
-    throw new Error(error.message);
+    return queryDatabaseError(error.message);
   }
 
-  return ((data ?? []) as VideoRowWithProduct[]).map((video) => {
-    const product = Array.isArray(video.products)
-      ? video.products[0]
-      : video.products;
+  return ok(
+    ((data ?? []) as VideoRowWithProduct[]).map((video) => {
+      const product = Array.isArray(video.products)
+        ? video.products[0]
+        : video.products;
 
-    return {
-      id: video.id,
-      title: video.title ?? "Видео история",
-      stage: mapVideoStage(video.type),
-      durationLabel: formatDurationSeconds(video.duration_seconds),
-      description: video.description,
-      posterUrl: video.poster_url ?? null,
-      videoUrl: video.video_url,
-      productId: video.product_id,
-      productTitle: product?.title ?? null,
-    };
-  });
+      return {
+        id: video.id,
+        title: video.title ?? "Видео история",
+        stage: mapVideoStage(video.type),
+        durationLabel: formatDurationSeconds(video.duration_seconds),
+        description: video.description,
+        posterUrl: video.poster_url ?? null,
+        videoUrl: video.video_url,
+        productId: video.product_id,
+        productTitle: product?.title ?? null,
+      };
+    }),
+  );
 }
 
 export async function verifyProductBelongsToFarmer(
   supabase: SupabaseClient,
   farmerProfileId: string,
   productId: string,
-): Promise<boolean> {
+): Promise<QueryAccessResult<"not_found">> {
   const { data, error } = await supabase
     .from("products")
     .select("id")
@@ -58,10 +68,14 @@ export async function verifyProductBelongsToFarmer(
     .maybeSingle();
 
   if (error) {
-    return false;
+    return queryDatabaseError(error.message);
   }
 
-  return Boolean(data?.id);
+  if (!data?.id) {
+    return queryDenied("not_found");
+  }
+
+  return queryAllowed();
 }
 
 export async function createVideoRow(

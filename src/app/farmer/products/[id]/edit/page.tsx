@@ -36,7 +36,26 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
   }
 
   const { supabase, access } = result;
-  const product = await getProductForEdit(supabase, id, access.farmerProfileId);
+  const productResult = await getProductForEdit(supabase, id, access.farmerProfileId);
+
+  if (!productResult.ok) {
+    if (productResult.error.code === "query.not_found") {
+      notFound();
+    }
+
+    throw new Error(productResult.error.message);
+  }
+
+  const product = productResult.data;
+
+  const videosResult = await listFarmerVideosForPicker(
+    supabase,
+    access.farmerProfileId,
+  );
+
+  if (!videosResult.ok) {
+    throw new Error(videosResult.error.message);
+  }
 
   if (!product) {
     notFound();
@@ -46,7 +65,7 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
     supabase,
     product.images,
   );
-  const videos = await listFarmerVideosForPicker(supabase, access.farmerProfileId);
+  const videos = videosResult.data;
   const initialVideoIds = videos
     .filter((video) => video.product_id === id)
     .map((video) => video.id);

@@ -1,5 +1,14 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import {
+  queryAllowed,
+  queryDatabaseError,
+  queryDenied,
+  queryNotFound,
+  type QueryAccessResult,
+  type QueryResult,
+} from "@/lib/errors/query-result";
+import { ok } from "@/lib/errors/result";
 import { FARMER_PROFILE_SELECT } from "@/lib/farmers/farmer-profile-row";
 import { mapProductDetail, mapProductListItem } from "@/lib/products/mappers";
 import type { ProductDetail, ProductListItem } from "@/lib/products/types";
@@ -16,24 +25,30 @@ import { createSupabaseClient } from "@/lib/supabase";
 const PRODUCT_SELECT =
   "id, farmer_id, title, description, price, season, category, images, status, price_unit, published_at";
 
-function getSupabaseOrThrow() {
+function getSupabaseResult(): QueryResult<SupabaseClient> {
   const supabase = createSupabaseClient();
 
   if (!supabase) {
-    throw new Error(
+    return queryDatabaseError(
       "Supabase is not configured. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY to .env.local.",
     );
   }
 
-  return supabase;
+  return ok(supabase);
 }
 
 export async function listFarmerProducts(
   farmerProfileId: string,
   farmerSlug: string,
   options: { includeDrafts?: boolean } = {},
-): Promise<ProductListItem[]> {
-  const supabase = getSupabaseOrThrow();
+): Promise<QueryResult<ProductListItem[]>> {
+  const supabaseResult = getSupabaseResult();
+
+  if (!supabaseResult.ok) {
+    return supabaseResult;
+  }
+
+  const supabase = supabaseResult.data;
 
   let query = supabase
     .from("products")
@@ -48,18 +63,26 @@ export async function listFarmerProducts(
   const { data, error } = await query;
 
   if (error) {
-    throw new Error(error.message);
+    return queryDatabaseError(error.message);
   }
 
-  return ((data ?? []) as ProductRow[]).map((product) =>
-    mapProductListItem(product, farmerSlug),
+  return ok(
+    ((data ?? []) as ProductRow[]).map((product) =>
+      mapProductListItem(product, farmerSlug),
+    ),
   );
 }
 
 export async function getProductById(
   productId: string,
-): Promise<ProductDetail | null> {
-  const supabase = getSupabaseOrThrow();
+): Promise<QueryResult<ProductDetail>> {
+  const supabaseResult = getSupabaseResult();
+
+  if (!supabaseResult.ok) {
+    return supabaseResult;
+  }
+
+  const supabase = supabaseResult.data;
 
   const { data: product, error: productError } = await supabase
     .from("products")
@@ -68,11 +91,11 @@ export async function getProductById(
     .maybeSingle();
 
   if (productError) {
-    throw new Error(productError.message);
+    return queryDatabaseError(productError.message);
   }
 
   if (!product) {
-    return null;
+    return queryNotFound("Product not found.");
   }
 
   const productRow = product as ProductRow;
@@ -84,14 +107,17 @@ export async function getProductById(
     .maybeSingle();
 
   if (farmerError) {
-    throw new Error(farmerError.message);
+    return queryDatabaseError(farmerError.message);
   }
 
   if (!farmer) {
-    return null;
+    return queryNotFound("Farmer not found.");
   }
 
-  const [{ data: videos }, { data: reviews }] = await Promise.all([
+  const [
+    { data: videos, error: videosError },
+    { data: reviews, error: reviewsError },
+  ] = await Promise.all([
     supabase
       .from("videos")
       .select(
@@ -108,18 +134,28 @@ export async function getProductById(
       .order("created_at", { ascending: false }),
   ]);
 
-  return mapProductDetail(
-    productRow,
-    farmer as FarmerProfileRow,
-    (videos ?? []) as VideoRow[],
-    (reviews ?? []) as ReviewRow[],
+  if (videosError) {
+    return queryDatabaseError(videosError.message);
+  }
+
+  if (reviewsError) {
+    return queryDatabaseError(reviewsError.message);
+  }
+
+  return ok(
+    mapProductDetail(
+      productRow,
+      farmer as FarmerProfileRow,
+      (videos ?? []) as VideoRow[],
+      (reviews ?? []) as ReviewRow[],
+    ),
   );
 }
 
 export async function listFarmerVideosForPicker(
   supabase: SupabaseClient,
   farmerProfileId: string,
-): Promise<VideoRow[]> {
+): Promise<QueryResult<VideoRow[]>> {
   const { data, error } = await supabase
     .from("videos")
     .select(
@@ -129,17 +165,17 @@ export async function listFarmerVideosForPicker(
     .order("created_at", { ascending: false });
 
   if (error) {
-    throw new Error(error.message);
+    return queryDatabaseError(error.message);
   }
 
-  return (data ?? []) as VideoRow[];
+  return ok((data ?? []) as VideoRow[]);
 }
 
 export async function getProductForEdit(
   supabase: SupabaseClient,
   productId: string,
   farmerProfileId: string,
-): Promise<ProductRow | null> {
+): Promise<QueryResult<ProductRow>> {
   const { data, error } = await supabase
     .from("products")
     .select(PRODUCT_SELECT)
@@ -148,10 +184,14 @@ export async function getProductForEdit(
     .maybeSingle();
 
   if (error) {
-    throw new Error(error.message);
+    return queryDatabaseError(error.message);
   }
 
-  return (data as ProductRow | null) ?? null;
+  if (!data) {
+    return queryNotFound("Product not found.");
+  }
+
+  return ok(data as ProductRow);
 }
 
 export async function createProduct(
@@ -291,15 +331,19 @@ export async function isProductOwner(
   supabase: SupabaseClient,
   productId: string,
   userId: string,
-): Promise<boolean> {
+): Promise<QueryAccessResult> {
   const { data, error } = await supabase
     .from("products")
     .select("farmer_id, farmer_profiles!inner(profile_id)")
     .eq("id", productId)
     .maybeSingle();
 
-  if (error || !data) {
-    return false;
+  if (error) {
+    return queryDatabaseError(error.message);
+  }
+
+  if (!data) {
+    return queryDenied("not_found");
   }
 
   const farmerProfiles = data.farmer_profiles as
@@ -310,5 +354,9 @@ export async function isProductOwner(
     ? farmerProfiles[0]
     : farmerProfiles;
 
-  return farmerProfile?.profile_id === userId;
+  if (farmerProfile?.profile_id !== userId) {
+    return queryDenied("unauthorized");
+  }
+
+  return queryAllowed();
 }

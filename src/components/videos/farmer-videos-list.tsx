@@ -1,15 +1,20 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
-import { DeleteVideoModal } from "@/components/videos/delete-video-modal";
 import { formatVideoStage } from "@/lib/data/formatters";
-import { createSupabaseClient } from "@/lib/supabase";
-import { deleteFarmerVideo } from "@/lib/videos/delete-video";
-import { listFarmerVideosForManagement } from "@/lib/videos/queries";
+import { loadSupabaseClient } from "@/lib/supabase/load-client";
 import type { FarmerVideoListItem } from "@/lib/videos/types";
+
+const DeleteVideoModal = dynamic(
+  () =>
+    import("@/components/videos/delete-video-modal").then(
+      (module) => module.DeleteVideoModal,
+    ),
+);
 
 type FarmerVideosListProps = {
   farmerProfileId: string;
@@ -29,7 +34,7 @@ export function FarmerVideosList({
   const [error, setError] = useState<string | null>(null);
 
   const loadVideos = useCallback(async () => {
-    const supabase = createSupabaseClient();
+    const supabase = await loadSupabaseClient();
 
     if (!supabase) {
       setVideos([]);
@@ -37,19 +42,21 @@ export function FarmerVideosList({
       return;
     }
 
-    try {
-      const items = await listFarmerVideosForManagement(
-        supabase,
-        farmerProfileId,
-      );
-      setVideos(items);
-      setError(null);
-    } catch {
+    const { listFarmerVideosForManagement } = await import("@/lib/videos/queries");
+    const result = await listFarmerVideosForManagement(
+      supabase,
+      farmerProfileId,
+    );
+
+    if (!result.ok) {
       setVideos([]);
       setError("Не успяхме да заредим видеата.");
-    } finally {
-      setIsLoading(false);
+    } else {
+      setVideos(result.data);
+      setError(null);
     }
+
+    setIsLoading(false);
   }, [farmerProfileId]);
 
   useEffect(() => {
@@ -61,7 +68,7 @@ export function FarmerVideosList({
       return;
     }
 
-    const supabase = createSupabaseClient();
+    const supabase = await loadSupabaseClient();
 
     if (!supabase) {
       setError("Няма връзка със сървъра.");
@@ -70,6 +77,7 @@ export function FarmerVideosList({
 
     setIsDeleting(true);
 
+    const { deleteFarmerVideo } = await import("@/lib/videos/delete-video");
     const result = await deleteFarmerVideo(
       supabase,
       farmerProfileId,
@@ -79,7 +87,7 @@ export function FarmerVideosList({
     setIsDeleting(false);
 
     if (!result.ok) {
-      setError(result.message);
+      setError(result.error.message);
       return;
     }
 
@@ -160,13 +168,15 @@ export function FarmerVideosList({
         </p>
       ) : null}
 
-      <DeleteVideoModal
-        isOpen={Boolean(deleteTarget)}
-        videoTitle={deleteTarget?.title ?? ""}
-        isDeleting={isDeleting}
-        onClose={() => setDeleteTarget(null)}
-        onConfirm={handleConfirmDelete}
-      />
+      {deleteTarget ? (
+        <DeleteVideoModal
+          isOpen
+          videoTitle={deleteTarget.title}
+          isDeleting={isDeleting}
+          onClose={() => setDeleteTarget(null)}
+          onConfirm={handleConfirmDelete}
+        />
+      ) : null}
     </>
   );
 }

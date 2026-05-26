@@ -1,38 +1,46 @@
 import { PRODUCT_CATEGORIES } from "@/lib/products/constants";
+import { err, ok, type Result } from "@/lib/errors/result";
 import type { ProductFormValues } from "@/lib/products/types";
 
 const CATEGORY_VALUES = new Set<string>(
   PRODUCT_CATEGORIES.map((category) => category.value),
 );
 
-export type ProductValidationResult =
-  | { ok: true }
-  | { ok: false; message: string };
+export type ProductValidationErrorCode =
+  | "product.title_required"
+  | "product.price_invalid"
+  | "product.category_invalid"
+  | "product.images_required";
+
+export type ProductValidationResult = Result<void, ProductValidationErrorCode>;
 
 function validateTitle(title: string): ProductValidationResult {
   if (!title.trim()) {
-    return { ok: false, message: "Въведете заглавие на продукта." };
+    return err("product.title_required", "Въведете заглавие на продукта.");
   }
 
-  return { ok: true };
+  return ok();
 }
 
 function validatePrice(price: string): ProductValidationResult {
   const amount = Number.parseFloat(price);
 
   if (!price.trim() || Number.isNaN(amount) || amount <= 0) {
-    return { ok: false, message: "Въведете валидна цена по-голяма от нула." };
+    return err(
+      "product.price_invalid",
+      "Въведете валидна цена по-голяма от нула.",
+    );
   }
 
-  return { ok: true };
+  return ok();
 }
 
 function validateCategory(category: string): ProductValidationResult {
   if (!category.trim() || !CATEGORY_VALUES.has(category)) {
-    return { ok: false, message: "Изберете категория." };
+    return err("product.category_invalid", "Изберете категория.");
   }
 
-  return { ok: true };
+  return ok();
 }
 
 export function validateProductDraft(
@@ -64,8 +72,11 @@ export function validateProductPublish(
   }
 
   if (imageCount < 1) {
-    return { ok: false, message: "Добавете поне една снимка, за да публикувате." };
+    return err(
+      "product.images_required",
+      "Добавете поне една снимка, за да публикувате.",
+    );
   }
 
-  return { ok: true };
+  return ok();
 }

@@ -1,24 +1,31 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { VideoDropzone } from "@/components/videos/video-dropzone";
-import { VideoUploadForm } from "@/components/videos/video-upload-form";
 import { PROFILE_PATH } from "@/lib/auth/constants";
-import { listFarmerProducts } from "@/lib/products/queries";
 import type { FarmerProductAccess } from "@/lib/products/types";
 import type { ProductListItem } from "@/lib/products/types";
-import { createSupabaseClient } from "@/lib/supabase";
-import { extractVideoMetadata } from "@/lib/videos/extract-video-metadata";
 import { formatDurationSeconds } from "@/lib/videos/format-duration";
-import { publishVideo } from "@/lib/videos/publish-video";
+import { loadSupabaseClient } from "@/lib/supabase/load-client";
 import type { VideoFormValues } from "@/lib/videos/types";
 import {
   validateVideoDuration,
   validateVideoFile,
 } from "@/lib/videos/validation";
+
+const VideoUploadForm = dynamic(
+  () =>
+    import("@/components/videos/video-upload-form").then(
+      (module) => module.VideoUploadForm,
+    ),
+  {
+    loading: () => <p className="text-sm text-stone-500">Зареждане на формата...</p>,
+  },
+);
 
 const INITIAL_VALUES: VideoFormValues = {
   title: "",
@@ -36,32 +43,46 @@ export function NewVideoForm({ access }: { access: FarmerProductAccess }) {
   const [durationSeconds, setDurationSeconds] = useState<number | null>(null);
   const [values, setValues] = useState<VideoFormValues>(INITIAL_VALUES);
   const [products, setProducts] = useState<ProductListItem[]>([]);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadProducts() {
-      const supabase = createSupabaseClient();
-
-      if (!supabase) {
+      if (!file) {
+        setProducts([]);
+        setIsLoadingProducts(false);
         return;
       }
 
-      try {
-        const items = await listFarmerProducts(
-          access.farmerProfileId,
-          access.farmerSlug,
-          { includeDrafts: true },
-        );
-        setProducts(items);
-      } catch {
-        setProducts([]);
+      const supabase = await loadSupabaseClient();
+
+      if (!supabase) {
+        setIsLoadingProducts(false);
+        return;
       }
+
+      setIsLoadingProducts(true);
+      const { listFarmerProducts } = await import("@/lib/products/queries");
+      const result = await listFarmerProducts(
+        access.farmerProfileId,
+        access.farmerSlug,
+        { includeDrafts: true },
+      );
+
+      if (!result.ok) {
+        setProducts([]);
+        setIsLoadingProducts(false);
+        return;
+      }
+
+      setProducts(result.data);
+      setIsLoadingProducts(false);
     }
 
     void loadProducts();
-  }, [access.farmerProfileId, access.farmerSlug]);
+  }, [access.farmerProfileId, access.farmerSlug, file]);
 
   useEffect(() => {
     return () => {
@@ -77,7 +98,7 @@ export function NewVideoForm({ access }: { access: FarmerProductAccess }) {
     const validation = validateVideoFile(selectedFile);
 
     if (!validation.ok) {
-      setError(validation.message);
+      setError(validation.error.message);
       return;
     }
 
@@ -92,12 +113,13 @@ export function NewVideoForm({ access }: { access: FarmerProductAccess }) {
     setIsProcessing(true);
 
     try {
+      const { extractVideoMetadata } = await import("@/lib/videos/extract-video-metadata");
       const metadata = await extractVideoMetadata(selectedFile);
       const durationValidation = validateVideoDuration(metadata.durationSeconds);
 
       if (!durationValidation.ok) {
         handleReset();
-        setError(durationValidation.message);
+        setError(durationValidation.error.message);
         return;
       }
 
@@ -135,7 +157,7 @@ export function NewVideoForm({ access }: { access: FarmerProductAccess }) {
       return;
     }
 
-    const supabase = createSupabaseClient();
+    const supabase = await loadSupabaseClient();
 
     if (!supabase) {
       setError("Няма връзка със сървъра. Опитайте отново.");
@@ -145,6 +167,7 @@ export function NewVideoForm({ access }: { access: FarmerProductAccess }) {
     setError(null);
     setIsPublishing(true);
 
+    const { publishVideo } = await import("@/lib/videos/publish-video");
     const result = await publishVideo({
       supabase,
       farmerProfileId: access.farmerProfileId,
@@ -157,7 +180,7 @@ export function NewVideoForm({ access }: { access: FarmerProductAccess }) {
     setIsPublishing(false);
 
     if (!result.ok) {
-      setError(result.message);
+      setError(result.error.message);
       return;
     }
 
@@ -210,7 +233,7 @@ export function NewVideoForm({ access }: { access: FarmerProductAccess }) {
               ) : (
                 <VideoUploadForm
                   values={values}
-                  products={products}
+                  products={isLoadingProducts ? [] : products}
                   durationLabel={durationLabel}
                   onChange={(patch) =>
                     setValues((current) => ({ ...current, ...patch }))

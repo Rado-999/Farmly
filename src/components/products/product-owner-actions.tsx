@@ -1,12 +1,18 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { DeleteProductModal } from "@/components/products/delete-product-modal";
-import { deleteProduct } from "@/lib/products/queries";
-import { createSupabaseClient } from "@/lib/supabase";
+import { loadSupabaseClient } from "@/lib/supabase/load-client";
+
+const DeleteProductModal = dynamic(
+  () =>
+    import("@/components/products/delete-product-modal").then(
+      (module) => module.DeleteProductModal,
+    ),
+);
 
 type ProductOwnerActionsProps = {
   productId: string;
@@ -25,7 +31,7 @@ export function ProductOwnerActions({
   const [error, setError] = useState<string | null>(null);
 
   async function handleDelete() {
-    const supabase = createSupabaseClient();
+    const supabase = await loadSupabaseClient();
 
     if (!supabase) {
       setError("Няма връзка със сървъра.");
@@ -33,6 +39,7 @@ export function ProductOwnerActions({
     }
 
     setIsDeleting(true);
+    const { deleteProduct } = await import("@/lib/products/queries");
     const result = await deleteProduct(supabase, productId, farmerProfileId);
     setIsDeleting(false);
 
@@ -70,13 +77,15 @@ export function ProductOwnerActions({
         </p>
       ) : null}
 
-      <DeleteProductModal
-        isOpen={isDeleteOpen}
-        productTitle={productTitle}
-        isDeleting={isDeleting}
-        onClose={() => setIsDeleteOpen(false)}
-        onConfirm={() => void handleDelete()}
-      />
+      {isDeleteOpen ? (
+        <DeleteProductModal
+          isOpen
+          productTitle={productTitle}
+          isDeleting={isDeleting}
+          onClose={() => setIsDeleteOpen(false)}
+          onConfirm={() => void handleDelete()}
+        />
+      ) : null}
     </div>
   );
 }

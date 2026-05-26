@@ -21,16 +21,18 @@ export function FarmerProductsList({
 
   useEffect(() => {
     async function load() {
-      try {
-        const items = await listFarmerProducts(farmerProfileId, farmerSlug, {
-          includeDrafts: true,
-        });
-        setProducts(items);
-      } catch {
+      const result = await listFarmerProducts(farmerProfileId, farmerSlug, {
+        includeDrafts: true,
+      });
+
+      if (!result.ok) {
         setProducts([]);
-      } finally {
         setIsLoading(false);
+        return;
       }
+
+      setProducts(result.data);
+      setIsLoading(false);
     }
 
     void load();

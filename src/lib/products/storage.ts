@@ -1,5 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import { logger } from "@/lib/logger";
+
 const PRODUCT_IMAGES_BUCKET = "product-images";
 const PRODUCT_DRAFT_IMAGES_BUCKET = "product-draft-images";
 const PRODUCT_DRAFT_REF_PREFIX = "draft-image:";
@@ -23,11 +25,24 @@ function getPublicProductImagePath(url: string): string | null {
     const prefix = `/storage/v1/object/public/${PRODUCT_IMAGES_BUCKET}/`;
 
     if (!pathname.startsWith(prefix)) {
+      logger.warn({
+        operation: "products.storage.getPublicProductImagePath",
+        message: "Product image URL did not match the expected public bucket prefix.",
+        errorCode: "product_storage.invalid_public_url",
+        context: { bucket: PRODUCT_IMAGES_BUCKET, url },
+      });
       return null;
     }
 
     return decodeURIComponent(pathname.slice(prefix.length));
-  } catch {
+  } catch (error) {
+    logger.warn({
+      operation: "products.storage.getPublicProductImagePath",
+      message: "Failed to parse public product image URL.",
+      errorCode: "product_storage.invalid_public_url",
+      context: { bucket: PRODUCT_IMAGES_BUCKET, url },
+      error,
+    });
     return null;
   }
 }
@@ -56,6 +71,16 @@ async function uploadStorageObject(
     ...(contentType ? { contentType } : {}),
   });
 
+  if (error) {
+    logger.error({
+      operation: "products.storage.uploadStorageObject",
+      message: "Failed to upload storage object.",
+      errorCode: "product_storage.upload_failed",
+      context: { bucket, path, contentType: contentType ?? null },
+      error,
+    });
+  }
+
   return { error: error?.message ?? null };
 }
 
@@ -67,6 +92,23 @@ async function downloadStorageObject(
   const { data, error } = await supabase.storage.from(bucket).download(path);
 
   if (error || !data) {
+    if (error) {
+      logger.error({
+        operation: "products.storage.downloadStorageObject",
+        message: "Failed to download storage object.",
+        errorCode: "product_storage.download_failed",
+        context: { bucket, path },
+        error,
+      });
+    } else {
+      logger.warn({
+        operation: "products.storage.downloadStorageObject",
+        message: "Storage object download returned no data.",
+        errorCode: "product_storage.download_empty",
+        context: { bucket, path },
+      });
+    }
+
     return { file: null, error: error?.message ?? "Could not download image." };
   }
 
@@ -80,7 +122,38 @@ async function removeStorageObject(
 ): Promise<{ error: string | null }> {
   const { error } = await supabase.storage.from(bucket).remove([path]);
 
+  if (error) {
+    logger.error({
+      operation: "products.storage.removeStorageObject",
+      message: "Failed to remove storage object.",
+      errorCode: "product_storage.remove_failed",
+      context: { bucket, path },
+      error,
+    });
+  }
+
   return { error: error?.message ?? null };
+}
+
+async function verifyStorageObjectExists(
+  supabase: SupabaseClient,
+  bucket: string,
+  path: string,
+): Promise<{ exists: boolean; error: string | null }> {
+  const { data, error } = await supabase.storage.from(bucket).download(path);
+
+  if (error) {
+    logger.error({
+      operation: "products.storage.verifyStorageObjectExists",
+      message: "Failed to verify storage object existence.",
+      errorCode: "product_storage.verify_failed",
+      context: { bucket, path },
+      error,
+    });
+    return { exists: false, error: error.message };
+  }
+
+  return { exists: Boolean(data), error: null };
 }
 
 export function isDraftProductImageRef(value: string): boolean {
@@ -165,6 +238,12 @@ export async function createSignedDraftProductImageUrl(
   const path = getDraftProductImagePath(ref);
 
   if (!path) {
+    logger.warn({
+      operation: "products.storage.createSignedDraftProductImageUrl",
+      message: "Draft product image reference was invalid.",
+      errorCode: "product_storage.invalid_draft_ref",
+      context: { ref },
+    });
     throw new Error("Invalid draft product image reference.");
   }
 
@@ -173,6 +252,13 @@ export async function createSignedDraftProductImageUrl(
     .createSignedUrl(path, expiresInSeconds);
 
   if (error || !data?.signedUrl) {
+    logger.error({
+      operation: "products.storage.createSignedDraftProductImageUrl",
+      message: "Failed to create signed draft product image URL.",
+      errorCode: "product_storage.sign_failed",
+      context: { bucket: PRODUCT_DRAFT_IMAGES_BUCKET, path, expiresInSeconds },
+      error,
+    });
     throw new Error(error?.message ?? "Could not sign the draft image.");
   }
 
@@ -186,6 +272,12 @@ export async function promoteDraftProductImageToPublic(
   const path = getDraftProductImagePath(ref);
 
   if (!path) {
+    logger.warn({
+      operation: "products.storage.promoteDraftProductImageToPublic",
+      message: "Draft product image reference was invalid during promotion.",
+      errorCode: "product_storage.invalid_draft_ref",
+      context: { ref },
+    });
     return { url: null, error: "Invalid draft product image reference." };
   }
 
@@ -235,6 +327,12 @@ export async function privatizePublicProductImage(
   const path = getPublicProductImagePath(imageUrl);
 
   if (!path) {
+    logger.warn({
+      operation: "products.storage.privatizePublicProductImage",
+      message: "Public product image URL was invalid during privatization.",
+      errorCode: "product_storage.invalid_public_url",
+      context: { imageUrl },
+    });
     return { ref: null, error: "Invalid public product image URL." };
   }
 
@@ -292,4 +390,54 @@ export async function uploadProductImages(
   }
 
   return { urls, error: null };
+}
+
+export async function removeStoredProductImage(
+  supabase: SupabaseClient,
+  value: string,
+): Promise<{ error: string | null }> {
+  const path = isDraftProductImageRef(value)
+    ? getDraftProductImagePath(value)
+    : getPublicProductImagePath(value);
+
+  if (!path) {
+    logger.warn({
+      operation: "products.storage.removeStoredProductImage",
+      message: "Stored product image value could not be resolved to a storage path.",
+      errorCode: "product_storage.invalid_stored_value",
+      context: { value },
+    });
+    return { error: "Invalid stored product image value." };
+  }
+
+  const bucket = isDraftProductImageRef(value)
+    ? PRODUCT_DRAFT_IMAGES_BUCKET
+    : PRODUCT_IMAGES_BUCKET;
+
+  return removeStorageObject(supabase, bucket, path);
+}
+
+export async function verifyStoredProductImageExists(
+  supabase: SupabaseClient,
+  value: string,
+): Promise<{ exists: boolean; error: string | null }> {
+  const path = isDraftProductImageRef(value)
+    ? getDraftProductImagePath(value)
+    : getPublicProductImagePath(value);
+
+  if (!path) {
+    logger.warn({
+      operation: "products.storage.verifyStoredProductImageExists",
+      message: "Stored product image value could not be resolved during verification.",
+      errorCode: "product_storage.invalid_stored_value",
+      context: { value },
+    });
+    return { exists: false, error: "Invalid stored product image value." };
+  }
+
+  const bucket = isDraftProductImageRef(value)
+    ? PRODUCT_DRAFT_IMAGES_BUCKET
+    : PRODUCT_IMAGES_BUCKET;
+
+  return verifyStorageObjectExists(supabase, bucket, path);
 }
