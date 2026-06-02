@@ -7,6 +7,7 @@ import { useLocale } from "@/components/i18n/language-provider";
 import { EmptyState } from "@/components/ui/empty-state";
 import { MediaPanel } from "@/components/ui/media-panel";
 import { RevealOnScroll } from "@/components/ui/reveal-on-scroll";
+import { RevealStagger } from "@/components/ui/reveal-stagger";
 import { StoryHeading } from "@/components/ui/story-heading";
 import { translate } from "@/lib/i18n/translate";
 import { farmerStoryToVideo } from "@/lib/landing/story-to-video";
@@ -37,15 +38,11 @@ function toPlayback(story: FarmerStory): VideoPlaybackSource {
   };
 }
 
-function PlayMark({ size = "lg" }: { size?: "lg" | "sm" }) {
+function PlayMark() {
   const { locale } = useLocale();
-  const sizeClass =
-    size === "lg" ? "h-14 w-14 text-sm" : "h-10 w-10 text-xs";
 
   return (
-    <span
-      className={`inline-flex shrink-0 items-center justify-center rounded-full border border-mist/40 bg-forest-deep/35 text-mist backdrop-blur-sm ${sizeClass}`}
-    >
+    <span className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-mist/40 bg-forest-deep/35 text-xs text-mist backdrop-blur-sm">
       <span aria-hidden className="ml-0.5">
         ▶
       </span>
@@ -56,10 +53,62 @@ function PlayMark({ size = "lg" }: { size?: "lg" | "sm" }) {
   );
 }
 
+function StoryFilmCard({
+  story,
+  onPlay,
+}: {
+  story: FarmerStory;
+  onPlay: (story: FarmerStory) => void;
+}) {
+  const { locale } = useLocale();
+
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        if (story.videoUrl) onPlay(story);
+      }}
+      disabled={!story.videoUrl}
+      className="group flex h-full w-full cursor-pointer flex-col overflow-hidden rounded-sm border border-stone-300/45 bg-white/50 text-left shadow-[0_10px_28px_-18px_rgba(26,22,16,0.18)] transition-[border-color,background-color,box-shadow] duration-300 hover:border-forest/30 hover:bg-white/80 hover:shadow-[0_16px_36px_-20px_rgba(47,42,36,0.22)] disabled:cursor-not-allowed disabled:opacity-70"
+    >
+      <MediaPanel
+        from={story.gradientFrom}
+        to={story.gradientTo}
+        label={story.title}
+        imageUrl={story.imageUrl}
+        className="aspect-video w-full shrink-0 rounded-b-none"
+        overlay={
+          <div className="absolute inset-0 flex items-center justify-center bg-forest-deep/20 transition-colors duration-300 group-hover:bg-forest-deep/28">
+            <PlayMark />
+          </div>
+        }
+      />
+      <div className="flex flex-1 flex-col gap-2 p-4 sm:gap-2.5 sm:p-5">
+        <p className="type-kicker line-clamp-1">
+          {story.location} · {story.farmerName}
+        </p>
+        <span className="editorial-serif text-lg leading-snug text-forest-deep sm:text-xl">
+          {story.title}
+        </span>
+        <p className="text-xs font-medium tracking-wide text-stone-500">
+          {story.duration}
+        </p>
+        {story.description ? (
+          <p className="line-clamp-2 text-sm leading-6 text-stone-700/90">
+            {story.description}
+          </p>
+        ) : null}
+        <span className="story-link story-link--plain mt-1 self-start">
+          {translate(locale, "Гледай", "Watch")}
+        </span>
+      </div>
+    </button>
+  );
+}
+
 export function CinematicStoriesContent({ stories }: CinematicStoriesContentProps) {
   const { locale } = useLocale();
   const [activeStory, setActiveStory] = useState<FarmerStory | null>(null);
-  const [featured, ...rest] = stories;
 
   return (
     <>
@@ -92,92 +141,15 @@ export function CinematicStoriesContent({ stories }: CinematicStoriesContentProp
           />
         </RevealOnScroll>
       ) : (
-        <div className="content-after-head stack-relaxed">
-          {featured ? (
-            <RevealOnScroll>
-              <button
-                type="button"
-                onClick={() => {
-                  if (featured.videoUrl) setActiveStory(featured);
-                }}
-                disabled={!featured.videoUrl}
-                className="group relative block w-full overflow-hidden rounded-sm text-left disabled:cursor-not-allowed disabled:opacity-70"
-              >
-                <MediaPanel
-                  from={featured.gradientFrom}
-                  to={featured.gradientTo}
-                  label={featured.title}
-                  imageUrl={featured.imageUrl}
-                  className="aspect-[21/9] min-h-[14rem] sm:min-h-[18rem] lg:min-h-[22rem]"
-                  overlay={
-                    <div className="absolute inset-0 flex flex-col justify-end bg-[linear-gradient(180deg,rgba(20,28,18,0.05)_0%,rgba(20,28,18,0.75)_100%)] p-6 sm:p-10 lg:p-12">
-                      <div className="flex items-end justify-between gap-6">
-                        <div className="max-w-2xl stack-tight">
-                          <p className="type-kicker type-kicker-on-dark">
-                            {featured.location} · {featured.farmerName}
-                          </p>
-                          <span className="editorial-serif text-2xl text-mist sm:text-3xl lg:text-4xl">
-                            {featured.title}
-                          </span>
-                          <p className="max-w-xl text-sm leading-7 text-mist/80 sm:text-base">
-                            {featured.description}
-                          </p>
-                        </div>
-                        <PlayMark />
-                      </div>
-                    </div>
-                  }
-                />
-              </button>
-            </RevealOnScroll>
-          ) : null}
-
-          {rest.length > 0 ? (
-            <ul className="m-0 list-none divide-y divide-stone-300/40 p-0">
-              {rest.map((story) => (
-                <li key={story.id}>
-                  <RevealOnScroll>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (story.videoUrl) setActiveStory(story);
-                      }}
-                      disabled={!story.videoUrl}
-                      className="group flex w-full cursor-pointer items-center gap-5 py-8 text-left transition-colors duration-500 hover:bg-white/25 disabled:cursor-not-allowed disabled:opacity-70 sm:gap-8 sm:py-10"
-                    >
-                      <MediaPanel
-                        from={story.gradientFrom}
-                        to={story.gradientTo}
-                        label={story.title}
-                        imageUrl={story.imageUrl}
-                        className="aspect-video h-20 w-32 shrink-0 rounded-sm sm:h-24 sm:w-40"
-                        overlay={
-                          <div className="absolute inset-0 flex items-center justify-center bg-forest-deep/20">
-                            <PlayMark size="sm" />
-                          </div>
-                        }
-                      />
-                      <div className="min-w-0 flex-1 stack-tight">
-                        <p className="type-kicker">
-                          {story.farmerName} · {story.duration}
-                        </p>
-                        <span className="editorial-serif text-xl text-forest-deep sm:text-2xl">
-                          {story.title}
-                        </span>
-                        <p className="line-clamp-2 text-sm leading-7 text-stone-700/90 sm:text-base">
-                          {story.description}
-                        </p>
-                      </div>
-                      <span className="story-link hidden shrink-0 sm:inline-flex">
-                        {translate(locale, "Гледай", "Watch")}
-                      </span>
-                    </button>
-                  </RevealOnScroll>
-                </li>
-              ))}
-            </ul>
-          ) : null}
-        </div>
+        <RevealStagger className="content-after-head grid-cards grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+          {stories.map((story) => (
+            <StoryFilmCard
+              key={story.id}
+              story={story}
+              onPlay={setActiveStory}
+            />
+          ))}
+        </RevealStagger>
       )}
 
       {activeStory ? (

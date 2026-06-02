@@ -32,30 +32,24 @@ export function JourneySection({ locale }: { locale: Locale }) {
           </div>
         </RevealOnScroll>
 
-        <ol className="content-after-head grid gap-0 lg:grid-cols-3 lg:gap-10">
-          {villageJourneyBeats.map((beat, index) => (
+        <ol className="content-after-head m-0 list-none grid divide-y divide-loam-50/15 p-0 lg:grid-cols-3 lg:items-start lg:gap-x-10 lg:divide-x lg:divide-y-0">
+          {villageJourneyBeats.map((beat) => (
             <li
               key={beat.step}
-              className={`flex flex-col gap-4 py-10 ${
-                index > 0
-                  ? "border-t border-loam-50/15 lg:border-t-0 lg:border-l lg:border-loam-50/15 lg:pl-10 lg:py-0"
-                  : ""
-              }`}
+              className="flex flex-col gap-4 py-10 lg:py-0"
             >
               <span
                 aria-hidden
-                className="editorial-serif text-4xl leading-none text-hearth-300/35 sm:text-[2.75rem]"
+                className="editorial-serif shrink-0 text-4xl leading-none text-hearth-300/35 sm:text-[2.75rem]"
               >
                 {String(beat.step).padStart(2, "0")}
               </span>
-              <div className="stack-tight">
-                <h3 className="editorial-serif text-xl leading-snug text-loam-50 sm:text-2xl">
-                  {beat.title}
-                </h3>
-                <p className="max-w-sm text-[0.9375rem] leading-7 text-loam-50/72 sm:text-base">
-                  {beat.description}
-                </p>
-              </div>
+              <h3 className="editorial-serif text-xl leading-snug text-loam-50 sm:text-2xl lg:min-h-[2.75em]">
+                {beat.title}
+              </h3>
+              <p className="max-w-sm text-[0.9375rem] leading-7 text-loam-50/72 sm:text-base">
+                {beat.description}
+              </p>
             </li>
           ))}
         </ol>

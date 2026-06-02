@@ -1,8 +1,10 @@
 import Link from "next/link";
 
 import { EmptyState } from "@/components/ui/empty-state";
+import { MediaPanel } from "@/components/ui/media-panel";
 import { PageSection } from "@/components/ui/page-section";
 import { RevealOnScroll } from "@/components/ui/reveal-on-scroll";
+import { RevealStagger } from "@/components/ui/reveal-stagger";
 import type { Locale } from "@/lib/i18n/config";
 import { translate } from "@/lib/i18n/translate";
 import type { SeasonalProduct } from "@/lib/landing/types";
@@ -11,6 +13,73 @@ type SeasonalFoodSectionProps = {
   locale: Locale;
   products: SeasonalProduct[];
 };
+
+function harvestScrim(from: string, to: string): string {
+  return `linear-gradient(180deg, rgba(20, 28, 18, 0.08) 0%, ${from}bb 52%, ${to}f0 100%)`;
+}
+
+function SeasonalProductTile({
+  product,
+  locale,
+}: {
+  product: SeasonalProduct;
+  locale: Locale;
+}) {
+  const productHref = product.farmerSlug
+    ? `/farmers/${product.farmerSlug}/products/${product.id}`
+    : null;
+
+  const body = (
+    <>
+      <MediaPanel
+        from={product.gradientFrom}
+        to={product.gradientTo}
+        label={product.name}
+        imageUrl={product.imageUrl}
+        interactive={Boolean(productHref)}
+        className="absolute inset-0 h-full w-full transition-transform duration-700 ease-organic motion-safe:group-hover:scale-[1.03]"
+      />
+      <div
+        aria-hidden
+        className="absolute inset-0"
+        style={{ backgroundImage: harvestScrim(product.gradientFrom, product.gradientTo) }}
+      />
+      <div className="absolute inset-x-0 bottom-0 z-10 flex flex-col gap-1 p-3.5 pb-4 sm:p-4">
+        <p className="type-kicker type-kicker-on-dark line-clamp-1">{product.season}</p>
+        <h3 className="editorial-serif text-xl leading-tight text-mist sm:text-[1.35rem]">
+          {product.name}
+        </h3>
+        <p className="text-xs leading-5 text-mist/85 sm:text-sm">
+          {translate(locale, "От ", "From ")}
+          {product.farmerName}
+        </p>
+        {product.note ? (
+          <p className="line-clamp-2 text-xs leading-5 text-mist/75 sm:text-sm">
+            {product.note}
+          </p>
+        ) : null}
+        {productHref ? (
+          <span className="harvest-tile-link">
+            {translate(locale, "Виж от къде идва", "See where it comes from")}
+          </span>
+        ) : null}
+      </div>
+    </>
+  );
+
+  const tileClassName =
+    "group relative isolate block aspect-[3/4] min-h-[14rem] overflow-hidden rounded-sm text-inherit no-underline shadow-[0_14px_36px_-22px_rgba(26,22,16,0.35)] transition-shadow duration-300 hover:shadow-[0_18px_42px_-20px_rgba(47,42,36,0.42)]";
+
+  if (productHref) {
+    return (
+      <Link href={productHref} className={tileClassName}>
+        {body}
+      </Link>
+    );
+  }
+
+  return <article className={tileClassName}>{body}</article>;
+}
 
 export function SeasonalFoodSection({
   products,
@@ -49,70 +118,15 @@ export function SeasonalFoodSection({
             />
           </RevealOnScroll>
         ) : (
-          <ul className="content-after-head m-0 list-none space-y-0 p-0">
-            {products.map((product, index) => {
-              const productHref = product.farmerSlug
-                ? `/farmers/${product.farmerSlug}/products/${product.id}`
-                : null;
-              const farmerHref = product.farmerSlug
-                ? `/farmers/${product.farmerSlug}`
-                : null;
-
-              const rowContent = (
-                <>
-                  <div className="flex items-baseline gap-4 sm:gap-6">
-                    <span
-                      aria-hidden
-                      className="editorial-serif text-3xl leading-none text-forest/20 sm:text-4xl"
-                    >
-                      {String(index + 1).padStart(2, "0")}
-                    </span>
-                    <div className="min-w-0 stack-tight">
-                      <p className="text-sm font-medium tracking-wide text-clay">
-                        {product.season}
-                      </p>
-                      <h3 className="editorial-serif text-2xl text-forest-deep sm:text-3xl">
-                        {product.name}
-                      </h3>
-                      <p className="text-sm text-soil">
-                        {translate(locale, "Отглеждано от ", "Grown by ")}
-                        {farmerHref ? (
-                          <Link
-                            href={farmerHref}
-                            className="story-link story-link--no-arrow align-baseline text-sm text-soil"
-                          >
-                            {product.farmerName}
-                          </Link>
-                        ) : (
-                          product.farmerName
-                        )}
-                      </p>
-                      {product.note ? (
-                        <p className="max-w-lg text-sm leading-7 text-stone-700/90 sm:text-base sm:leading-8">
-                          {product.note}
-                        </p>
-                      ) : null}
-                    </div>
-                  </div>
-                  {productHref ? (
-                    <Link href={productHref} className="story-link hidden shrink-0 sm:inline-flex">
-                      {translate(locale, "Виж от къде идва", "See where it comes from")}
-                    </Link>
-                  ) : null}
-                </>
-              );
-
-              return (
-                <li key={product.id} className="border-t border-stone-300/40">
-                  <RevealOnScroll>
-                    <article className="flex items-start justify-between gap-6 py-8 sm:py-10">
-                      {rowContent}
-                    </article>
-                  </RevealOnScroll>
-                </li>
-              );
-            })}
-          </ul>
+          <RevealStagger className="content-after-head grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
+            {products.map((product) => (
+              <SeasonalProductTile
+                key={product.id}
+                product={product}
+                locale={locale}
+              />
+            ))}
+          </RevealStagger>
         )}
       </div>
     </PageSection>

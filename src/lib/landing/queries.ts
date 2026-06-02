@@ -115,7 +115,7 @@ async function fetchFeaturedFarmers(): Promise<QueryResult<FarmerPreview[]>> {
     .select(FARMER_PROFILE_SELECT)
     .eq("listing_profile_complete", true)
     .order("created_at", { ascending: true })
-    .limit(3);
+    .limit(4);
 
   if (error) {
     return queryDatabaseError(error.message);

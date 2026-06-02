@@ -475,6 +475,16 @@ section.section-space-compact:last-of-type {
   content: none;
 }
 
+.story-link--plain::before,
+.text-link--plain::before {
+  display: none;
+}
+
+.story-link--plain,
+.text-link--plain {
+  padding-bottom: 0;
+}
+
 .story-link-on-dark {
   color: var(--loam-50);
   --link-underline: rgba(250, 248, 244, 0.78);
@@ -514,6 +524,56 @@ section.section-space-compact:last-of-type {
 .story-link.story-link-on-dark:hover,
 .story-link.story-link-on-dark:focus-visible {
   color: #ffffff;
+}
+
+.group:hover .story-link.story-link-on-dark,
+.group:focus-visible .story-link.story-link-on-dark,
+.clickable-card:hover .story-link.story-link-on-dark,
+.clickable-card:focus-visible .story-link.story-link-on-dark {
+  color: var(--color-wheat);
+  --link-underline-hover: var(--color-wheat);
+}
+
+.group:hover .story-link.story-link-on-dark::before,
+.group:focus-visible .story-link.story-link-on-dark::before,
+.clickable-card:hover .story-link.story-link-on-dark::before,
+.clickable-card:focus-visible .story-link.story-link-on-dark::before {
+  background-color: var(--color-wheat);
+}
+
+/* Harvest tiles — whole card is a link; avoid .group:hover .story-link dark override */
+.harvest-tile-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.125rem;
+  align-self: flex-start;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--loam-50);
+  text-decoration: none;
+  transition:
+    color var(--duration-slow) var(--ease-organic),
+    gap var(--duration-slow) var(--ease-organic);
+}
+
+.harvest-tile-link::after {
+  content: "→";
+  transition: transform var(--duration-slow) var(--ease-organic);
+}
+
+.group:hover .harvest-tile-link,
+.group:focus-visible .harvest-tile-link,
+a:hover .harvest-tile-link,
+a:focus-visible .harvest-tile-link {
+  color: var(--color-sun);
+}
+
+.group:hover .harvest-tile-link::after,
+.group:focus-visible .harvest-tile-link::after,
+a:hover .harvest-tile-link::after,
+a:focus-visible .harvest-tile-link::after {
+  transform: translateX(4px);
 }
 
 .story-link:hover::after,
