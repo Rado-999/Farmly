@@ -5,6 +5,7 @@ import { PageSection } from "@/components/ui/page-section";
 import { RevealOnScroll } from "@/components/ui/reveal-on-scroll";
 import { StoryHeading } from "@/components/ui/story-heading";
 import { getProfileInitials } from "@/lib/auth/profile";
+import type { DiscoverPersonalization } from "@/lib/discover/personalize";
 import type { VillageFarmer } from "@/lib/discover/types";
 import type { Locale } from "@/lib/i18n/config";
 import { translate } from "@/lib/i18n/translate";
@@ -12,6 +13,7 @@ import { translate } from "@/lib/i18n/translate";
 type VillageRingProps = {
   locale: Locale;
   farmers: VillageFarmer[];
+  personalization?: DiscoverPersonalization;
 };
 
 function RingPortrait({ farmer }: { farmer: VillageFarmer }) {
@@ -41,18 +43,30 @@ function RingPortrait({ farmer }: { farmer: VillageFarmer }) {
   );
 }
 
-export function VillageRing({ farmers, locale }: VillageRingProps) {
+export function VillageRing({ farmers, locale, personalization }: VillageRingProps) {
   return (
     <PageSection id="village-ring" tone="mist" spacing="default">
       <div className="page-shell-wide">
         <RevealOnScroll>
           <StoryHeading
-            kicker={translate(locale, "Кого ще срещнеш", "Who you will meet")}
-            title={translate(locale, "Лицата по пътеката.", "The faces along the path.")}
+            kicker={
+              personalization
+                ? translate(locale, "Нови срещи", "New encounters")
+                : translate(locale, "Кого ще срещнеш", "Who you will meet")
+            }
+            title={
+              personalization
+                ? translate(locale, "Фермери, които още не следиш.", "Farmers you do not follow yet.")
+                : translate(locale, "Лицата по пътеката.", "The faces along the path.")
+            }
             description={translate(
               locale,
-              "Премини покрай тях — без бързане. Всяка ферма е врата към история, не към кошница.",
-              "Pass by them without rushing. Every farm is a doorway to a story, not to a basket.",
+              personalization
+                ? "Подредени според местата и сезоните, които вече те интересуват."
+                : "Премини покрай тях — без бързане. Всяка ферма е врата към история, не към кошница.",
+              personalization
+                ? "Arranged around the places and seasons you already care about."
+                : "Pass by them without rushing. Every farm is a doorway to a story, not to a basket.",
             )}
           />
         </RevealOnScroll>

@@ -1,5 +1,3 @@
-import type { VillageFeedItem as PersonalizedVillageFeedItem } from "@/lib/feed/types";
-
 export type VillageFarmer = {
   /** Public slug for profile URLs */
   slug: string;
@@ -73,7 +71,13 @@ export type VillageSnapshot = {
   regionCount: number;
 };
 
-export type DiscoverFeedModeData = {
-  items: PersonalizedVillageFeedItem[];
-  hasFollows: boolean;
+export type { DiscoverPersonalization } from "@/lib/discover/personalize";
+
+export type DiscoverVillageData = {
+  farmers: VillageFarmer[];
+  moments: VillageMoment[];
+  films: VillageFilm[];
+  whispers: VillageWhisper[];
+  neighbourhoods: VillageNeighbourhood[];
+  snapshot: VillageSnapshot;
 };

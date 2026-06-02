@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 
-import { DiscoverFeedMode } from "@/components/discover/discover-feed-mode";
 import { DiscoverPage } from "@/components/discover/discover-page";
 import { getOptionalServerViewerContext } from "@/lib/auth/server";
 import { getServerLocale } from "@/lib/i18n/server";
@@ -8,7 +7,7 @@ import { translate } from "@/lib/i18n/translate";
 import {
   buildVillageSnapshot,
   getDiscoverVillageData,
-  loadDiscoverFeedModeData,
+  loadPersonalizedDiscoverData,
 } from "@/lib/discover/queries";
 import { getSupabasePublicEnv } from "@/lib/supabase/env";
 
@@ -39,22 +38,21 @@ export default async function DiscoverRoute() {
   const viewerContext = await getOptionalServerViewerContext();
 
   if (viewerContext) {
-    const feedResult = await loadDiscoverFeedModeData(
+    const result = await loadPersonalizedDiscoverData(
       viewerContext.supabase,
       viewerContext.user.id,
-      viewerContext.profile
-        ? {
-            lastVisitedAt: viewerContext.profile.villageLastVisitedAt,
-            region: viewerContext.profile.region,
-          }
-        : undefined,
+      viewerContext.profile?.region ?? null,
     );
 
-    if (!feedResult.ok) {
-      throw new Error(feedResult.error.message);
+    if (!result.ok) {
+      throw new Error(result.error.message);
     }
 
-      return <DiscoverFeedMode initialData={feedResult.data} />;
+    const { personalization, ...data } = result.data;
+
+    return (
+      <DiscoverPage locale={locale} personalization={personalization} {...data} />
+    );
   }
 
   if (!getSupabasePublicEnv()) {
@@ -67,18 +65,5 @@ export default async function DiscoverRoute() {
     throw new Error(result.error.message);
   }
 
-  const { farmers, moments, films, whispers, neighbourhoods, snapshot } =
-    result.data;
-
-  return (
-    <DiscoverPage
-      locale={locale}
-      farmers={farmers}
-      moments={moments}
-      films={films}
-      whispers={whispers}
-      neighbourhoods={neighbourhoods}
-      snapshot={snapshot}
-    />
-  );
+  return <DiscoverPage locale={locale} {...result.data} />;
 }

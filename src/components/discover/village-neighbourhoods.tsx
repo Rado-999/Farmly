@@ -7,6 +7,7 @@ import { RevealOnScroll } from "@/components/ui/reveal-on-scroll";
 import { RevealStagger } from "@/components/ui/reveal-stagger";
 import { StoryHeading } from "@/components/ui/story-heading";
 import { getProfileInitials } from "@/lib/auth/profile";
+import type { DiscoverPersonalization } from "@/lib/discover/personalize";
 import type { VillageNeighbourhood } from "@/lib/discover/types";
 import type { Locale } from "@/lib/i18n/config";
 import { translate } from "@/lib/i18n/translate";
@@ -14,11 +15,13 @@ import { translate } from "@/lib/i18n/translate";
 type VillageNeighbourhoodsProps = {
   locale: Locale;
   neighbourhoods: VillageNeighbourhood[];
+  personalization?: DiscoverPersonalization;
 };
 
 export function VillageNeighbourhoods({
   neighbourhoods,
   locale,
+  personalization,
 }: VillageNeighbourhoodsProps) {
   return (
     <PageSection id="neighbourhoods" tone="mist" spacing="default">
@@ -29,8 +32,12 @@ export function VillageNeighbourhoods({
             title={translate(locale, "Следвай местата, не категориите.", "Follow places, not categories.")}
             description={translate(
               locale,
-              "Всяка местност събира свои ферми — различен ритъм, различен сезон, същото спокойствие.",
-              "Each area gathers its own farms with a different rhythm, a different season, and the same calm.",
+              personalization?.userRegion
+                ? `Първо показваме места близо до ${personalization.userRegion} — после останалите завойки по селото.`
+                : "Всяка местност събира свои ферми — различен ритъм, различен сезон, същото спокойствие.",
+              personalization?.userRegion
+                ? `We start with places close to ${personalization.userRegion}, then the rest of the village bends.`
+                : "Each area gathers its own farms with a different rhythm, a different season, and the same calm.",
             )}
           />
         </RevealOnScroll>

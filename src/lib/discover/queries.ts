@@ -10,8 +10,17 @@ import {
   formatVideoStage,
   mapVideoStage,
 } from "@/lib/data/formatters";
+import {
+  buildPersonalizedNeighbourhoods,
+  loadDiscoverSignals,
+  personalizeDiscoverFarmers,
+  personalizeDiscoverFilms,
+  personalizeDiscoverMoments,
+  toDiscoverPersonalization,
+  type DiscoverPersonalization,
+} from "@/lib/discover/personalize";
 import type {
-  DiscoverFeedModeData,
+  DiscoverVillageData,
   VillageFarmer,
   VillageFilm,
   VillageMoment,
@@ -24,8 +33,6 @@ import {
   getFarmerRowAvatarUrl,
   getFarmerRowName,
 } from "@/lib/farmers/farmer-profile-row";
-import { getVillageFeed } from "@/lib/feed/getVillageFeed";
-import type { VillageFeedItem, VillageFeedSections } from "@/lib/feed/types";
 import { queryDatabaseError, type QueryResult } from "@/lib/errors/query-result";
 import { ok } from "@/lib/errors/result";
 import { formatDurationSeconds } from "@/lib/videos/format-duration";
@@ -340,15 +347,6 @@ function buildNeighbourhoods(farmers: VillageFarmer[]): VillageNeighbourhood[] {
     .slice(0, 5);
 }
 
-function flattenFeedSections(feed: VillageFeedSections): VillageFeedItem[] {
-  return [
-    ...feed.sinceYouWereHere,
-    ...feed.fromYourFarms,
-    ...feed.seasonNearYou,
-    ...feed.localGatherings,
-  ].slice(0, 15);
-}
-
 export function buildVillageSnapshot(
   farmers: VillageFarmer[],
   films: VillageFilm[],
@@ -363,15 +361,139 @@ export function buildVillageSnapshot(
   };
 }
 
+const DISCOVER_POOL_FARMER_LIMIT = 48;
+const DISCOVER_POOL_MOMENT_LIMIT = 24;
+const DISCOVER_POOL_FILM_LIMIT = 24;
+
+async function fetchDiscoverFarmerPool(
+  supabase: SupabaseClient,
+  limit = DISCOVER_POOL_FARMER_LIMIT,
+): Promise<QueryResult<VillageFarmer[]>> {
+  const { data, error } = await supabase
+    .from("farmer_profiles")
+    .select(FARMER_PROFILE_SELECT)
+    .eq("listing_profile_complete", true)
+    .order("created_at", { ascending: true })
+    .limit(limit);
+
+  if (error) {
+    return queryDatabaseError(error.message);
+  }
+
+  const farmers = (data ?? []) as FarmerProfileRow[];
+  const categoriesByFarmerResult = await loadLatestProductCategories(
+    farmers.map((farmer) => farmer.id),
+  );
+
+  if (!categoriesByFarmerResult.ok) {
+    return categoriesByFarmerResult;
+  }
+
+  return ok(
+    farmers.map((farmer) =>
+      mapFarmerRow(farmer, categoriesByFarmerResult.data),
+    ),
+  );
+}
+
+async function fetchDiscoverMomentPool(
+  supabase: SupabaseClient,
+  limit = DISCOVER_POOL_MOMENT_LIMIT,
+): Promise<QueryResult<VillageMoment[]>> {
+  const { data, error } = await supabase
+    .from("products")
+    .select(
+      "id, title, description, season, images, farmer_profiles ( slug, location, region, display_name, public_display_name )",
+    )
+    .eq("status", "published")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    return queryDatabaseError(error.message);
+  }
+
+  return ok(
+    (data ?? []).map((product) => {
+      const farmer = Array.isArray(product.farmer_profiles)
+        ? product.farmer_profiles[0]
+        : product.farmer_profiles;
+      const linkedFarmer = farmer as (LinkedFarmerRow & { slug?: string }) | null;
+      const image = createFarmerImage(
+        product.title,
+        product.images?.[0],
+        product.id,
+      );
+
+      return {
+        id: product.id,
+        title: product.title,
+        season: formatSeason(product.season),
+        note: product.description ?? "",
+        farmerName: getLinkedFarmerName(linkedFarmer),
+        farmerSlug: linkedFarmer?.slug ?? "",
+        imageUrl: image.imageUrl,
+        gradientFrom: image.gradientFrom,
+        gradientTo: image.gradientTo,
+      };
+    }),
+  );
+}
+
+async function fetchDiscoverFilmPool(
+  supabase: SupabaseClient,
+  limit = DISCOVER_POOL_FILM_LIMIT,
+): Promise<QueryResult<VillageFilm[]>> {
+  const { data, error } = await supabase
+    .from("videos")
+    .select(
+      "id, title, description, type, video_url, poster_url, duration_seconds, farmer_profiles ( id, slug, location, region, display_name, public_display_name )",
+    )
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    return queryDatabaseError(error.message);
+  }
+
+  return ok(
+    (data ?? []).map((video) => {
+      const farmer = Array.isArray(video.farmer_profiles)
+        ? video.farmer_profiles[0]
+        : video.farmer_profiles;
+      const linkedFarmer = farmer as LinkedFarmerRow | null;
+      const stage = mapVideoStage(video.type);
+      const image = createFarmerImage(
+        video.title ?? "Полска история",
+        video.poster_url ?? null,
+        video.id,
+      );
+
+      return {
+        id: video.id,
+        title: video.title ?? "Полска история",
+        description: video.description ?? "",
+        stage: formatVideoStage(stage),
+        duration:
+          video.duration_seconds != null
+            ? formatDurationSeconds(video.duration_seconds)
+            : formatVideoStage(stage),
+        farmerName: getLinkedFarmerName(linkedFarmer),
+        farmerSlug: linkedFarmer?.slug ?? "",
+        farmerId: linkedFarmer?.id ?? "",
+        location:
+          linkedFarmer?.location ?? linkedFarmer?.region ?? "България",
+        videoUrl: video.video_url,
+        imageUrl: image.imageUrl,
+        gradientFrom: image.gradientFrom,
+        gradientTo: image.gradientTo,
+      };
+    }),
+  );
+}
+
 export async function getDiscoverVillageData(): Promise<
-  QueryResult<{
-    farmers: VillageFarmer[];
-    moments: VillageMoment[];
-    films: VillageFilm[];
-    whispers: VillageWhisper[];
-    neighbourhoods: VillageNeighbourhood[];
-    snapshot: VillageSnapshot;
-  }>
+  QueryResult<DiscoverVillageData>
 > {
   const [farmersResult, momentsResult, filmsResult] = await Promise.all([
     getVillageFarmers(),
@@ -413,22 +535,86 @@ export async function getDiscoverVillageData(): Promise<
   });
 }
 
-export async function loadDiscoverFeedModeData(
+export async function loadPersonalizedDiscoverData(
   supabase: SupabaseClient,
   userId: string,
-  options?: {
-    lastVisitedAt: string | null;
-    region: string | null;
-  },
-): Promise<QueryResult<DiscoverFeedModeData>> {
-  const result = await getVillageFeed(supabase, userId, options);
+  userRegion: string | null,
+): Promise<
+  QueryResult<DiscoverVillageData & { personalization: DiscoverPersonalization }>
+> {
+  const signals = await loadDiscoverSignals(supabase, userId, userRegion);
 
-  if (!result.ok) {
-    return result;
+  const [farmersResult, momentsResult, filmsResult] = await Promise.all([
+    fetchDiscoverFarmerPool(supabase),
+    fetchDiscoverMomentPool(supabase),
+    fetchDiscoverFilmPool(supabase),
+  ]);
+
+  if (!farmersResult.ok) {
+    return farmersResult;
   }
 
+  if (!momentsResult.ok) {
+    return momentsResult;
+  }
+
+  if (!filmsResult.ok) {
+    return filmsResult;
+  }
+
+  const categoriesByFarmerResult = await loadLatestProductCategories(
+    farmersResult.data.map((farmer) => farmer.farmerId),
+  );
+
+  if (!categoriesByFarmerResult.ok) {
+    return categoriesByFarmerResult;
+  }
+
+  const categoriesByFarmer = categoriesByFarmerResult.data;
+  const farmerRegionBySlug = new Map(
+    farmersResult.data.map((farmer) => [farmer.slug, farmer.region]),
+  );
+  const farmerRegionById = new Map(
+    farmersResult.data.map((farmer) => [farmer.farmerId, farmer.region]),
+  );
+  const excludeFarmerSlugs = new Set(
+    farmersResult.data
+      .filter((farmer) => signals.excludeFarmerIds.has(farmer.farmerId))
+      .map((farmer) => farmer.slug),
+  );
+
+  const farmers = personalizeDiscoverFarmers(
+    farmersResult.data,
+    signals,
+    categoriesByFarmer,
+  );
+  const films = personalizeDiscoverFilms(
+    filmsResult.data,
+    signals,
+    farmerRegionById,
+  );
+  const moments = personalizeDiscoverMoments(
+    momentsResult.data,
+    signals,
+    excludeFarmerSlugs,
+    farmerRegionBySlug,
+  );
+  const whispers = buildWhispers(farmers);
+  const neighbourhoods = buildPersonalizedNeighbourhoods(farmers, signals);
+  const snapshot = buildVillageSnapshot(
+    farmers,
+    films,
+    moments,
+    neighbourhoods,
+  );
+
   return ok({
-    items: flattenFeedSections(result.data),
-    hasFollows: result.data.hasFollows,
+    farmers,
+    moments,
+    films,
+    whispers,
+    neighbourhoods,
+    snapshot,
+    personalization: toDiscoverPersonalization(signals),
   });
 }
