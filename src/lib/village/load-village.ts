@@ -1,6 +1,7 @@
 import { getVillageFeed } from "@/lib/feed/getVillageFeed";
 import { logger } from "@/lib/logger";
 import type { VillageFeedSections } from "@/lib/feed/types";
+import { loadUserRelationshipCounts } from "@/lib/marketplace/relationship-counts";
 import { syncGuestSavedFarms } from "@/lib/marketplace/saved-farms";
 import {
   fetchVillageVisitState,
@@ -10,6 +11,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 export type VillagePageData = VillageFeedSections & {
   lastVisitedAt: string | null;
+  followingCount: number;
+  savedCount: number;
 };
 
 /** Load feed using prior visit timestamp, then record this visit. */
@@ -31,10 +34,13 @@ export async function loadVillagePageData(
 
   const { lastVisitedAt, region } = await fetchVillageVisitState(supabase, userId);
 
-  const feedResult = await getVillageFeed(supabase, userId, {
-    lastVisitedAt,
-    region,
-  });
+  const [feedResult, relationshipCounts] = await Promise.all([
+    getVillageFeed(supabase, userId, {
+      lastVisitedAt,
+      region,
+    }),
+    loadUserRelationshipCounts(supabase, userId),
+  ]);
 
   if (!feedResult.ok) {
     logger.error({
@@ -64,5 +70,7 @@ export async function loadVillagePageData(
   return {
     ...feed,
     lastVisitedAt,
+    followingCount: relationshipCounts.followingCount,
+    savedCount: relationshipCounts.savedCount,
   };
 }

@@ -20,7 +20,9 @@ import { getLocaleDateFormat } from "@/lib/i18n/config";
 import { translate } from "@/lib/i18n/translate";
 import { fetchOnboardingProfile } from "@/lib/onboarding/state";
 import type { OnboardingProfile } from "@/lib/onboarding/types";
+import type { ProfileRelationshipCounts } from "@/lib/marketplace/relationship-counts";
 import { loadSupabaseClient } from "@/lib/supabase/load-client";
+import { VillageRelationshipStats } from "@/components/village/village-relationship-stats";
 
 const ProfileEditModal = dynamic(
   () =>
@@ -85,12 +87,14 @@ type ProfileViewProps = {
   initialProfile: OnboardingProfile;
   sessionEmail: string | null;
   sessionMetadataName: string | null;
+  relationshipCounts: ProfileRelationshipCounts;
 };
 
 export function ProfileView({
   initialProfile,
   sessionEmail,
   sessionMetadataName,
+  relationshipCounts,
 }: ProfileViewProps) {
   const router = useRouter();
   const { locale } = useLocale();
@@ -192,6 +196,36 @@ export function ProfileView({
                 </p>
               ) : null}
             </div>
+          </div>
+        </section>
+
+        <section className="rounded-[1.75rem] border border-stone-200/80 bg-white/92 p-6 shadow-[0_22px_52px_-28px_rgba(63,90,58,0.28)] sm:p-8">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-stone-900">
+                {translate(locale, "Моето село", "My village")}
+              </h2>
+              <p className="mt-1 text-sm text-stone-600">
+                {translate(
+                  locale,
+                  "Ферми, които следиш или си запазил за по-късно.",
+                  "Farms you follow or saved for later.",
+                )}
+              </p>
+              <VillageRelationshipStats
+                locale={locale}
+                followingCount={relationshipCounts.followingCount}
+                savedCount={relationshipCounts.savedCount}
+                followerCount={relationshipCounts.followerCount}
+                className="mt-4 justify-start"
+              />
+            </div>
+            <Link
+              href="/village"
+              className="inline-flex shrink-0 justify-center rounded-full border border-forest/25 bg-white/80 px-4 py-2 text-sm font-medium text-forest transition-[background-color,border-color] duration-300 hover:bg-white"
+            >
+              {translate(locale, "Отвори Моето село", "Open My village")}
+            </Link>
           </div>
         </section>
 

@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { FarmerCard } from "@/components/farmers/farmer-card";
 import { VillageFeedList } from "@/components/village/village-feed-list";
+import { VillageRelationshipStats } from "@/components/village/village-relationship-stats";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageSection } from "@/components/ui/page-section";
 import { RevealOnScroll } from "@/components/ui/reveal-on-scroll";
@@ -37,6 +38,12 @@ export function VillageView({ initialData, locale }: VillageViewProps) {
                 "Кратък обиколка — ферми, които познаваш, сезонни бележки и срещи наблизо. Без безкраен скрол.",
                 "A short loop of farms you know, seasonal notes, and nearby gatherings. No endless scroll.",
               )}
+            />
+            <VillageRelationshipStats
+              locale={locale}
+              followingCount={data.followingCount}
+              savedCount={data.savedCount}
+              className="mx-auto mt-6 max-w-2xl"
             />
           </RevealOnScroll>
         </div>

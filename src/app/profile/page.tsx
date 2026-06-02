@@ -5,6 +5,7 @@ import { PROFILE_PATH } from "@/lib/auth/constants";
 import { requireServerProfile } from "@/lib/auth/server";
 import { getServerLocale } from "@/lib/i18n/server";
 import { translate } from "@/lib/i18n/translate";
+import { loadProfileRelationshipCounts } from "@/lib/marketplace/relationship-counts";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +23,12 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function ProfilePage() {
-  const { profile, user } = await requireServerProfile(PROFILE_PATH);
+  const { profile, user, supabase } = await requireServerProfile(PROFILE_PATH);
+  const relationshipCounts = await loadProfileRelationshipCounts(
+    supabase,
+    user.id,
+    profile.farmerProfile?.id,
+  );
   const metadataName =
     typeof user.user_metadata?.full_name === "string"
       ? user.user_metadata.full_name
@@ -34,6 +40,7 @@ export default async function ProfilePage() {
         initialProfile={profile}
         sessionEmail={user.email ?? null}
         sessionMetadataName={metadataName}
+        relationshipCounts={relationshipCounts}
       />
     </main>
   );
