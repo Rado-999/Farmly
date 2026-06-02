@@ -125,6 +125,32 @@ export async function deleteSavedFarm(
   return result;
 }
 
+/** How many farms this user has saved. */
+export async function getUserSavedFarmCount(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<Result<number, "saved_farms.count_failed">> {
+  const { count, error } = await supabase
+    .from("saved_farms")
+    .select("farmer_id", { count: "exact", head: true })
+    .eq("user_id", userId);
+
+  if (error) {
+    logger.error({
+      operation: "savedFarms.getUserSavedFarmCount",
+      message: "Failed to fetch user saved farm count.",
+      userId,
+      errorCode: error.code ?? "saved_farms.count_failed",
+      context: { table: "saved_farms" },
+      error,
+    });
+
+    return err("saved_farms.count_failed", error.message);
+  }
+
+  return ok(count ?? 0);
+}
+
 /** Merge guest localStorage saves into the database after login. */
 export async function syncGuestSavedFarms(
   supabase: SupabaseClient,

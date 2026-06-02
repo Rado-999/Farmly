@@ -125,6 +125,32 @@ export async function userHasFollows(
   return ok((data?.length ?? 0) > 0);
 }
 
+/** How many farmers this user follows. */
+export async function getUserFollowingCount(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<Result<number, "follows.count_failed">> {
+  const { count, error } = await supabase
+    .from("follows")
+    .select("farmer_id", { count: "exact", head: true })
+    .eq("user_id", userId);
+
+  if (error) {
+    logger.error({
+      operation: "follows.getUserFollowingCount",
+      message: "Failed to fetch user following count.",
+      userId,
+      errorCode: error.code ?? "follows.count_failed",
+      context: { table: "follows" },
+      error,
+    });
+
+    return err("follows.count_failed", error.message);
+  }
+
+  return ok(count ?? 0);
+}
+
 /** Follower count — visible to the farm owner via RLS only. */
 export async function getFarmerFollowerCount(
   supabase: SupabaseClient,
