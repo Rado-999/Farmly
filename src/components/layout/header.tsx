@@ -1,6 +1,5 @@
-import Link from "next/link";
-
 import { LanguageSwitcher } from "@/components/i18n/language-switcher";
+import { FarmlyLogo } from "@/components/layout/farmly-logo";
 import { getLayoutViewer } from "@/lib/auth/server";
 import { getServerLocale } from "@/lib/i18n/server";
 import { translate } from "@/lib/i18n/translate";
@@ -15,12 +14,7 @@ export async function Header() {
     <header className="sticky top-0 z-50 shrink-0 border-b border-stone-400/25 bg-cream/90 backdrop-blur-sm">
       <div className="page-shell-wide flex items-center justify-between gap-4 py-4 sm:py-5">
         <div className="flex min-w-0 items-center gap-6 lg:gap-10">
-          <Link
-            href="/"
-            className="editorial-serif text-xl font-medium tracking-tight text-forest-deep transition-colors duration-500 hover:text-forest"
-          >
-            Farmly
-          </Link>
+          <FarmlyLogo priority />
 
           <nav
             aria-label={translate(locale, "Основна навигация", "Primary navigation")}

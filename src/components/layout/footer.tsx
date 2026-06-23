@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { FarmlyLogo } from "@/components/layout/farmly-logo";
 import {
   getFooterAccountLinks,
   getFooterExploreLinks,
@@ -45,12 +46,7 @@ export async function Footer() {
       <div className="page-shell-wide page-y">
         <div className="grid gap-10 md:grid-cols-[minmax(0,1.5fr)_repeat(2,minmax(0,1fr))] lg:gap-12">
           <div className="stack-tight">
-            <Link
-              href="/"
-              className="editorial-serif inline-block text-xl font-medium text-forest-deep transition-colors duration-300 hover:text-forest"
-            >
-              Farmly
-            </Link>
+            <FarmlyLogo className="h-[4.125rem] w-auto" />
             <p className="max-w-sm text-sm leading-7 text-stone-700/90">
               {translate(
                 locale,

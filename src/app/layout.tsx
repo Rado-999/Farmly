@@ -37,6 +37,20 @@ export async function generateMetadata(): Promise<Metadata> {
       "Спокойна дигитална селска местност — запознайте се с истински фермери, гледайте техните сезони и се почувствайте част от общността, преди да купувате.",
       "A calm digital countryside where you can meet real farmers, watch their seasons, and feel part of the community before you buy.",
     ),
+    icons: {
+      icon: "/brand/farmly-logo.png",
+      apple: "/brand/farmly-logo.png",
+    },
+    openGraph: {
+      images: [
+        {
+          url: "/brand/farmly-logo.png",
+          width: 454,
+          height: 525,
+          alt: "Farmly",
+        },
+      ],
+    },
   };
 }
 
