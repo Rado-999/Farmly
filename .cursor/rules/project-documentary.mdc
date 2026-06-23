@@ -1,0 +1,22 @@
+---
+description: Farmly project documentary — product intent, architecture, scaling, and change log for AI agents
+alwaysApply: true
+---
+
+# Farmly Project Documentary
+
+**Read `.cursor/PROJECT-DOCUMENTARY.md` before non-trivial work.** It is the source of truth for what Farmly is, business intent, MVP scope, architecture, and how to scale.
+
+## Quick reminders
+- **Trust-first marketplace** for local Bulgarian food — storytelling and video before commerce
+- **Not a generic ecommerce catalog** — editorial, village-themed, cinematic UX
+- **MVP validates discovery/trust** — no payments, delivery, subscriptions, messaging unless explicitly requested
+- **Discover** = public village walk; **Village** = authenticated home feed
+- **Stack:** Next.js 15, React 19, TypeScript, Tailwind 4, Supabase
+- **Patterns:** server components, `Result`/`QueryResult`, `translate(locale, bg, en)`, feature folders in `src/lib/` + `src/components/`
+
+## After meaningful changes
+Append to **§12 Change Log** in `.cursor/PROJECT-DOCUMENTARY.md`:
+- Date, what changed, why it matters for future agents
+
+Do not duplicate long-form content in rules — update the documentary instead.
