@@ -27,7 +27,7 @@ export const landingImages = {
   },
 } as const;
 
-/** Drop hero-dawn.mp4 here when ready — component falls back to poster + Ken Burns */
+/** Drop hero-dawn.mp4 in public/landing/ — component falls back to poster + Ken Burns */
 export const landingHeroVideo = {
   src: "/landing/hero-dawn.mp4",
   poster: landingImages.heroPoster.src,

@@ -1,5 +1,5 @@
 import { HeroScrollCue } from "@/components/landing/hero-scroll-cue";
-import { HeroStaticBackground } from "@/components/landing/hero-static-background";
+import { HeroVideoBackground } from "@/components/landing/hero-video-background";
 import type { Locale } from "@/lib/i18n/config";
 import { getHeroCopy } from "@/lib/landing/narrative";
 
@@ -11,7 +11,7 @@ export function CinematicHeroSection({ locale }: { locale: Locale }) {
       data-landing-hero
       className="relative min-h-below-header overflow-hidden bg-moss-900"
     >
-      <HeroStaticBackground />
+      <HeroVideoBackground className="bg-moss-900" />
 
       <div aria-hidden className="cinematic-veil absolute inset-0" />
 
