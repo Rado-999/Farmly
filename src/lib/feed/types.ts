@@ -18,29 +18,15 @@ export type VillageFeedItem = {
   image?: string | null;
   season?: string;
   href: string;
-  /** 1 = followed, 2 = saved only */
-  source_tier: 1 | 2;
-};
-
-export type VillageSavedFarmCard = {
-  farmer_id: string;
-  slug: string;
-  name: string;
-  location: string;
-  bio: string;
-  image?: string | null;
-  gradientFrom: string;
-  gradientTo: string;
+  source_tier: 1;
 };
 
 export type VillageFeedSections = {
   showSinceYouWereHere: boolean;
   sinceYouWereHere: VillageFeedItem[];
   fromYourFarms: VillageFeedItem[];
-  savedFarms: VillageSavedFarmCard[];
   seasonNearYou: VillageFeedItem[];
   localGatherings: VillageFeedItem[];
   hasFollows: boolean;
-  hasSavedOnly: boolean;
   hasAnyContent: boolean;
 };

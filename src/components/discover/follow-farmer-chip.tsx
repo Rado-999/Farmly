@@ -8,7 +8,7 @@ type FollowFarmerChipProps = {
   className?: string;
 };
 
-/** Compact follow control for discover cards — wraps {@link FollowButton}. */
+/** Compact village control for discover cards — wraps {@link FollowButton}. */
 export function FollowFarmerChip({
   farmerId,
   farmerName,

@@ -39,8 +39,7 @@ export function SeasonChapter({ farmer }: SeasonChapterProps) {
             {seasonLabel ?? "Този месец на фермата"}
           </h2>
           <p className="mt-4 max-w-xl text-base leading-8 text-soil/85">
-            Мост между полето и трапезата — какво живее на земята на{" "}
-            {farmer.name} в момента.
+            Какво {farmer.name} отглежда и споделя в момента.
           </p>
         </RevealOnScroll>
 

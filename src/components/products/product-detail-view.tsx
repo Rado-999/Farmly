@@ -119,7 +119,7 @@ export function ProductDetailView({
             Отзиви от общността
           </h2>
           <p className="mt-1 text-sm text-stone-600">
-            Честни бележки от хора, които следват сезона.
+            Честни бележки от хора, които познават фермата.
           </p>
           <div className="mt-4">
             <ProductReviews reviews={product.reviews} />

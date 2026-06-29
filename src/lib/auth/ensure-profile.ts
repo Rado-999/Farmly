@@ -177,7 +177,7 @@ export async function ensureProfileForAuthUser(
       email: email.length > 0 ? email : null,
       role: "buyer",
       is_profile_complete: false,
-      onboarding_step: 1,
+      onboarding_step: 2,
     },
     { onConflict: "id" },
   );

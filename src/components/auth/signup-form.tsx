@@ -99,8 +99,8 @@ export function SignupForm() {
       title={translate(locale, "Присъединете се към Farmly", "Join Farmly")}
       message={translate(
         locale,
-        "Запознайте се с хората зад храната си и изградете доверие сезон след сезон.",
-        "Meet the people behind your food and build trust season after season.",
+        "Създай акаунт, за да добавяш ферми в селото си и да виждаш новостите им.",
+        "Create an account to add farms to your village and see their updates.",
       )}
       footer={
         <>

@@ -24,6 +24,14 @@ import type { ProfileRelationshipCounts } from "@/lib/marketplace/relationship-c
 import { loadSupabaseClient } from "@/lib/supabase/load-client";
 import { VillageRelationshipStats } from "@/components/village/village-relationship-stats";
 
+const FarmerProfileEditModal = dynamic(
+  () =>
+    import("@/components/profile/farmer-profile-edit-modal").then(
+      (module) => module.FarmerProfileEditModal,
+    ),
+  { ssr: false },
+);
+
 const ProfileEditModal = dynamic(
   () =>
     import("@/components/profile/profile-edit-modal").then(
@@ -102,6 +110,9 @@ export function ProfileView({
   const [isProfileLoading, setIsProfileLoading] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isFarmerEditOpen, setIsFarmerEditOpen] = useState(false);
+  const [isFarmerEditSaving, setIsFarmerEditSaving] = useState(false);
+  const [farmerEditError, setFarmerEditError] = useState<string | null>(null);
   const profileId = initialProfile.id;
 
   const loadProfile = useCallback(async () => {
@@ -131,6 +142,75 @@ export function ProfileView({
     await supabase.auth.signOut();
     setIsSigningOut(false);
     router.push("/");
+    router.refresh();
+  }
+
+  async function handleFarmerProfileSave(values: {
+    avatarFile: File | null;
+    coverFile: File | null;
+    bio: string;
+    story: string;
+    philosophy: string;
+  }) {
+    setFarmerEditError(null);
+
+    const supabase = await loadSupabaseClient();
+
+    if (!supabase || !profile) {
+      setFarmerEditError(
+        translate(
+          locale,
+          "Не успяхме да се свържем. Опитайте отново.",
+          "We could not connect. Please try again.",
+        ),
+      );
+      return;
+    }
+
+    setIsFarmerEditSaving(true);
+
+    const { updateAccountProfile, updateFarmerDetails } = await import(
+      "@/lib/profile/update-profile"
+    );
+
+    if (values.avatarFile) {
+      const accountResult = await updateAccountProfile(supabase, profile.id, {
+        name:
+          profile.name ??
+          getProfileDisplayName({
+            profileName: profile.name,
+            metadataName: sessionMetadataName,
+            email: profile.email ?? sessionEmail,
+            locale,
+          }),
+        avatarFile: values.avatarFile,
+        city: profile.city ?? "",
+        region: profile.region ?? "",
+      });
+
+      if (!accountResult.ok) {
+        setIsFarmerEditSaving(false);
+        setFarmerEditError(accountResult.error.message);
+        return;
+      }
+    }
+
+    const farmerResult = await updateFarmerDetails(supabase, profile.id, {
+      bio: values.bio,
+      story: values.story,
+      philosophy: values.philosophy,
+      coverFile: values.coverFile,
+    });
+
+    setIsFarmerEditSaving(false);
+
+    if (!farmerResult.ok) {
+      setFarmerEditError(farmerResult.error.message);
+      return;
+    }
+
+    setIsFarmerEditOpen(false);
+    void loadProfile();
     router.refresh();
   }
 
@@ -201,23 +281,23 @@ export function ProfileView({
 
         <section className="rounded-[1.75rem] border border-stone-200/80 bg-white/92 p-6 shadow-[0_22px_52px_-28px_rgba(63,90,58,0.28)] sm:p-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div>
+            <div className="min-w-0 flex-1">
               <h2 className="text-lg font-semibold text-stone-900">
                 {translate(locale, "Моето село", "My village")}
               </h2>
               <p className="mt-1 text-sm text-stone-600">
                 {translate(
                   locale,
-                  "Ферми, които следиш или си запазил за по-късно.",
-                  "Farms you follow or saved for later.",
+                  "Фермите, които следиш, и хората, които са добавили фермата ти в селото си.",
+                  "Farms you follow and people who added your farm to their village.",
                 )}
               </p>
               <VillageRelationshipStats
                 locale={locale}
                 followingCount={relationshipCounts.followingCount}
-                savedCount={relationshipCounts.savedCount}
                 followerCount={relationshipCounts.followerCount}
-                className="mt-4 justify-start"
+                showFollowerCount={isFarmer}
+                className="mt-5"
               />
             </div>
             <Link
@@ -299,16 +379,30 @@ export function ProfileView({
         {isFarmer && farmerSlug ? (
           <>
             <section className="rounded-[1.75rem] border border-forest/15 bg-forest/5 p-6 sm:p-8">
-              <h2 className="text-lg font-semibold text-stone-900">
-                {translate(locale, "Фермерски профил", "Farmer profile")}
-              </h2>
-              <p className="mt-2 text-sm leading-6 text-stone-600">
-                {translate(
-                  locale,
-                  "Публичната ви страница е активна. Можете да разглеждате и купувате като купувач със същия акаунт.",
-                  "Your public page is active. You can still browse and buy as a buyer with the same account.",
-                )}
-              </p>
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <h2 className="text-lg font-semibold text-stone-900">
+                    {translate(locale, "Фермерски профил", "Farmer profile")}
+                  </h2>
+                  <p className="mt-2 text-sm leading-6 text-stone-600">
+                    {translate(
+                      locale,
+                      "Публичната ви страница е активна. Можете да разглеждате и купувате като купувач със същия акаунт.",
+                      "Your public page is active. You can still browse and buy as a buyer with the same account.",
+                    )}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFarmerEditError(null);
+                    setIsFarmerEditOpen(true);
+                  }}
+                  className="inline-flex shrink-0 justify-center rounded-full border border-stone-300/90 bg-white px-4 py-2 text-sm font-medium text-stone-800 transition-[background-color,border-color,color] duration-300 hover:border-forest/35 hover:text-forest"
+                >
+                  {translate(locale, "Редактирай фермерския профил", "Edit farmer profile")}
+                </button>
+              </div>
               <div className="mt-5 flex flex-wrap gap-3">
                 {profile?.isProfileComplete ? (
                   <Link
@@ -346,7 +440,7 @@ export function ProfileView({
                       <p className="mt-1 text-sm text-stone-600">
                         {translate(
                           locale,
-                          "Полски истории, които изграждат доверие във вашия профил.",
+                          "Видеа, които изграждат доверие във вашия профил.",
                           "Field stories that build trust in your profile.",
                         )}
                       </p>
@@ -402,7 +496,11 @@ export function ProfileView({
               )}
             </p>
             <div className="mt-5">
-              <BecomeFarmerButton />
+              <BecomeFarmerButton
+                profile={profile}
+                displayName={displayName}
+                onSuccess={() => void loadProfile()}
+              />
             </div>
           </section>
         )}
@@ -433,6 +531,23 @@ export function ProfileView({
           </div>
         </div>
       </div>
+
+      {profile && isFarmerEditOpen ? (
+        <FarmerProfileEditModal
+          isOpen={isFarmerEditOpen}
+          profile={profile}
+          displayName={displayName}
+          isSaving={isFarmerEditSaving}
+          error={farmerEditError}
+          onClose={() => {
+            if (!isFarmerEditSaving) {
+              setIsFarmerEditOpen(false);
+              setFarmerEditError(null);
+            }
+          }}
+          onSubmit={(values) => void handleFarmerProfileSave(values)}
+        />
+      ) : null}
 
       {profile && isEditOpen ? (
         <ProfileEditModal

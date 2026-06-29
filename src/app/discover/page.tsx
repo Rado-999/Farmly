@@ -27,8 +27,8 @@ export async function generateMetadata(): Promise<Metadata> {
     title: translate(locale, "Farmly | Разходка из селото", "Farmly | A walk through the village"),
     description: translate(
       locale,
-      "Спокойна дигитална провинция — ферми, полски филми, сезонни моменти и истински хора. Без каталог, с любопитство.",
-      "A calm digital countryside with farms, field films, seasonal moments, and real people. No catalog, just curiosity.",
+      "Разгледай ферми, видеа от полето и сезонни бележки. Без каталог, просто запознаване.",
+      "Browse farms, field videos, and seasonal notes. No catalog, just getting to know people.",
     ),
   };
 }

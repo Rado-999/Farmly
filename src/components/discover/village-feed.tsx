@@ -19,11 +19,11 @@ export function VillageFeed({ items, locale }: VillageFeedProps) {
         <RevealOnScroll>
           <StoryHeading
             kicker={translate(locale, "От полето", "From the field")}
-            title={translate(locale, "Какво се случва, докато вървиш.", "What happens while you walk.")}
+            title={translate(locale, "Ново от селото", "New from the village")}
             description={translate(
               locale,
-              "Филми, сезонни мигове и тихи думи — живот по пътя, не още един списък с хора.",
-              "Films, seasonal moments, and quiet words. Life along the path, not another list of people.",
+              "Видеа, бележки и сезонни новини от фермерите.",
+              "Videos, notes, and seasonal news from farmers. Laid out like a walk, not a store listing.",
             )}
           />
         </RevealOnScroll>
@@ -34,8 +34,8 @@ export function VillageFeed({ items, locale }: VillageFeedProps) {
               title={translate(locale, "Селото е тихо засега", "The village is quiet for now")}
               description={translate(
                 locale,
-                "Когато производителите започнат да споделят, пътеката ще се напълни с живот — бавно и със смисъл.",
-                "When growers begin to share, the path will fill with life slowly and meaningfully.",
+                "Ще се появи съдържание, когато фермерите започнат да споделят.",
+                "Content will show up here once farmers start sharing.",
               )}
             />
           </RevealOnScroll>

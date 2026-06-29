@@ -36,7 +36,7 @@ export function VillageEntrance({
   const hasStats =
     snapshot.farmerCount > 0 ||
     snapshot.filmCount > 0 ||
-    snapshot.momentCount > 0;
+    snapshot.productCount > 0;
 
   const kicker = personalization
     ? translate(locale, "Нови пътеки", "New paths")
@@ -45,25 +45,25 @@ export function VillageEntrance({
   const title = personalization
     ? translate(
         locale,
-        "Срещи, които още не познаваш.",
-        "Encounters you have not met yet.",
+        "Ферми, които още не познаваш",
+        "Farms you have not met yet",
       )
     : translate(
         locale,
-        "Разхождай се. Слушай. Остани колкото искаш.",
-        "Walk. Listen. Stay as long as you want.",
+        "Разгледай фермите на свой ритъм",
+        "Browse farms at your own pace",
       );
 
   const description = personalization?.userRegion
     ? translate(
         locale,
-        "Подредихме разходката според твоите интереси и близки места — нови ферми, филми и сезони, без да повтаряме хората от Моето село.",
-        "We shaped the walk around your interests and nearby places — new farms, films, and seasons, without repeating the people in My village.",
+        "Подредихме разходката според твоите интереси и близки места. Нови ферми, видеа и сезонни бележки, без да повтаряме хората от Моето село.",
+        "We ordered the walk around your interests and nearby places. New farms, videos, and seasonal notes, without repeating the people in My village.",
       )
     : translate(
         locale,
-        "Тук няма решетка за пазаруване. Има ферми, които споделят сутринта си, филми от полето и сезони, които узряват на бавен огън — като истинско село, само по-спокойно.",
-        "There is no shopping grid here. There are farms sharing their mornings, films from the field, and seasons that ripen slowly, like a real village, only calmer.",
+        "Тук ще намериш профили на фермери, видеа от полето и какво е в сезон. ",
+        "Here you find farmer profiles, field videos, and what is in season. No shopping grid, just getting to know people.",
       );
 
   return (
@@ -103,38 +103,33 @@ export function VillageEntrance({
                 label={translate(
                   locale,
                   snapshot.farmerCount === 1
-                    ? "ферма споделя днес"
-                    : "ферми споделят днес",
+                    ? "ферма"
+                    : "ферми",
                   snapshot.farmerCount === 1
-                    ? "farm is sharing today"
-                    : "farms are sharing today",
+                    ? "ферма"
+                    : "ферми",
                 )}
               />
               <SnapshotLine
                 value={snapshot.filmCount}
                 label={translate(
                   locale,
-                  snapshot.filmCount === 1 ? "полски филм" : "полски филма",
-                  snapshot.filmCount === 1 ? "field film" : "field films",
+                  snapshot.filmCount === 1 ? "филм" : "филма",
+                  snapshot.filmCount === 1 ? "филм" : "филма",
                 )}
               />
               <SnapshotLine
-                value={snapshot.momentCount}
+                value={snapshot.productCount}
                 label={translate(
                   locale,
-                  snapshot.momentCount === 1
-                    ? "сезонен момент"
-                    : "сезонни момента",
-                  snapshot.momentCount === 1
-                    ? "seasonal moment"
-                    : "seasonal moments",
+                  snapshot.productCount === 1 ? "продукт" : "продукта",
+                  snapshot.productCount === 1 ? "product" : "products",
                 )}
               />
             </ul>
           ) : null}
 
-          {personalization &&
-          (personalization.followCount > 0 || personalization.savedCount > 0) ? (
+          {personalization && personalization.followCount > 0 ? (
             <ul
               className="mx-auto mt-6 flex flex-wrap justify-center gap-x-8 gap-y-2 text-sm text-soil/90"
               aria-label={translate(
@@ -155,18 +150,6 @@ export function VillageEntrance({
                     : "farms in My village",
                 )}
               />
-              <SnapshotLine
-                value={personalization.savedCount}
-                label={translate(
-                  locale,
-                  personalization.savedCount === 1
-                    ? "запазена ферма"
-                    : "запазени ферми",
-                  personalization.savedCount === 1
-                    ? "saved farm"
-                    : "saved farms",
-                )}
-              />
             </ul>
           ) : null}
 
@@ -178,11 +161,7 @@ export function VillageEntrance({
               <ButtonLink href="/village" variant="quiet">
                 {translate(locale, "Моето село", "My village")}
               </ButtonLink>
-            ) : (
-              <ButtonLink href="#field-theatre" variant="quiet">
-                {translate(locale, "Гледай от полето", "Watch from the field")}
-              </ButtonLink>
-            )}
+            ) : null}
           </div>
         </div>
       </div>

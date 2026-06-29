@@ -13,7 +13,7 @@ export function VideoGridInteractive({ videos }: VideoGridInteractiveProps) {
       videos={videos}
       layout="grid"
       showStage
-      emptyMessage="Все още няма полски видеа."
+      emptyMessage="Все още няма видео."
     />
   );
 }

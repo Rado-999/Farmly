@@ -7,33 +7,33 @@ export function getVillageJourneyBeats(locale: Locale): HowItWorksStep[] {
   return [
     {
       step: 1,
-      title: translate(locale, "Пристигни без бързане", "Arrive without rushing"),
+      title: translate(locale, "Разгледай спокойно", "Browse at your own pace"),
       description: translate(
         locale,
-        "Нека земята те посрещне първа. Мъгла, почва, дървени врати, кучета, които тичат напред — селото се отваря бавно.",
-        "Let the land greet you first. Fog, soil, wooden gates, dogs running ahead. The village opens slowly.",
+        "Започни с разходка из селото. Виж ферми, гледай видеа, виж какво правят тази седмица.",
+        "Start with a walk through the village. See farms, watch videos, read what they are up to this week.",
       ),
     },
     {
       step: 2,
       title: translate(
         locale,
-        "Гледай как някой отглежда храната ти",
-        "Watch someone grow your food",
+        "Гледай видеата от полето",
+        "Watch videos from the field",
       ),
       description: translate(
         locale,
-        "Видеото е началото на доверието тук. Времето по лицето, ръце в земята, сезони, които се променят на живо.",
-        "Video is where trust begins here. Time on the face, hands in the soil, seasons changing in real time.",
+        "Фермерите качват кратки клипове — посаждане, жътва, ежедневна работа. Така разбираш как работят, преди да ги добавиш в селото си.",
+        "Farmers upload short clips: planting, harvest, daily work. That is how you understand how they farm before you add them to your village.",
       ),
     },
     {
       step: 3,
-      title: translate(locale, "Познай човека зад жътвата", "Know the person behind the harvest"),
+      title: translate(locale, "Добави в селото, когато си готов", "Add to your village when you are ready"),
       description: translate(
         locale,
-        "Име, място, глас. Когато историята звучи истински, следването на една ферма идва естествено — покупката може да изчака.",
-        "A name, a place, a voice. When the story sounds real, following a farm feels natural and the purchase can wait.",
+        "Когато намериш някой, при когото искаш да се върнеш, добави го в селото си. Без натиск — купуването може да изчака.",
+        "When you find someone you want to return to, add them to your village. No pressure — buying can wait.",
       ),
     },
   ];

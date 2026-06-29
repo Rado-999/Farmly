@@ -22,19 +22,20 @@ export function FollowSection({
               Остани близо до сезона
             </p>
             <h2 className="editorial-serif text-3xl leading-tight text-moss-900 sm:text-4xl">
-              Следи как живее земята на {farmerName}
+              Виж как работи фермата на {farmerName}
             </h2>
             <p className="text-base leading-8 text-soil/80">
-              Тихи обновления, когато излязат нови полски филми — не известия,
-              а пощенски картички от фермата.
+              Ще виждаш нови видеа и бележки от фермата, когато фермерът ги
+              сподели.
             </p>
             <div className="flex justify-center pt-2">
               <FollowButton
                 farmerProfileId={farmerProfileId}
                 farmerName={farmerName}
-                followLabel="Следи този сезон"
-                followingLabel="Следиш този сезон"
+                followLabel="Добави в селото"
+                followingLabel="В селото ти"
                 size="prominent"
+                noticeAlign="center"
               />
             </div>
           </div>

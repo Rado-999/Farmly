@@ -45,9 +45,13 @@ export type FarmerReview = {
 
 export type FarmerDirectoryEntry = {
   id: string;
+  farmerProfileId: string;
   name: string;
   location: string;
+  locality: string | null;
+  region: string | null;
   bio: string;
+  isVerified: boolean;
   profileImage: FarmerImage;
 };
 

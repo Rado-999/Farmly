@@ -19,7 +19,6 @@ export type DiscoverSignals = {
   interestLabels: string[];
   relatedRegions: Set<string>;
   followCount: number;
-  savedCount: number;
 };
 
 export type DiscoverPersonalization = {
@@ -27,7 +26,6 @@ export type DiscoverPersonalization = {
   userRegion: string | null;
   interestLabels: string[];
   followCount: number;
-  savedCount: number;
   hasVillageHome: boolean;
 };
 
@@ -78,21 +76,15 @@ export async function loadDiscoverSignals(
   userId: string,
   userRegion: string | null,
 ): Promise<DiscoverSignals> {
-  const [{ data: followRows }, { data: savedRows }] = await Promise.all([
-    supabase.from("follows").select("farmer_id").eq("user_id", userId),
-    supabase.from("saved_farms").select("farmer_id").eq("user_id", userId),
-  ]);
+  const { data: followRows } = await supabase
+    .from("follows")
+    .select("farmer_id")
+    .eq("user_id", userId);
 
   const excludeFarmerIds = new Set<string>();
   const relatedRegions = new Set<string>();
 
   for (const row of followRows ?? []) {
-    if (row.farmer_id) {
-      excludeFarmerIds.add(row.farmer_id);
-    }
-  }
-
-  for (const row of savedRows ?? []) {
     if (row.farmer_id) {
       excludeFarmerIds.add(row.farmer_id);
     }
@@ -108,7 +100,6 @@ export async function loadDiscoverSignals(
       interestLabels: [],
       relatedRegions,
       followCount: followRows?.length ?? 0,
-      savedCount: savedRows?.length ?? 0,
     };
   }
 
@@ -152,7 +143,6 @@ export async function loadDiscoverSignals(
     interestLabels,
     relatedRegions,
     followCount: followRows?.length ?? 0,
-    savedCount: savedRows?.length ?? 0,
   };
 }
 
@@ -283,8 +273,8 @@ export function buildPersonalizedNeighbourhoods(
       label,
       description:
         group.length === 1
-          ? `${group[0].name} споделя живота си оттук.`
-          : `${group.length} ферми по този път — всеки със свой ритъм и сезон.`,
+          ? `${group[0].name} е от тук.`
+          : `${group.length} ферми в този район.`,
       farmers: group,
     }))
     .slice(0, 5);
@@ -298,7 +288,6 @@ export function toDiscoverPersonalization(
     userRegion: signals.userRegion,
     interestLabels: signals.interestLabels,
     followCount: signals.followCount,
-    savedCount: signals.savedCount,
-    hasVillageHome: signals.followCount > 0 || signals.savedCount > 0,
+    hasVillageHome: signals.followCount > 0,
   };
 }

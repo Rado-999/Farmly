@@ -114,7 +114,7 @@ export function CinematicStoriesContent({ stories }: CinematicStoriesContentProp
     <>
       <RevealOnScroll>
         <StoryHeading
-          kicker={translate(locale, "Доверието живее в движение", "Trust lives in motion")}
+          kicker={translate(locale, "Видеа от полето", "Videos from the field")}
           title={translate(
             locale,
             "Гледай как храната наистина се отглежда.",
@@ -122,8 +122,8 @@ export function CinematicStoriesContent({ stories }: CinematicStoriesContentProp
           )}
           description={translate(
             locale,
-            "Не декорация — доказателство. Времето по кожата, инструменти в ръка, същото поле през пролет и жътва. Когато го видиш, вярата идва тихо.",
-            "Not decoration, but proof. Time on the skin, tools in hand, the same field in spring and harvest. Once you see it, belief arrives quietly.",
+            "Кратки клипове от работата на фермерите. Не реклами, а реални кадри от полето. Така разбираш как работят, преди да им се довериш.",
+            "Short clips from farmers at work. Not ads, but real footage from the field. That is how you understand how they farm before you trust them.",
           )}
           size="chapter"
         />
@@ -135,8 +135,8 @@ export function CinematicStoriesContent({ stories }: CinematicStoriesContentProp
             title={translate(locale, "Първите филми се правят", "The first films are being made")}
             description={translate(
               locale,
-              "Докато фермерите споделят сутрините и жътвите си, тази алея ще се напълни с истинско движение — не стокови кадри, не реклами.",
-              "As farmers share their mornings and harvests, this lane will fill with real movement, not stock footage or ads.",
+              "Ще се появят, когато фермерите качат първите си клипове.",
+              "They will appear here once farmers upload their first clips.",
             )}
           />
         </RevealOnScroll>

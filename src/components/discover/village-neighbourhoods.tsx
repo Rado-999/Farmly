@@ -28,16 +28,17 @@ export function VillageNeighbourhoods({
       <div className="page-shell-wide">
         <RevealOnScroll>
           <StoryHeading
-            kicker={translate(locale, "Квартали по селото", "Neighbourhoods in the village")}
-            title={translate(locale, "Следвай местата, не категориите.", "Follow places, not categories.")}
+            maxWidth="3xl"
+            kicker={translate(locale, "Фермите на България", "Farms in Bulgaria")}
+            title={translate(locale, "Фермите от различните краища на България", "Farms in different locations across Bulgaria")}
             description={translate(
               locale,
               personalization?.userRegion
-                ? `Първо показваме места близо до ${personalization.userRegion} — после останалите завойки по селото.`
-                : "Всяка местност събира свои ферми — различен ритъм, различен сезон, същото спокойствие.",
+                ? `Първо показваме места близо до ${personalization.userRegion}, после останалите по селото.`
+                : "Фермерите са подредени по места, така по-лесно намираш някой близо до теб.",
               personalization?.userRegion
-                ? `We start with places close to ${personalization.userRegion}, then the rest of the village bends.`
-                : "Each area gathers its own farms with a different rhythm, a different season, and the same calm.",
+                ? `We start with places close to ${personalization.userRegion}, then the rest of the village.`
+                : "Farmers are grouped by place, so it is easier to find someone near you.",
             )}
           />
         </RevealOnScroll>
@@ -48,8 +49,8 @@ export function VillageNeighbourhoods({
               title={translate(locale, "Картата се оформя", "The map is taking shape")}
               description={translate(
                 locale,
-                "С производителите идат и местата — постепенно, с истински имена.",
-                "As growers arrive, places do too: gradually and with real names.",
+                "Местата ще се появят, когато има повече регистрирани фермери.",
+                "Places will show up here once more farmers are registered.",
               )}
             />
           </RevealOnScroll>

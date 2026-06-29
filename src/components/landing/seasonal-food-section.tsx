@@ -91,16 +91,16 @@ export function SeasonalFoodSection({
         <RevealOnScroll>
           <div className="stack-relaxed">
             <p className="type-kicker">
-              {translate(locale, "Какво земята предлага сега", "What the land offers now")}
+              {translate(locale, "В сезон сега", "In season now")}
             </p>
             <h2 className="type-chapter max-w-2xl text-loam-900">
-              {translate(locale, "Жътвата е момент, не каталог.", "Harvest is a moment, not a catalog.")}
+              {translate(locale, "Какво е готово този сезон", "What is ready this season")}
             </h2>
             <p className="max-w-lg text-base leading-8 text-stone-700/90 sm:text-lg sm:leading-9">
               {translate(
                 locale,
-                "Всяко име по-долу е нещо узряло днес — бележка прехвърлена през оградата, не артикул в количка.",
-                "Each name below is something ripe today, a note passed over the fence, not an item in a cart.",
+                "Тук е сезонната продукция, събрана от всяка ферма на едно място.",
+                "Here is the seasonal production collected from each farm in one place. Through them you can find out which farms are ready to share their products.",
               )}
             </p>
           </div>

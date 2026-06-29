@@ -17,12 +17,15 @@ import { loadSupabaseClient } from "@/lib/supabase/load-client";
 type FollowButtonProps = {
   farmerProfileId: string;
   farmerName: string;
-  /** Compact chip for cards; default pill for profile hero */
-  size?: "default" | "compact" | "prominent";
+  /** Compact chip for cards; hero matches profile CTAs; prominent for standalone sections */
+  size?: "default" | "compact" | "hero" | "prominent";
   className?: string;
   followLabel?: string;
   followingLabel?: string;
   followedVia?: FollowedVia;
+  /** Inline under the button, or full-width below a button row */
+  noticeLayout?: "inline" | "below";
+  noticeAlign?: "start" | "center";
 };
 
 export function FollowButton({
@@ -30,9 +33,11 @@ export function FollowButton({
   farmerName,
   size = "default",
   className = "",
-  followLabel = "Следи този сезон",
-  followingLabel = "Следиш този сезон",
+  followLabel = "Добави в селото",
+  followingLabel = "В селото ти",
   followedVia = "profile",
+  noticeLayout = "inline",
+  noticeAlign = "start",
 }: FollowButtonProps) {
   const { locale } = useLocale();
   const auth = useAuthSession();
@@ -142,8 +147,8 @@ export function FollowButton({
           setNotice(
             translate(
               locale,
-              "Ще те посрещнем в Моето село, когато има нещо от полето.",
-              "We will meet you in My village when there is something new from the field.",
+              "Ще видиш новото съдържание в Моето село, когато фермерът го сподели.",
+              "You will see new content in My village when the farmer shares it.",
             ),
           );
         }
@@ -174,57 +179,89 @@ export function FollowButton({
   }
 
   const label = resolvedIsFollowing
-    ? translate(locale, followingLabel, "Following this season")
-    : translate(locale, followLabel, "Follow this season");
+    ? translate(locale, followingLabel, "In your village")
+    : translate(locale, followLabel, "Add to my village");
+
+  const isMossCta = size === "hero" || size === "prominent";
 
   const sizeClassName =
     size === "compact"
       ? "px-3 py-1.5 text-xs"
-      : size === "prominent"
-        ? "px-7 py-3.5 text-base"
-        : "px-4 py-2 text-sm";
+      : size === "hero"
+        ? "px-6 py-3 text-sm"
+        : size === "prominent"
+          ? "px-7 py-3.5 text-base"
+          : "px-4 py-2 text-sm";
+
+  const noticeElement = notice ? (
+    <p
+      role="status"
+      className={
+        noticeLayout === "below"
+          ? noticeAlign === "center"
+            ? "basis-full max-w-md text-center text-sm leading-relaxed text-soil/75"
+            : "basis-full max-w-xl text-sm leading-relaxed text-soil/75"
+          : noticeAlign === "center"
+            ? "max-w-md text-center text-sm leading-relaxed text-soil/75"
+            : "max-w-sm text-sm leading-relaxed text-stone-600"
+      }
+    >
+      {notice}
+    </p>
+  ) : null;
+
+  const buttonElement = (
+    <button
+      type="button"
+      onClick={() => void handleToggle()}
+      disabled={isPending || auth.status === "loading"}
+      aria-pressed={resolvedIsFollowing}
+      aria-busy={isPending}
+      aria-label={
+        resolvedIsFollowing
+          ? translate(
+              locale,
+              `Премахни ${farmerName} от селото си`,
+              `Remove ${farmerName} from your village`,
+            )
+          : translate(
+              locale,
+              `Добави ${farmerName} в селото си`,
+              `Add ${farmerName} to your village`,
+            )
+      }
+      className={`inline-flex items-center justify-center rounded-full border font-medium transition-[background-color,border-color,color,box-shadow] duration-500 ease-[var(--ease-organic)] disabled:opacity-60 ${sizeClassName} ${
+        resolvedIsFollowing
+          ? isMossCta
+            ? "border-moss-700/40 bg-moss-700/12 text-moss-900 shadow-[0_12px_32px_-18px_rgba(31,48,34,0.35)]"
+            : "border-forest/25 bg-forest/10 text-forest-deep"
+          : isMossCta
+            ? "border-moss-700/25 bg-moss-700 text-loam-50 shadow-[0_18px_40px_-16px_rgba(31,48,34,0.45)] hover:bg-moss-900"
+            : "border-forest/20 bg-forest text-mist shadow-[0_14px_30px_-18px_rgba(63,90,58,0.35)] hover:bg-[#324a2f]"
+      }`}
+    >
+      {label}
+    </button>
+  );
+
+  if (noticeLayout === "below") {
+    return (
+      <>
+        {buttonElement}
+        {noticeElement}
+      </>
+    );
+  }
+
+  const stackAlignClassName =
+    noticeAlign === "center" ? "items-center" : "items-start";
 
   return (
-    <div className={`flex flex-col items-start gap-2 ${className}`}>
-      <button
-        type="button"
-        onClick={() => void handleToggle()}
-        disabled={isPending || auth.status === "loading"}
-        aria-pressed={resolvedIsFollowing}
-        aria-busy={isPending}
-        aria-label={
-          resolvedIsFollowing
-            ? translate(
-                locale,
-                `Спри да следваш фермата на ${farmerName}`,
-                `Stop following ${farmerName}'s farm`,
-              )
-            : translate(
-                locale,
-                `Следи сезона на ${farmerName}`,
-                `Follow ${farmerName}'s season`,
-              )
-        }
-        className={`inline-flex items-center justify-center rounded-full border font-medium transition-[background-color,border-color,color,box-shadow] duration-500 ease-[var(--ease-organic)] disabled:opacity-60 ${sizeClassName} ${
-          resolvedIsFollowing
-            ? size === "prominent"
-              ? "border-moss-700/40 bg-moss-700/12 text-moss-900 shadow-[0_12px_32px_-18px_rgba(31,48,34,0.35)]"
-              : "border-forest/25 bg-forest/10 text-forest-deep"
-            : size === "prominent"
-              ? "border-moss-700/25 bg-moss-700 text-loam-50 shadow-[0_18px_40px_-16px_rgba(31,48,34,0.45)] hover:bg-moss-900"
-              : "border-forest/20 bg-forest px-4 py-2 text-sm font-medium text-mist shadow-[0_14px_30px_-18px_rgba(63,90,58,0.35)] hover:bg-[#324a2f]"
-        }`}
-      >
-        {label}
-      </button>
-      {notice ? (
-        <p
-          role="status"
-          className="max-w-sm text-sm leading-relaxed text-stone-600"
-        >
-          {notice}
-        </p>
-      ) : null}
+    <div
+      className={`inline-flex flex-col ${stackAlignClassName} gap-2 ${className}`}
+    >
+      {buttonElement}
+      {noticeElement}
     </div>
   );
 }

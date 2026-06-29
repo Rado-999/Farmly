@@ -46,8 +46,8 @@ export function FarmerCard({
         />
       </div>
 
-      <div className="flex flex-col card-pad pt-4 text-center">
-        <div className="stack-tight">
+      <div className="flex min-h-0 flex-1 flex-col card-pad pt-4 text-center">
+        <div className="stack-tight flex-1">
           <div>
             <p className="text-sm text-stone-500">{location}</p>
             <h3 className="mt-1 text-xl font-semibold text-stone-900 transition-colors duration-500 group-hover:text-forest">
@@ -66,7 +66,7 @@ export function FarmerCard({
           ) : null}
         </div>
 
-        <span className="text-link mx-auto mt-3 self-center sm:mt-4">
+        <span className="text-link mx-auto mt-auto self-center pt-4">
           {linkLabel}
         </span>
       </div>

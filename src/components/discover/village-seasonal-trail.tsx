@@ -18,8 +18,8 @@ export function VillageSeasonalTrail({ moments }: VillageSeasonalTrailProps) {
         <RevealOnScroll>
           <StoryHeading
             kicker="Сезонът днес"
-            title="Какво узрява по пътя."
-            description="Не ценоразпис — момент. Нещо, което земята предлага сега, с лице и място зад него."
+            title="Какво е готово сега"
+            description="Продукти и бележки, които фермерите споделят като налични в момента."
           />
         </RevealOnScroll>
 
@@ -27,7 +27,7 @@ export function VillageSeasonalTrail({ moments }: VillageSeasonalTrailProps) {
           <RevealOnScroll className="content-after-head block">
             <EmptyState
               title="Полетата почиват"
-              description="Когато жътвата дойде, ще я усетите тук — като покана, не като оферта."
+              description="Ще се появи тук, когато фермерите споделят какво е готово за жътва."
             />
           </RevealOnScroll>
         ) : (

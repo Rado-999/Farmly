@@ -6,8 +6,6 @@ import { AuthInput } from "@/components/auth/auth-input";
 import { useLocale } from "@/components/i18n/language-provider";
 import { formSelectClassName } from "@/components/ui/form-select";
 import { AvatarPhotoPicker } from "@/components/onboarding/avatar-photo-picker";
-import { CoverPhotoPicker } from "@/components/profile/cover-photo-picker";
-import { OnboardingTextarea } from "@/components/onboarding/onboarding-textarea";
 import { BULGARIA_REGIONS } from "@/lib/onboarding/regions";
 import { translate } from "@/lib/i18n/translate";
 import type { OnboardingProfile } from "@/lib/onboarding/types";
@@ -30,13 +28,7 @@ export function ProfileEditForm({
   const [name, setName] = useState(profile.name ?? "");
   const [city, setCity] = useState(profile.city ?? "");
   const [region, setRegion] = useState(profile.region ?? "");
-  const [bio, setBio] = useState(profile.farmerProfile?.bio ?? "");
-  const [story, setStory] = useState(profile.farmerProfile?.story ?? "");
-  const [philosophy, setPhilosophy] = useState(
-    profile.farmerProfile?.philosophy ?? "",
-  );
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
-  const [coverFile, setCoverFile] = useState<File | null>(null);
   const [isAdjustingPhoto, setIsAdjustingPhoto] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -73,9 +65,7 @@ export function ProfileEditForm({
 
     setIsSaving(true);
 
-    const { updateAccountProfile, updateFarmerDetails } = await import(
-      "@/lib/profile/update-profile"
-    );
+    const { updateAccountProfile } = await import("@/lib/profile/update-profile");
     const accountResult = await updateAccountProfile(supabase, profile.id, {
       name,
       avatarFile,
@@ -83,40 +73,27 @@ export function ProfileEditForm({
       region,
     });
 
+    setIsSaving(false);
+
     if (!accountResult.ok) {
-      setIsSaving(false);
       setError(accountResult.error.message);
       return;
     }
 
-    if (isFarmer) {
-      const farmerResult = await updateFarmerDetails(supabase, profile.id, {
-        bio,
-        story,
-        philosophy,
-        coverFile,
-      });
-
-      if (!farmerResult.ok) {
-        setIsSaving(false);
-        setError(farmerResult.error.message);
-        return;
-      }
-    }
-
-    setIsSaving(false);
     onSaved();
   }
 
   return (
     <div className="space-y-5">
-      <AvatarPhotoPicker
-        key={profile.avatarUrl ?? "no-avatar"}
-        name={name || displayName}
-        initialImageUrl={profile.avatarUrl}
-        onCroppedFileChange={setAvatarFile}
-        onCroppingChange={setIsAdjustingPhoto}
-      />
+      {isFarmer ? (
+        <AvatarPhotoPicker
+          key={profile.avatarUrl ?? "no-avatar"}
+          name={name || displayName}
+          initialImageUrl={profile.avatarUrl}
+          onCroppedFileChange={setAvatarFile}
+          onCroppingChange={setIsAdjustingPhoto}
+        />
+      ) : null}
 
       <AuthInput
         id="profile-edit-name"
@@ -158,53 +135,6 @@ export function ProfileEditForm({
           ))}
         </select>
       </div>
-
-      {isFarmer ? (
-        <div className="space-y-4 border-t border-stone-200/70 pt-5">
-          <CoverPhotoPicker
-            key={profile.farmerProfile?.coverImageUrl ?? "no-cover"}
-            initialImageUrl={profile.farmerProfile?.coverImageUrl}
-            onFileChange={setCoverFile}
-          />
-          <p className="text-sm font-medium text-stone-700">
-            {translate(locale, "Фермерска история", "Farmer story")}
-          </p>
-          <OnboardingTextarea
-            id="profile-edit-bio"
-            label={translate(locale, "Кратко представяне на фермата", "Short farm introduction")}
-            value={bio}
-            onChange={setBio}
-            placeholder={translate(
-              locale,
-              "Кратко представяне на фермата ви",
-              "A short introduction to your farm",
-            )}
-          />
-          <OnboardingTextarea
-            id="profile-edit-story"
-            label={translate(locale, "Фермерска история", "Farmer story")}
-            value={story}
-            onChange={setStory}
-            placeholder={translate(
-              locale,
-              "Как започна фермата ви?",
-              "How did your farm begin?",
-            )}
-            rows={4}
-          />
-          <OnboardingTextarea
-            id="profile-edit-philosophy"
-            label={translate(locale, "Философия", "Philosophy")}
-            value={philosophy}
-            onChange={setPhilosophy}
-            placeholder={translate(
-              locale,
-              "Какви принципи насочват начина, по който отглеждате храна?",
-              "What principles guide the way you grow food?",
-            )}
-          />
-        </div>
-      ) : null}
 
       {error ? (
         <p

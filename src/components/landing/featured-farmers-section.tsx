@@ -91,7 +91,7 @@ function GrowerGridCard({
             </p>
           ) : null}
           <span className="story-link mt-auto pt-2">
-            {translate(locale, "Чуй гласа им", "Hear their voice")}
+            {translate(locale, "Запознай се", "Hear their voice")}
           </span>
         </div>
       </Link>
@@ -114,15 +114,15 @@ export function FeaturedFarmersSection({
             <h2 className="type-chapter max-w-3xl text-loam-900">
               {translate(
                 locale,
-                "Това са хората зад масата ви.",
-                "These are the people behind your table.",
+                "Ето с кого започва запознаването.",
+                "Here is where you start getting to know them.",
               )}
             </h2>
             <p className="max-w-xl text-base leading-8 text-loam-700/90 sm:text-lg sm:leading-9">
               {translate(
                 locale,
-                "Не обяви. Съседи с почва под ноктите, сезони в гласа си и ферма, която можете да посетите първо с очите.",
-                "Not listings. Neighbors with soil under their nails, seasons in their voices, and farms you can visit with your eyes first.",
+                "Зад всеки профил стои фермер, място и история. Прочети неговата история, запознай се с неговата ферма и реши дали искаш да я добавиш в селото си.",
+                "Every profile is a farmer with a place and a story. Read their story, explore their farm, and decide if you want to add them to your village.",
               )}
             </p>
           </div>
@@ -133,13 +133,13 @@ export function FeaturedFarmersSection({
             <EmptyState
               title={translate(
                 locale,
-                "Производителите намират пътя си тук",
-                "Growers are finding their way here",
+                "Още няма профили",
+                "No profiles yet",
               )}
               description={translate(
                 locale,
-                "Нови ферми се присъединяват към селото, докато започват да споделят кои са — бавно, със собствени думи.",
-                "New farms join the village as they begin to share who they are, slowly and in their own words.",
+                "Ще се появят, когато фермерите се регистрират и попълнят данните си.",
+                "They will show up here once farmers sign up and fill in their details.",
               )}
             />
           </RevealOnScroll>

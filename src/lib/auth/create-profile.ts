@@ -20,7 +20,7 @@ export async function createProfile(
       email: email.trim(),
       role,
       is_profile_complete: false,
-      onboarding_step: 1,
+      onboarding_step: 2,
     },
     { onConflict: "id" },
   );

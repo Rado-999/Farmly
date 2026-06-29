@@ -6,7 +6,6 @@ import {
 import type {
   VillageFeedItem,
   VillageFeedSections,
-  VillageSavedFarmCard,
 } from "@/lib/feed/types";
 import {
   FARMER_PROFILE_SELECT,
@@ -31,7 +30,7 @@ type FarmerMeta = {
   location: string;
   bio: string;
   region: string | null;
-  tier: 1 | 2;
+  tier: 1;
   imageUrl: string | null;
   gradientFrom: string;
   gradientTo: string;
@@ -45,7 +44,7 @@ function unwrapFarmer<T>(row: T | T[] | null): T | null {
   return Array.isArray(row) ? (row[0] ?? null) : row;
 }
 
-function mapFarmerMeta(farmer: FarmerProfileRow, tier: 1 | 2): FarmerMeta {
+function mapFarmerMeta(farmer: FarmerProfileRow): FarmerMeta {
   const name = getFarmerRowName(farmer);
   const image = createFarmerImage(
     `${name} profile`,
@@ -60,7 +59,7 @@ function mapFarmerMeta(farmer: FarmerProfileRow, tier: 1 | 2): FarmerMeta {
     location: formatLocation(farmer.location, farmer.region),
     bio: farmer.bio ?? farmer.story ?? "",
     region: farmer.region,
-    tier,
+    tier: 1,
     imageUrl: image.imageUrl ?? null,
     gradientFrom: image.gradientFrom,
     gradientTo: image.gradientTo,
@@ -122,7 +121,7 @@ type VillageFeedItemCore = Pick<
 >;
 
 function buildItem(
-  partial: VillageFeedItemCore & { source_tier?: 1 | 2 },
+  partial: VillageFeedItemCore & { source_tier?: 1 },
   farmer: FarmerMeta,
 ): VillageFeedItem {
   return {
@@ -146,7 +145,6 @@ export async function getVillageFeed(
   const [
     { data: profile, error: profileError },
     { data: followRows, error: followsError },
-    { data: savedRows, error: savedError },
   ] =
     await Promise.all([
       options?.lastVisitedAt !== undefined && options?.region !== undefined
@@ -166,10 +164,6 @@ export async function getVillageFeed(
         .from("follows")
         .select(`farmer_id, farmer_profiles (${FARMER_PROFILE_SELECT})`)
         .eq("user_id", userId),
-      supabase
-        .from("saved_farms")
-        .select(`farmer_id, farmer_profiles (${FARMER_PROFILE_SELECT})`)
-        .eq("user_id", userId),
     ]);
 
   if (profileError) {
@@ -178,10 +172,6 @@ export async function getVillageFeed(
 
   if (followsError) {
     return queryDatabaseError(followsError.message);
-  }
-
-  if (savedError) {
-    return queryDatabaseError(savedError.message);
   }
 
   const lastVisitedAt = profile?.village_last_visited_at ?? null;
@@ -196,41 +186,11 @@ export async function getVillageFeed(
         .farmer_profiles,
     );
     if (farmer) {
-      farmerById.set(farmer.id, mapFarmerMeta(farmer, 1));
+      farmerById.set(farmer.id, mapFarmerMeta(farmer));
     }
   }
 
   const followedIds = new Set(farmerById.keys());
-  const savedOnlyCards: VillageSavedFarmCard[] = [];
-
-  for (const row of savedRows ?? []) {
-    const farmer = unwrapFarmer(
-      (row as { farmer_profiles: FarmerProfileRow | FarmerProfileRow[] | null })
-        .farmer_profiles,
-    );
-    if (!farmer) {
-      continue;
-    }
-
-    if (followedIds.has(farmer.id)) {
-      continue;
-    }
-
-    const meta = mapFarmerMeta(farmer, 2);
-    farmerById.set(farmer.id, meta);
-    savedOnlyCards.push({
-      farmer_id: meta.id,
-      slug: meta.slug,
-      name: meta.name,
-      location: meta.location,
-      bio: meta.bio,
-      image: meta.imageUrl,
-      gradientFrom: meta.gradientFrom,
-      gradientTo: meta.gradientTo,
-    });
-  }
-
-  const followedFarmerIds = [...followedIds];
   const allFarmerIds = [...farmerById.keys()];
 
   if (allFarmerIds.length === 0) {
@@ -238,11 +198,9 @@ export async function getVillageFeed(
       showSinceYouWereHere: false,
       sinceYouWereHere: [],
       fromYourFarms: [],
-      savedFarms: [],
       seasonNearYou: [],
       localGatherings: [],
       hasFollows: false,
-      hasSavedOnly: false,
       hasAnyContent: false,
     });
   }
@@ -257,32 +215,32 @@ export async function getVillageFeed(
     { data: productRows, error: productsError },
     { data: eventRows, error: eventsError },
   ] = await Promise.all([
-    followedFarmerIds.length > 0
+    allFarmerIds.length > 0
       ? supabase
           .from("posts")
           .select(
             "id, farmer_id, title, content, image_url, kind, season, created_at, published_at",
           )
-          .in("farmer_id", followedFarmerIds)
+          .in("farmer_id", allFarmerIds)
           .in("kind", ["field_note", "harvest", "season"])
           .order("created_at", { ascending: false })
           .limit(FETCH_POOL)
       : Promise.resolve({ data: [], error: null }),
-    followedFarmerIds.length > 0
+    allFarmerIds.length > 0
       ? supabase
           .from("videos")
           .select(
             "id, farmer_id, title, description, poster_url, created_at",
           )
-          .in("farmer_id", followedFarmerIds)
+          .in("farmer_id", allFarmerIds)
           .order("created_at", { ascending: false })
           .limit(FETCH_POOL)
       : Promise.resolve({ data: [], error: null }),
-    followedFarmerIds.length > 0
+    allFarmerIds.length > 0
       ? supabase
           .from("products")
           .select("id, farmer_id, title, description, season, images, created_at, published_at")
-          .in("farmer_id", followedFarmerIds)
+          .in("farmer_id", allFarmerIds)
           .eq("status", "published")
           .not("season", "is", null)
           .order("created_at", { ascending: false })
@@ -456,7 +414,6 @@ export async function getVillageFeed(
   const hasAnyContent =
     sinceYouWereHere.length > 0 ||
     fromYourFarmsExSeason.length > 0 ||
-    savedOnlyCards.length > 0 ||
     seasonNearYou.length > 0 ||
     localGatherings.length > 0;
 
@@ -464,11 +421,9 @@ export async function getVillageFeed(
     showSinceYouWereHere: showSinceYouWereHere && sinceYouWereHere.length > 0,
     sinceYouWereHere,
     fromYourFarms: fromYourFarmsExSeason,
-    savedFarms: savedOnlyCards,
     seasonNearYou,
     localGatherings: localGatherings.slice(0, 4),
     hasFollows: followedIds.size > 0,
-    hasSavedOnly: savedOnlyCards.length > 0,
     hasAnyContent,
   });
 }

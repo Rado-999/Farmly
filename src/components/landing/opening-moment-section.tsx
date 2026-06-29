@@ -1,6 +1,7 @@
 import Image from "next/image";
 
 import { PageSection } from "@/components/ui/page-section";
+import { ImageCaptionPanel } from "@/components/ui/image-caption-panel";
 import { RevealOnScroll } from "@/components/ui/reveal-on-scroll";
 import { StoryHeading } from "@/components/ui/story-heading";
 import { landingAtmosphereImage } from "@/lib/landing/visuals";
@@ -12,9 +13,9 @@ export function OpeningMomentSection() {
         <div className="layout-split lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:items-center">
           <RevealOnScroll direction="left">
             <StoryHeading
-              kicker="Преди всичко друго"
-              title="Трябва да усетите земята, преди да срещнете фермер."
-              description="Индустриалната храна се движи бързо и остава невидима. Тук темпото е човешко: вятър в редовете, кал по ботушите, светлина, която се променя в оранжерията. Създадохме Farmly за това усещане — не за плащане на каса."
+              kicker="Защо съществува Farmly"
+              title="Искаме да виждаш хората зад храната, преди да купуваш."
+              description="В магазина виждаш етикет. Тук виждаш фермера — как работи, какво казва, какво споделя тази седмица. Създадохме Farmly за това, не за още един онлайн магазин."
               size="chapter"
             />
           </RevealOnScroll>
@@ -30,14 +31,12 @@ export function OpeningMomentSection() {
               />
               <div
                 aria-hidden
-                className="absolute inset-0 bg-[linear-gradient(0deg,rgba(31,48,34,0.45)_0%,transparent_42%)]"
+                className="absolute inset-0 bg-[linear-gradient(0deg,rgba(31,48,34,0.3)_0%,transparent_38%)]"
               />
-              <figcaption className="absolute inset-x-0 bottom-0 p-6 sm:p-8">
-                <p className="editorial-serif text-2xl leading-snug text-mist sm:text-3xl">
-                  <span className="italic text-wheat/95">Несъвършена светлина.</span>{" "}
-                  Истински ръце. Сезон, който почти можеш да помиришеш.
-                </p>
-              </figcaption>
+              <ImageCaptionPanel textClassName="editorial-serif text-2xl leading-snug sm:text-3xl">
+                Реални хора, реални полета.{" "}
+                <span className="image-caption-lead">Нищо от студио.</span>
+              </ImageCaptionPanel>
             </figure>
           </RevealOnScroll>
         </div>

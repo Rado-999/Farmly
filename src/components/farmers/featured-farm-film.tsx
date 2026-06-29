@@ -64,9 +64,9 @@ function HeroFilm({
       type="button"
       onClick={onPlay}
       disabled={!video.videoUrl}
-      className="group relative w-full cursor-pointer overflow-hidden rounded-sm text-left disabled:cursor-not-allowed disabled:opacity-70"
+      className="group relative mx-auto block w-full max-w-5xl cursor-pointer overflow-hidden rounded-sm text-left disabled:cursor-not-allowed disabled:opacity-70"
     >
-      <div className="relative aspect-[2.35/1] w-full max-h-[min(52vh,28rem)] sm:aspect-[21/9]">
+      <div className="relative aspect-video w-full">
         <MediaPanel
           from={video.gradientFrom}
           to={video.gradientTo}
@@ -116,7 +116,7 @@ function EpisodeStripItem({
       type="button"
       onClick={onPlay}
       disabled={!video.videoUrl}
-      className="flex min-w-[11.5rem] shrink-0 cursor-pointer flex-col gap-2 text-left disabled:cursor-not-allowed disabled:opacity-60 sm:min-w-[13rem]"
+      className="group flex w-full cursor-pointer flex-col gap-2 text-left disabled:cursor-not-allowed disabled:opacity-60"
     >
       <MediaPanel
         from={video.gradientFrom}
@@ -155,9 +155,9 @@ export function FeaturedFarmFilm({ videos }: FeaturedFarmFilmProps) {
   return (
     <PageSection id="featured-film" tone="parchment" spacing="default">
       <div className="page-shell-wide">
-        <RevealOnScroll>
+        <RevealOnScroll className="mx-auto max-w-5xl">
           <p className="text-[0.8125rem] font-medium tracking-[0.14em] text-clay uppercase">
-            Полско кино
+            Видеа от полето
           </p>
           <h2 className="editorial-serif mt-3 max-w-2xl text-3xl leading-tight text-moss-900 sm:text-4xl">
             Виж как се развива сезонът
@@ -166,10 +166,9 @@ export function FeaturedFarmFilm({ videos }: FeaturedFarmFilmProps) {
 
         <div className="content-after-head">
           {!featured ? (
-            <RevealOnScroll>
+            <RevealOnScroll className="mx-auto max-w-5xl">
               <p className="max-w-xl text-base leading-8 text-soil/80">
-                Първото полско видео ще дойде с жътвата. Дотогава — тишина,
-                почва и подготовка.
+                Първото видео още не е качено. Провери отново по-късно.
               </p>
             </RevealOnScroll>
           ) : (
@@ -182,11 +181,11 @@ export function FeaturedFarmFilm({ videos }: FeaturedFarmFilmProps) {
               </RevealOnScroll>
 
               {strip.length > 0 ? (
-                <RevealOnScroll className="mt-8 sm:mt-10">
-                  <p className="mb-4 text-sm text-soil/75">
+                <RevealOnScroll className="mx-auto mt-10 max-w-5xl sm:mt-12">
+                  <p className="mb-5 text-sm text-soil/75">
                     Още епизоди от полето
                   </p>
-                  <div className="-mx-4 flex gap-4 overflow-x-auto px-4 pb-2 sm:-mx-6 sm:px-6 [scrollbar-width:thin]">
+                  <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4">
                     {strip.map((video) => (
                       <EpisodeStripItem
                         key={video.id}

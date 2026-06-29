@@ -18,15 +18,15 @@ export function VideoGrid({ videos }: VideoGridProps) {
             align="left"
             eyebrow="Видео библиотека"
             title="Гледай как се развива сезонът"
-            description="Засаждане, растеж, жътва и тихите рутини, които изграждат доверие във всяка кошница."
+            description="Видеа от посаждане до жътва и ежедневната работа по фермата."
           />
         </RevealOnScroll>
 
         {videos.length === 0 ? (
           <RevealOnScroll className="content-after-head block">
             <EmptyState
-              title="Все още няма полски видеа"
-              description="Този фермер все още не е споделил сезонни обновления. Върнете се, докато жътвата се развива."
+              title="Все още няма видеа"
+              description="Този фермер още не е качил клипове от полето."
             />
           </RevealOnScroll>
         ) : (

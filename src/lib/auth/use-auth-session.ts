@@ -5,7 +5,6 @@ import { useSyncExternalStore } from "react";
 
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { loadSupabaseClient } from "@/lib/supabase/load-client";
-import { logger } from "@/lib/logger";
 
 const SESSION_STUCK_MS = 8000;
 
@@ -61,26 +60,10 @@ function scheduleEnsureProfile(
   user: User,
 ) {
   setTimeout(() => {
-    void Promise.all([
-      import("@/lib/auth/ensure-profile"),
-      import("@/lib/marketplace/saved-farms"),
-    ])
-      .then(([{ ensureProfileForAuthUser }, { syncGuestSavedFarms }]) =>
-        ensureProfileForAuthUser(supabase, user).then(() =>
-          syncGuestSavedFarms(supabase, user.id),
-        ),
+    void import("@/lib/auth/ensure-profile")
+      .then(({ ensureProfileForAuthUser }) =>
+        ensureProfileForAuthUser(supabase, user),
       )
-      .then((syncResult) => {
-        if (syncResult && !syncResult.ok) {
-          logger.error({
-            operation: "auth.useAuthSession.syncGuestSavedFarms",
-            message: "Failed to sync guest saved farms after authentication.",
-            userId: user.id,
-            errorCode: syncResult.error.code,
-            error: syncResult.error.message,
-          });
-        }
-      })
       .catch((err) => {
         console.error("[useAuthSession] ensureProfileForAuthUser failed", err);
       });

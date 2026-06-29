@@ -72,6 +72,7 @@ function StepActions({
 type StepIdentityProps = {
   initialName: string;
   initialAvatarUrl: string | null;
+  showAvatar?: boolean;
   error: string | null;
   isLoading: boolean;
   onContinue: (values: { name: string; avatarFile: File | null }) => void;
@@ -80,6 +81,7 @@ type StepIdentityProps = {
 export function StepIdentity({
   initialName,
   initialAvatarUrl,
+  showAvatar = false,
   error,
   isLoading,
   onContinue,
@@ -92,12 +94,14 @@ export function StepIdentity({
   return (
     <div className="flex flex-col">
       <div className="stack">
-        <AvatarPhotoPicker
-          name={name}
-          initialImageUrl={initialAvatarUrl}
-          onCroppedFileChange={setAvatarFile}
-          onCroppingChange={setIsAdjustingPhoto}
-        />
+        {showAvatar ? (
+          <AvatarPhotoPicker
+            name={name}
+            initialImageUrl={initialAvatarUrl}
+            onCroppedFileChange={setAvatarFile}
+            onCroppingChange={setIsAdjustingPhoto}
+          />
+        ) : null}
 
         <AuthInput
           id="onboarding-name"
@@ -132,7 +136,7 @@ type StepLocationProps = {
   initialRegion: string;
   error: string | null;
   isLoading: boolean;
-  onBack: () => void;
+  onBack?: () => void;
   onContinue: (values: { city: string; region: string }) => void;
   continueLabel?: string;
 };
@@ -501,8 +505,8 @@ export function StepBuyerFinish({
         <p className="mt-3 text-sm leading-6 text-stone-600">
           {translate(
             locale,
-            "Основните ви данни са запазени. Разгледайте местни производители и следвайте сезоните, които са важни за вас.",
-            "Your basic details are saved. Explore local growers and follow the seasons that matter to you.",
+            "Основните ви данни са запазени. Разгледайте местни производители и добавете в селото си тези, които са важни за вас.",
+            "Your basic details are saved. Explore local growers and add the ones that matter to you to your village.",
           )}
         </p>
       </div>

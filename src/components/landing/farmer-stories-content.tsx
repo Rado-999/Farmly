@@ -18,9 +18,9 @@ export function FarmerStoriesContent({ stories }: FarmerStoriesContentProps) {
     <>
       <RevealOnScroll>
         <StoryHeading
-          kicker="Доверието живее в движение"
+          kicker="Видеа от полето"
           title="Гледай как храната наистина се отглежда."
-          description="Не декорация — доказателство. Времето по кожата, инструменти в ръка, същото поле през пролет и жътва. Когато го видиш, вярата идва тихо."
+          description="Кратки клипове от работата на фермерите. Не реклами, а реални кадри от полето."
         />
       </RevealOnScroll>
 
@@ -28,7 +28,7 @@ export function FarmerStoriesContent({ stories }: FarmerStoriesContentProps) {
         <RevealOnScroll className="content-after-head block">
           <EmptyState
             title="Първите филми се правят"
-            description="Докато фермерите споделят сутрините и жътвите си, тази алея ще се напълни с истинско движение — не стокови кадри, не реклами."
+            description="Ще се появят, когато фермерите качат първите си клипове."
           />
         </RevealOnScroll>
       ) : (
@@ -36,7 +36,7 @@ export function FarmerStoriesContent({ stories }: FarmerStoriesContentProps) {
           videos={videos}
           layout="grid"
           showStage={false}
-          emptyMessage="Все още няма полски истории."
+          emptyMessage="Все още няма видео."
         />
       )}
     </>

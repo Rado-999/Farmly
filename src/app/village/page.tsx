@@ -16,8 +16,8 @@ export async function generateMetadata(): Promise<Metadata> {
     title: translate(locale, "Моето село | Farmly", "My village | Farmly"),
     description: translate(
       locale,
-      "Върни се при фермерите, които следиш — полски истории, сезонни бележки и спокойно принадлежане.",
-      "Return to the farmers you follow for field stories, seasonal notes, and a calm sense of belonging.",
+      "Ферми в селото ти, сезонни бележки и нови видеа на едно място.",
+      "Farms in your village, seasonal notes, and new videos in one place.",
     ),
   };
 }

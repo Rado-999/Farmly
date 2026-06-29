@@ -4,6 +4,7 @@ type StoryHeadingProps = {
   description?: string;
   align?: "left" | "center";
   size?: "section" | "chapter";
+  maxWidth?: "2xl" | "3xl";
   className?: string;
 };
 
@@ -13,10 +14,14 @@ export function StoryHeading({
   description,
   align = "left",
   size = "section",
+  maxWidth = "2xl",
   className = "",
 }: StoryHeadingProps) {
+  const maxWidthClassName = maxWidth === "3xl" ? "max-w-3xl" : "max-w-2xl";
   const alignmentClassName =
-    align === "center" ? "mx-auto max-w-3xl text-center" : "max-w-2xl text-left";
+    align === "center"
+      ? `mx-auto ${maxWidthClassName} text-center`
+      : `${maxWidthClassName} text-left`;
 
   const titleClassName =
     size === "chapter"

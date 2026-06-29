@@ -1,7 +1,7 @@
 import type { UserRole } from "@/lib/auth/types";
 import type { Locale } from "@/lib/i18n/config";
 import { translate } from "@/lib/i18n/translate";
-import type { OnboardingStepId } from "@/lib/onboarding/types";
+import type { OnboardingProfile, OnboardingStepId } from "@/lib/onboarding/types";
 
 export type OnboardingStepMeta = {
   id: OnboardingStepId;
@@ -11,15 +11,6 @@ export type OnboardingStepMeta = {
 
 function getBuyerSteps(locale: Locale): OnboardingStepMeta[] {
   return [
-    {
-      id: 1,
-      title: translate(locale, "Представете се", "Introduce yourself"),
-      subtitle: translate(
-        locale,
-        "Приятелско лице помага на производителите и купувачите да ви се доверят.",
-        "A friendly face helps growers and buyers trust you.",
-      ),
-    },
     {
       id: 2,
       title: translate(locale, "Къде се намирате?", "Where are you located?"),
@@ -34,15 +25,6 @@ function getBuyerSteps(locale: Locale): OnboardingStepMeta[] {
 
 function getFarmerSteps(locale: Locale): OnboardingStepMeta[] {
   return [
-    {
-      id: 1,
-      title: translate(locale, "Представете се", "Introduce yourself"),
-      subtitle: translate(
-        locale,
-        "Покажете на купувачите човека зад жътвата.",
-        "Show buyers the person behind the harvest.",
-      ),
-    },
     {
       id: 2,
       title: translate(
@@ -104,12 +86,50 @@ export function getOnboardingStepCount(
   return getOnboardingSteps(role, locale).length;
 }
 
+/** DB step 1 (legacy identity) is skipped when the name is already set at signup. */
+export function getEffectiveOnboardingStep(
+  profile: Pick<OnboardingProfile, "role" | "name" | "onboardingStep">,
+  locale: Locale = "bg",
+): OnboardingStepId {
+  const rawStep = profile.onboardingStep;
+
+  if (rawStep === 1 && profile.name?.trim()) {
+    return 2;
+  }
+
+  return clampOnboardingStep(profile.role, rawStep, locale);
+}
+
+export function getDisplayStepIndex(
+  role: UserRole,
+  step: OnboardingStepId,
+  locale: Locale = "bg",
+): number {
+  const steps = getOnboardingSteps(role, locale);
+  const index = steps.findIndex((item) => item.id === step);
+
+  return index >= 0 ? index + 1 : 1;
+}
+
 export function clampOnboardingStep(
   role: UserRole,
   step: number,
   locale: Locale = "bg",
 ): OnboardingStepId {
-  const max = getOnboardingStepCount(role, locale);
-  const safe = Math.min(Math.max(step, 1), max);
-  return safe as OnboardingStepId;
+  const steps = getOnboardingSteps(role, locale);
+  const allowedIds = steps.map((item) => item.id);
+
+  if (step <= allowedIds[0]!) {
+    return allowedIds[0]! as OnboardingStepId;
+  }
+
+  const lastId = allowedIds[allowedIds.length - 1]!;
+
+  if (step >= lastId) {
+    return lastId as OnboardingStepId;
+  }
+
+  const next = allowedIds.find((id) => id >= step);
+
+  return (next ?? lastId) as OnboardingStepId;
 }

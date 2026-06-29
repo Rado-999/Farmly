@@ -25,7 +25,7 @@ export function CommunityTestimony({ reviews }: CommunityTestimonyProps) {
             Бележки от общността
           </p>
           <h2 className="editorial-serif mt-3 max-w-2xl text-3xl leading-tight text-moss-900 sm:text-4xl">
-            Какво усещат хората, след като следят сезона
+            Какво казват хората, след като опознаят фермата
           </h2>
         </RevealOnScroll>
 
@@ -33,7 +33,7 @@ export function CommunityTestimony({ reviews }: CommunityTestimonyProps) {
           <RevealOnScroll className="content-after-head block">
             <EmptyState
               title="Все още няма бележки"
-              description="Докато хората следят сезона на този фермер, тук ще се появят тихи думи за доверие."
+              description="Когато хора добавят този фермер в селото си, тук ще се появят тихи думи за доверие."
             />
           </RevealOnScroll>
         ) : (

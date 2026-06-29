@@ -46,8 +46,7 @@ export function FarmerPracticeStory({ farmer }: FarmerPracticeStoryProps) {
               </div>
             ) : (
               <p className="text-base leading-8 text-soil/70 sm:text-lg sm:leading-9">
-                Този фермер все още събира думите за полските си бележки.
-                Историята ще расте със сезона.
+                Този фермер още не е написал историята си.
               </p>
             )}
 

@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 
-import { FarmerCard } from "@/components/farmers/farmer-card";
+import { FarmersDirectory } from "@/components/farmers/farmers-directory";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageSection } from "@/components/ui/page-section";
 import { RevealOnScroll } from "@/components/ui/reveal-on-scroll";
-import { RevealStagger } from "@/components/ui/reveal-stagger";
 import { SectionHeading } from "@/components/ui/section-heading";
+import { getOptionalServerViewerContext } from "@/lib/auth/server";
 import { listFarmers } from "@/lib/farmers/queries";
 import { getServerLocale } from "@/lib/i18n/server";
 import { translate } from "@/lib/i18n/translate";
@@ -20,8 +20,8 @@ export async function generateMetadata(): Promise<Metadata> {
     title: translate(locale, "Farmly | Фермери", "Farmly | Farmers"),
     description: translate(
       locale,
-      "Отворете профил, за да следвате полски бележки, видеа и историята зад всяка жътва.",
-      "Open a profile to follow field notes, videos, and the story behind every harvest.",
+      "Отвори профил, за да видиш видеа, бележки и какво отглеждат.",
+      "Open a profile to see their videos, notes, and what they grow.",
     ),
   };
 }
@@ -40,13 +40,13 @@ export default async function FarmersPage() {
                 eyebrow={translate(locale, "Фермери", "Farmers")}
                 title={translate(
                   locale,
-                  "Запознай се с хората зад сезона",
-                  "Meet the growers behind the season",
+                  "Българските фермери",
+                  "The Bulgarian farmers",
                 )}
                 description={translate(
                   locale,
-                  "Отворете профил, за да следвате полски бележки, видеа и историята зад всяка жътва.",
-                  "Open a profile to follow field notes, videos, and the story behind each harvest.",
+                  "Отвори профил, за да видиш видеа, бележки и какво отглеждат.",
+                  "Open a profile to see their videos, notes, and what they grow.",
                 )}
               />
             </RevealOnScroll>
@@ -67,13 +67,17 @@ export default async function FarmersPage() {
     );
   }
 
-  const farmersResult = await listFarmers();
+  const [farmersResult, viewerContext] = await Promise.all([
+    listFarmers(),
+    getOptionalServerViewerContext(),
+  ]);
 
   if (!farmersResult.ok) {
     throw new Error(farmersResult.error.message);
   }
 
-  const farmers = farmersResult.data;
+  const excludeFarmerProfileId =
+    viewerContext?.profile?.farmerProfile?.id ?? null;
 
   return (
     <main className="flex-1 bg-cream">
@@ -85,46 +89,23 @@ export default async function FarmersPage() {
               eyebrow={translate(locale, "Фермери", "Farmers")}
               title={translate(
                 locale,
-                "Запознай се с хората зад сезона",
-                "Meet the growers behind the season",
+                "Българските фермери",
+                "The Bulgarian farmers",
               )}
               description={translate(
                 locale,
-                "Отворете профил, за да следвате полски бележки, видеа и историята зад всяка жътва.",
-                "Open a profile to follow field notes, videos, and the story behind each harvest.",
+                "Разгледай по област и място. Отвори профил, за да видиш видеа, бележки и какво отглеждат.",
+                "Browse by region and town. Open a profile to see their videos, notes, and what they grow.",
               )}
             />
           </RevealOnScroll>
 
-          {farmers.length === 0 ? (
-            <RevealOnScroll className="content-after-head block">
-              <EmptyState
-                title={translate(locale, "Все още няма фермерски профили", "No farmer profiles yet")}
-                description={translate(
-                  locale,
-                  "Фермерските профили ще се появят тук, след като бъдат добавени в Supabase.",
-                  "Grower profiles will appear here once they are added in Supabase.",
-                )}
-              />
-            </RevealOnScroll>
-          ) : (
-            <RevealStagger className="content-after-head grid-cards md:grid-cols-2 xl:grid-cols-3">
-            {farmers.map((farmer) => (
-              <FarmerCard
-                key={farmer.id}
-                href={`/farmers/${farmer.id}`}
-                name={farmer.name}
-                location={farmer.location}
-                description={farmer.bio}
-                imageUrl={farmer.profileImage.imageUrl}
-                gradientFrom={farmer.profileImage.gradientFrom}
-                gradientTo={farmer.profileImage.gradientTo}
-                linkLabel={translate(locale, "Виж профила", "View profile")}
-                surface="white"
-              />
-            ))}
-            </RevealStagger>
-          )}
+          <RevealOnScroll>
+            <FarmersDirectory
+              farmers={farmersResult.data}
+              excludeFarmerProfileId={excludeFarmerProfileId}
+            />
+          </RevealOnScroll>
         </div>
       </PageSection>
     </main>

@@ -30,7 +30,7 @@ export function SeasonalOfferings({
             Какво предлага земята в момента
           </h2>
           <p className="mt-4 max-w-xl text-base leading-8 text-soil/80">
-            Сезонни находки с история — покана, не каталог.
+            Продукти, които фермерът споделя като готови сега.
           </p>
         </RevealOnScroll>
 

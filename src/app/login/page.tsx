@@ -13,8 +13,8 @@ export async function generateMetadata(): Promise<Metadata> {
     title: translate(locale, "Вход | Farmly", "Log in | Farmly"),
     description: translate(
       locale,
-      "Влезте в Farmly и се свържете отново с местни фермери, сезонни истории и истинска храна.",
-      "Log in to Farmly and reconnect with local farmers, seasonal stories, and real food.",
+      "Влез в Farmly, за да добавяш ферми в селото си и да виждаш новостите им.",
+      "Log in to Farmly to add farms to your village and see their updates.",
     ),
   };
 }

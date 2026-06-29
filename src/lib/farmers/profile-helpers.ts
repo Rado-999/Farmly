@@ -5,63 +5,6 @@ import type {
   FarmerVideo,
 } from "@/lib/farmers/types";
 
-const VISIT_STORAGE_PREFIX = "farmly:farmer-visit:";
-
-export type FarmerVisitSnapshot = {
-  visitedAt: string;
-  videoCount: number;
-};
-
-export function getFarmerVisitStorageKey(slug: string) {
-  return `${VISIT_STORAGE_PREFIX}${slug}`;
-}
-
-export function readFarmerVisitSnapshot(
-  slug: string,
-): FarmerVisitSnapshot | null {
-  if (typeof window === "undefined") {
-    return null;
-  }
-
-  try {
-    const raw = window.localStorage.getItem(getFarmerVisitStorageKey(slug));
-    if (!raw) {
-      return null;
-    }
-
-    const parsed = JSON.parse(raw) as FarmerVisitSnapshot;
-    if (
-      typeof parsed.visitedAt !== "string" ||
-      typeof parsed.videoCount !== "number"
-    ) {
-      return null;
-    }
-
-    return parsed;
-  } catch {
-    return null;
-  }
-}
-
-export function writeFarmerVisitSnapshot(
-  slug: string,
-  videoCount: number,
-): void {
-  if (typeof window === "undefined") {
-    return;
-  }
-
-  const snapshot: FarmerVisitSnapshot = {
-    visitedAt: new Date().toISOString(),
-    videoCount,
-  };
-
-  window.localStorage.setItem(
-    getFarmerVisitStorageKey(slug),
-    JSON.stringify(snapshot),
-  );
-}
-
 /** Videos are already ordered newest-first from the API. */
 export function getFeaturedVideo(videos: FarmerVideo[]): FarmerVideo | null {
   return videos[0] ?? null;
@@ -148,7 +91,7 @@ export function buildTrustRibbonLine(options: {
 
   if (options.videoCount > 0) {
     const filmWord =
-      options.videoCount === 1 ? "полско видео" : "полски видеа";
+      options.videoCount === 1 ? "видео" : "видеа";
     parts.push(`${options.videoCount} ${filmWord} този сезон`);
   }
 

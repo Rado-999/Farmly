@@ -40,12 +40,12 @@ export function HeroSection() {
               Дигитално село в България
             </p>
             <h1 className="editorial-serif max-w-2xl text-[2.75rem] leading-[1.08] font-medium text-mist sm:text-6xl lg:text-7xl">
-              Тази храна е истинска.
+              Знаеш кой отглежда храната ти.
             </h1>
             <p className="max-w-xl text-lg leading-8 text-mist/90 sm:text-xl sm:leading-9">
-              Farmly не е магазин, който чака количката ви. Това е сутрешна мъгла,
-              дървени врати и хората, които отглеждат храната ви — споделени
-              бавно, честно, на филм.
+              Farmly не е онлайн магазин. Тук виждаш български фермери, гледаш
+              видеа от полето и разбираш откъде идва храната ти, преди да решиш
+              дали искаш да купуваш.
             </p>
             <div className="action-row">
               <ButtonLink

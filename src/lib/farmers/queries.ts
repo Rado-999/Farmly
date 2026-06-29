@@ -273,9 +273,13 @@ async function fetchFarmerDirectoryEntries(): Promise<QueryResult<FarmerDirector
 
       return {
         id: farmer.slug,
+        farmerProfileId: farmer.id,
         name,
+        locality: farmer.location?.trim() || null,
+        region: farmer.region?.trim() || null,
         location: formatLocation(farmer.location, farmer.region),
         bio: farmer.bio ?? farmer.story ?? "",
+        isVerified: Boolean(farmer.is_verified),
         profileImage: createFarmerImage(`${name} profile`, avatarUrl, farmer.id),
       };
     }),

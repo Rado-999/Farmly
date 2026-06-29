@@ -26,7 +26,7 @@ export function FarmerProductsSection({
             align="left"
             eyebrow="Сезонни продукти"
             title="Какво предлага земята сега"
-            description="Сезонни предложения с история — не каталог за пазаруване."
+            description="Продукти, които фермерът споделя като готови сега."
           />
         </RevealOnScroll>
 

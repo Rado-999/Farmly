@@ -1,12 +1,9 @@
 import Link from "next/link";
 
-import { FarmerCard } from "@/components/farmers/farmer-card";
 import { VillageFeedList } from "@/components/village/village-feed-list";
-import { VillageRelationshipStats } from "@/components/village/village-relationship-stats";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageSection } from "@/components/ui/page-section";
 import { RevealOnScroll } from "@/components/ui/reveal-on-scroll";
-import { RevealStagger } from "@/components/ui/reveal-stagger";
 import { StoryHeading } from "@/components/ui/story-heading";
 import type { Locale } from "@/lib/i18n/config";
 import { translate } from "@/lib/i18n/translate";
@@ -19,7 +16,7 @@ type VillageViewProps = {
 
 export function VillageView({ initialData, locale }: VillageViewProps) {
   const data = initialData;
-  const hasRelationships = data.hasFollows || data.hasSavedOnly;
+  const hasRelationships = data.hasFollows;
 
   return (
     <main className="flex-1 bg-cream">
@@ -30,20 +27,14 @@ export function VillageView({ initialData, locale }: VillageViewProps) {
               kicker={translate(locale, "Моето село", "My village")}
               title={translate(
                 locale,
-                "Твоето спокойно място в мрежата.",
-                "Your calm place on the web.",
+                "Тук са фермите в селото ти",
+                "Your village farms live here",
               )}
               description={translate(
                 locale,
-                "Кратък обиколка — ферми, които познаваш, сезонни бележки и срещи наблизо. Без безкраен скрол.",
-                "A short loop of farms you know, seasonal notes, and nearby gatherings. No endless scroll.",
+                "Кратък преглед на ферми, които познаваш, сезонни бележки и срещи наблизо.",
+                "A short overview of farms you know, seasonal notes, and nearby gatherings.",
               )}
-            />
-            <VillageRelationshipStats
-              locale={locale}
-              followingCount={data.followingCount}
-              savedCount={data.savedCount}
-              className="mx-auto mt-6 max-w-2xl"
             />
           </RevealOnScroll>
         </div>
@@ -57,8 +48,8 @@ export function VillageView({ initialData, locale }: VillageViewProps) {
                 title={translate(locale, "Селото ти е все още тихо", "Your village is still quiet")}
                 description={translate(
                   locale,
-                  "Запази или следи ферма, когато срещнеш някой, на когото искаш да се връщаш — без натиск и без количка.",
-                  "Save or follow a farm when you meet someone you want to return to, without pressure and without a cart.",
+                  "Добави ферми в селото си, за да виждаш тяхната активност тук.",
+                  "Add farms to your village to see their activity here.",
                 )}
               />
               <p className="mt-6 text-center">
@@ -80,8 +71,8 @@ export function VillageView({ initialData, locale }: VillageViewProps) {
                     title={translate(locale, "Докато не беше тук", "While you were away")}
                     description={translate(
                       locale,
-                      "Нови бележки от фермите, които следиш.",
-                      "New notes from the farms you follow.",
+                      "Нови бележки от фермите в селото ти.",
+                      "New notes from the farms in your village.",
                     )}
                     size="chapter"
                   />
@@ -101,8 +92,8 @@ export function VillageView({ initialData, locale }: VillageViewProps) {
                     kicker={translate(locale, "От твоите ферми", "From your farms")}
                     title={translate(
                       locale,
-                      "Хората, чийто сезон следиш",
-                      "The people whose seasons you follow",
+                      "Хората от селото ти",
+                      "People in your village",
                     )}
                     size="chapter"
                   />
@@ -110,45 +101,6 @@ export function VillageView({ initialData, locale }: VillageViewProps) {
                 <RevealOnScroll className="content-after-head block">
                   <VillageFeedList items={data.fromYourFarms} />
                 </RevealOnScroll>
-              </div>
-            </PageSection>
-          ) : null}
-
-          {data.savedFarms.length ? (
-            <PageSection tone="cream" id="saved-farms">
-              <div className="page-shell">
-                <RevealOnScroll>
-                  <StoryHeading
-                    kicker={translate(locale, "Запазени ферми", "Saved farms")}
-                    title={translate(
-                      locale,
-                      "На които искаш да се върнеш",
-                      "The ones you want to return to",
-                    )}
-                    description={translate(
-                      locale,
-                      "Без известия — само врата, оставена отворена.",
-                      "No notifications, just a door left open.",
-                    )}
-                    size="chapter"
-                  />
-                </RevealOnScroll>
-                <RevealStagger className="content-after-head grid-cards md:grid-cols-2 xl:grid-cols-3">
-                  {data.savedFarms.map((farmer) => (
-                    <FarmerCard
-                      key={farmer.farmer_id}
-                      href={`/farmers/${farmer.slug}`}
-                      name={farmer.name}
-                      location={farmer.location}
-                      description={farmer.bio}
-                      imageUrl={farmer.image}
-                      gradientFrom={farmer.gradientFrom}
-                      gradientTo={farmer.gradientTo}
-                      linkLabel={translate(locale, "Отвори фермата", "Open farm")}
-                      surface="white"
-                    />
-                  ))}
-                </RevealStagger>
               </div>
             </PageSection>
           ) : null}
@@ -161,7 +113,7 @@ export function VillageView({ initialData, locale }: VillageViewProps) {
                     kicker={translate(locale, "Сезон при теб", "Season near you")}
                     title={translate(
                       locale,
-                      "Какво земята предлага сега",
+                      "В сезон сега",
                       "What the land offers now",
                     )}
                     description={translate(
@@ -216,8 +168,8 @@ export function VillageView({ initialData, locale }: VillageViewProps) {
                       <p className="mx-auto mt-3 max-w-xl text-base leading-8 text-stone-700/90">
                         {translate(
                           locale,
-                          "Когато фермерите, които следиш, споделят нещо ново, ще го видиш тук. Още няма нищо ново. Ела пак следващата седмица.",
-                          "When the farmers you follow share something new, you will see it here. There is nothing new yet. Come back next week.",
+                          "Когато фермерите в селото ти споделят нещо ново, ще го видиш тук. Още няма нищо ново. Ела пак следващата седмица.",
+                          "When farmers in your village share something new, you will see it here. There is nothing new yet. Come back next week.",
                         )}
                       </p>
                     </>

@@ -28,16 +28,16 @@ export type SoundscapeIdea = {
 
 export function getHeroCopy(locale: Locale) {
   return {
-    whisper: translate(locale, "Преди зората", "Before sunrise"),
+    whisper: translate(locale, "Местна храна", "Local food"),
     headline: translate(
       locale,
-      "Тук храната помни ръцете, които я отглеждат.",
-      "Food remembers the hands that grow it here.",
+      "Знаеш кой отглежда храната ти.",
+      "Know who grows your food.",
     ),
     subline: translate(
       locale,
-      "Не магазин. Не приложение. Сутрешна мъгла, дървена врата, куче, което тича напред — и човек, който те посреща без бързане.",
-      "Not a store. Not an app. Morning fog, a wooden gate, a dog running ahead, and a person who greets you without rushing.",
+      "Farmly е място да видиш български фермери, да чуеш историите им и да разбереш откъде идва храната ти.",
+      "Farmly is where you meet Bulgarian farmers, hear their stories, and see where your food comes from. No catalog, no rush.",
     ),
   } as const;
 }
@@ -46,17 +46,21 @@ export function getAtmosphereChapters(locale: Locale): AtmosphereChapter[] {
   return [
     {
       id: "morning-fog",
-      kicker: translate(locale, "Сутрешна мъгла", "Morning fog"),
-      title: translate(locale, "Полето се събужда преди нас.", "The field wakes before we do."),
+      kicker: translate(locale, "На полето", "In the field"),
+      title: translate(
+        locale,
+        "Видеа и бележки от фермата",
+        "Videos and notes from the farm",
+      ),
       body: translate(
         locale,
-        "Вятърът носи миризма на влажна почва. Слънце, което още не е решило дали да излезе. Това е началото — не на покупка, а на присъствие.",
-        "The wind carries the smell of wet soil. Sunlight that still has not decided whether to appear. This is the beginning of presence, not a purchase.",
+        "Фермерите споделят как работят — какво садят, какво берат, какво се случва тази седмица. Гледаш ги в действие",
+        "Farmers share how they work: what they plant, what they harvest, what is happening this week. You see them in action before you decide whether to add them to your village.",
       ),
       caption: translate(
         locale,
-        "Несъвършена светлина. Истински ръце. Сезон, който почти можеш да помиришеш.",
-        "Imperfect light. Real hands. A season you can almost smell.",
+        "Реални фермери, реални полета. Всичко е заснето на място.",
+        "Real people, real fields. Everything is filmed on location.",
       ),
       imageKey: "morningFog",
       align: "right",
@@ -64,16 +68,16 @@ export function getAtmosphereChapters(locale: Locale): AtmosphereChapter[] {
     },
     {
       id: "hands-soil",
-      kicker: translate(locale, "Ръце в земята", "Hands in the soil"),
+      kicker: translate(locale, "Доверие", "Trust"),
       title: translate(
         locale,
-        "Доверието започва там, където пръстите докосват почвата.",
-        "Trust begins where fingers touch the soil.",
+        "Доверието идва, когато виждаш работата с очите си",
+        "Trust comes when you see the work yourself",
       ),
       body: translate(
         locale,
-        "Не сертификат. Не етикет. Времето по кожата, кал по ботушите, същите редове през пролет и жътва — доказателство, което не може да се фалшифицира.",
-        "Not a certificate. Not a label. Time on the skin, mud on the boots, the same rows through spring and harvest. Proof that cannot be faked.",
+        "Сертификатите са полезни, но не заместват срещата с човека. Тук виждаш фермера в полето и сам решаваш на кого да се довериш.",
+        "Certificates help, but they do not replace meeting the person. Here you see the farmer in the field and decide for yourself who to trust.",
       ),
       imageKey: "handsSoil",
       align: "left",
@@ -81,23 +85,23 @@ export function getAtmosphereChapters(locale: Locale): AtmosphereChapter[] {
     },
     {
       id: "village-calm",
-      kicker: translate(locale, "Селска тишина", "Village quiet"),
+      kicker: translate(locale, "Моето село", "My village"),
       title: translate(
         locale,
-        "Куче по пътя. Старо дърво. Оранжерия, която диша.",
-        "A dog on the road. An old tree. A greenhouse that breathes.",
+        "Място за хората, които вече познаваш",
+        "A home for the farmers you already know",
       ),
       body: translate(
         locale,
-        "Селото не се представя. То просто е там — бавно, топло, истинско. Farmly е начин да влезеш внутри, без да развалиш спокойствието.",
-        "The village does not introduce itself. It is simply there: slow, warm, real. Farmly is a way to step inside without disturbing the calm.",
+        "Когато намериш фермер, при когото искаш да се върнеш, запази го в селото си. Там виждаш новите им бележки и видеа.",
+        "When you find a farmer you want to return to, save them in your village. That is where you see their new notes and videos, without notifications or noise.",
       ),
       caption: translate(
         locale,
-        "Вятър в листата. Далечен лай. Момент, който не иска нищо от теб.",
-        "Wind in the leaves. A distant bark. A moment that asks nothing from you.",
+        "Вкусът е там, където храната е истинска. Без добавки, без химически вещества, без изкуствени цветове — истинска храна.",
+        "The taste is where the food is real. No additives, no chemicals, no artificial colours — just real food.",
       ),
-      imageKey: "greenhouse",
+      imageKey: "villageHome",
       align: "right",
       tone: "mist",
     },

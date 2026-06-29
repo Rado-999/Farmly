@@ -13,21 +13,14 @@ import { getProfileDisplayName } from "@/lib/auth/profile";
 import type { Result } from "@/lib/errors/result";
 import { translate } from "@/lib/i18n/translate";
 import {
-  clampOnboardingStep,
+  getDisplayStepIndex,
+  getEffectiveOnboardingStep,
   getOnboardingStepCount,
   getOnboardingSteps,
 } from "@/lib/onboarding/steps";
 import { needsOnboarding } from "@/lib/onboarding/state";
 import type { OnboardingProfile } from "@/lib/onboarding/types";
 import { loadSupabaseClient } from "@/lib/supabase/load-client";
-
-const StepIdentity = dynamic(
-  () =>
-    import("@/components/onboarding/onboarding-steps").then(
-      (module) => module.StepIdentity,
-    ),
-  { loading: () => <StepLoadingFallback /> },
-);
 
 const StepLocation = dynamic(
   () =>
@@ -123,9 +116,10 @@ export function OnboardingWizard({ initialProfile }: OnboardingWizardProps) {
 
   const steps = getOnboardingSteps(profile.role, locale);
   const totalSteps = getOnboardingStepCount(profile.role, locale);
-  const currentStep = buyerFinishMode
+  const currentStep = getEffectiveOnboardingStep(profile, locale);
+  const displayStep = buyerFinishMode
     ? totalSteps
-    : clampOnboardingStep(profile.role, profile.onboardingStep, locale);
+    : getDisplayStepIndex(profile.role, currentStep, locale);
   const stepMeta =
     steps.find((step) => step.id === currentStep) ?? steps[0]!;
 
@@ -224,34 +218,6 @@ export function OnboardingWizard({ initialProfile }: OnboardingWizardProps) {
     }
 
     switch (currentStep) {
-      case 1:
-        return (
-          <StepIdentity
-            initialName={activeProfile.name ?? ""}
-            initialAvatarUrl={activeProfile.avatarUrl}
-            error={error}
-            isLoading={isSaving}
-            onContinue={(values) => {
-              if (!values.name.trim()) {
-                setError(
-                  translate(
-                    locale,
-                    "Моля, въведете името си.",
-                    "Please enter your name.",
-                  ),
-                );
-                return;
-              }
-
-              void persist((supabase) =>
-                import("@/lib/onboarding/persistence").then(
-                  ({ saveIdentityStep }) =>
-                    saveIdentityStep(supabase, activeProfile.id, values),
-                ),
-              );
-            }}
-          />
-        );
       case 2:
         return (
           <StepLocation
@@ -263,7 +229,6 @@ export function OnboardingWizard({ initialProfile }: OnboardingWizardProps) {
             }
             error={error}
             isLoading={isSaving}
-            onBack={() => goToStep(1)}
             continueLabel={
               activeProfile.role === "buyer"
                 ? translate(locale, "Завърши настройката", "Finish setup")
@@ -393,7 +358,7 @@ export function OnboardingWizard({ initialProfile }: OnboardingWizardProps) {
   return (
     <main className="min-h-below-header bg-cream">
       <OnboardingShell
-        step={currentStep}
+        step={displayStep}
         totalSteps={totalSteps}
         title={
           buyerFinishMode

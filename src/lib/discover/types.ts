@@ -67,7 +67,7 @@ export type VillageNeighbourhood = {
 export type VillageSnapshot = {
   farmerCount: number;
   filmCount: number;
-  momentCount: number;
+  productCount: number;
   regionCount: number;
 };
 

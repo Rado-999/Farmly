@@ -18,13 +18,13 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: translate(
       locale,
-      "Farmly | Тук храната помни ръцете, които я отглеждат",
-      "Farmly | Food remembers the hands that grow it",
+      "Farmly | Запознай се с местните фермери",
+      "Farmly | Meet local farmers",
     ),
     description: translate(
       locale,
-      "Спокойна дигитална селска местност — усетете мъгла, почва и истински хора, преди да купувате.",
-      "A calm digital countryside where you can feel fog, soil, and real people before you buy.",
+      "Виж кой отглежда храната ти. Профили, видеа и сезонни бележки от български фермери.",
+      "See who grows your food. Profiles, videos, and seasonal notes from Bulgarian farmers.",
     ),
   };
 }

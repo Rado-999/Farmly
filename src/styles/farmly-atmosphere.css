@@ -200,3 +200,45 @@
     animation: none;
   }
 }
+
+/* Caption fused into cinematic imagery — gradient veil, not a floating box */
+.image-caption-fusion {
+  padding: 3.5rem 1.25rem 1.25rem;
+  pointer-events: none;
+}
+
+@media (min-width: 640px) {
+  .image-caption-fusion {
+    padding: 4.5rem 1.75rem 1.75rem;
+  }
+}
+
+.image-caption-fusion__scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(20, 28, 18, 0.12) 22%,
+    rgba(26, 36, 28, 0.52) 52%,
+    rgba(20, 28, 18, 0.82) 100%
+  );
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  mask-image: linear-gradient(180deg, transparent 0%, black 38%);
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, black 38%);
+}
+
+.image-caption-fusion__text {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  color: var(--loam-50);
+  text-shadow: 0 1px 18px rgba(20, 28, 18, 0.55);
+  pointer-events: auto;
+}
+
+.image-caption-lead {
+  font-style: italic;
+  color: var(--hearth-300);
+}

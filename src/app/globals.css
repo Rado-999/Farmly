@@ -90,11 +90,6 @@ button:disabled,
   height: calc(100svh - var(--site-header-height));
 }
 
-::selection {
-  background: rgba(61, 82, 56, 0.22);
-  color: var(--loam-900);
-}
-
 h1,
 h2,
 h3 {

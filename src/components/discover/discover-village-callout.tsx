@@ -58,8 +58,8 @@ export function DiscoverVillageCallout({
           <p className="text-sm leading-7 text-stone-700/90 sm:text-base">
             {translate(
               locale,
-              "Тук откриваш нови ферми. За хората, които вече следиш, отвори Моето село.",
-              "Discover new farms here. For the people you already follow, open My village.",
+              "Тук откриваш нови ферми. За фермите в селото ти отвори Моето село.",
+              "Discover new farms here. For the farms in your village, open My village.",
             )}
           </p>
           {interestHint ? (

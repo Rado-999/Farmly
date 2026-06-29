@@ -38,7 +38,7 @@ function FarmerAvatar({ farmer }: { farmer: FarmerProfileOpeningProps["farmer"] 
       label={farmer.profileImage.alt}
       imageUrl={farmer.profileImage.imageUrl}
       fit="contain"
-      className="h-28 w-28 shrink-0 rounded-[1.75rem] border-4 border-loam-100 shadow-[0_24px_52px_-22px_rgba(47,42,36,0.35)] sm:h-36 sm:w-36 lg:h-40 lg:w-40"
+      className="h-28 w-28 shrink-0 rounded-[1.75rem] border-4 border-loam-100 bg-loam-100 shadow-[0_24px_52px_-22px_rgba(47,42,36,0.35)] sm:h-32 sm:w-32 lg:h-36 lg:w-36"
     />
   );
 }
@@ -64,40 +64,36 @@ function FarmerIdentity({ farmer }: { farmer: FarmerProfileOpeningProps["farmer"
           "Производител, който отваря полетата, сезона и ежедневния си ритъм към общността."}
       </p>
 
-      <div className="action-row flex flex-wrap items-center gap-3 pt-1">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 pt-1">
         <button
           type="button"
           onClick={scrollToFeaturedFilm}
-          className="inline-flex cursor-pointer items-center justify-center rounded-full border border-moss-700/25 bg-moss-700 px-6 py-3 text-sm font-medium text-loam-50 shadow-[0_16px_36px_-20px_rgba(31,48,34,0.55)] transition-[background-color,box-shadow] duration-500 ease-[var(--ease-organic)] hover:bg-moss-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-moss-700"
+          className="inline-flex shrink-0 cursor-pointer items-center justify-center rounded-full border border-moss-700/25 bg-moss-700 px-6 py-3 text-sm font-medium text-loam-50 shadow-[0_16px_36px_-20px_rgba(31,48,34,0.55)] transition-[background-color,box-shadow] duration-500 ease-[var(--ease-organic)] hover:bg-moss-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-moss-700"
         >
           Гледай фермата
         </button>
         <FollowButton
           farmerProfileId={farmer.farmerProfileId}
           farmerName={farmer.name}
-          followLabel="Следи този сезон"
-          followingLabel="Следиш този сезон"
-          size="default"
-          className="backdrop-blur-sm"
+          followLabel="Добави в селото"
+          followingLabel="В селото ти"
+          size="hero"
+          noticeLayout="below"
         />
       </div>
     </div>
   );
 }
 
-function ProfileHeader({
-  farmer,
-  className = "",
-}: {
-  farmer: FarmerProfileOpeningProps["farmer"];
-  className?: string;
-}) {
+function ProfileBody({ farmer }: { farmer: FarmerProfileOpeningProps["farmer"] }) {
   return (
-    <div
-      className={`flex flex-col gap-6 sm:gap-8 lg:flex-row lg:items-end lg:gap-10 ${className}`}
-    >
-      <FarmerAvatar farmer={farmer} />
-      <FarmerIdentity farmer={farmer} />
+    <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:gap-8 lg:gap-10">
+      <div className="shrink-0 self-center sm:self-start sm:-mt-14 lg:-mt-16">
+        <FarmerAvatar farmer={farmer} />
+      </div>
+      <div className="min-w-0 flex-1 pt-1 sm:pt-6">
+        <FarmerIdentity farmer={farmer} />
+      </div>
     </div>
   );
 }
@@ -107,33 +103,36 @@ export function FarmerProfileOpening({ farmer }: FarmerProfileOpeningProps) {
 
   if (coverUrl) {
     return (
-      <section className="relative overflow-hidden border-b border-loam-300/40 bg-loam-100">
-        <div className="relative min-h-48 sm:min-h-56 lg:min-h-64">
+      <section className="border-b border-loam-300/40 bg-loam-100">
+        <div className="relative aspect-[21/9] w-full min-h-[11rem] max-h-[18rem] overflow-hidden sm:min-h-[13rem] sm:max-h-[20rem]">
           <Image
             src={coverUrl}
             alt={farmer.coverImage.alt}
             fill
             priority
-            className="object-cover cinematic-ken-burns-slow"
+            className="object-cover object-center"
             sizes="100vw"
           />
           <div
             aria-hidden
-            className="absolute inset-0 bg-[linear-gradient(180deg,rgba(26,36,28,0.28)_0%,rgba(26,36,28,0.08)_45%,rgba(243,239,230,0.95)_88%,rgba(243,239,230,1)_100%)]"
+            className="absolute inset-0 bg-[linear-gradient(180deg,rgba(26,36,28,0.18)_0%,rgba(26,36,28,0.04)_55%,rgba(243,239,230,1)_100%)]"
           />
         </div>
 
-        <div className="page-shell relative z-10 pb-12 pt-0 sm:pb-14">
-          <ProfileHeader farmer={farmer} className="-mt-16 sm:-mt-20" />
+        <div className="page-shell pb-12 pt-2 sm:pb-14 sm:pt-0">
+          <ProfileBody farmer={farmer} />
         </div>
       </section>
     );
   }
 
   return (
-    <section className="relative overflow-hidden border-b border-loam-300/40 bg-loam-100">
-      <div className="page-shell relative z-10 py-10 sm:py-12 lg:py-14">
-        <ProfileHeader farmer={farmer} />
+    <section className="border-b border-loam-300/40 bg-loam-100">
+      <div className="page-shell py-10 sm:py-12 lg:py-14">
+        <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:gap-8 lg:gap-10">
+          <FarmerAvatar farmer={farmer} />
+          <FarmerIdentity farmer={farmer} />
+        </div>
       </div>
     </section>
   );

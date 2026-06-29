@@ -48,7 +48,7 @@ export function FarmerStory({ farmer }: FarmerStoryProps) {
             align="left"
             eyebrow="Доверие и история"
             title="Как отглеждам"
-            description="Прозрачен поглед към практиките, темпото и философията зад жътвата."
+            description="Прозрачен поглед към практиките и философията зад фермата."
           />
         </RevealOnScroll>
 
@@ -58,8 +58,7 @@ export function FarmerStory({ farmer }: FarmerStoryProps) {
               <p>{farmer.howIFarm}</p>
             ) : (
               <p className="text-stone-500">
-                Този фермер все още събира думите за полските си бележки.
-                Историята ще расте със сезона.
+                Този фермер още не е написал историята си.
               </p>
             )}
           </StoryCard>
@@ -69,8 +68,7 @@ export function FarmerStory({ farmer }: FarmerStoryProps) {
               <p>{farmer.farmingPhilosophy}</p>
             ) : (
               <p className="text-stone-500">
-                Философията често се разкрива бавно — през почва, време и
-                изборите във всеки ред.
+                Още не е споделил философията си за отглеждане.
               </p>
             )}
             {experienceLabel || farmer.methods.length > 0 ? (

@@ -13,20 +13,20 @@ export function JourneySection({ locale }: { locale: Locale }) {
         <RevealOnScroll>
           <div className="stack-relaxed">
             <p className="type-kicker type-kicker-on-dark">
-              {translate(locale, "Как расте принадлежността", "How belonging grows")}
+              {translate(locale, "Как работи", "How it works")}
             </p>
             <h2 className="type-chapter max-w-3xl text-loam-50">
               {translate(
                 locale,
-                "Земя, усещане, човек — и едва тогава храна на масата.",
-                "Land, feeling, person, and only then food on the table.",
+                "Запознанство, доверие, храна на масата - процес, който се развива с времето.",
+                "First you meet them, then you trust them, then food reaches the table - a process that evolves over time.",
               )}
             </h2>
             <p className="max-w-xl text-base leading-8 text-loam-50/75 sm:text-lg sm:leading-9">
               {translate(
                 locale,
-                "Отказваме се от фунията. Поканени сте да останете, да гледате, да слушате — и да следвате някого, на чиято работа вярвате.",
-                "We give up the funnel. You are invited to stay, watch, listen, and follow someone whose work you trust.",
+                "Можеш да разглеждаш, да гледаш и да добавяш в селото си, и да решиш сам кога си готов за следващата стъпка.",
+                "Browse, watch, and add farms to your village, and decide for yourself when you are ready for the next step.",
               )}
             </p>
           </div>
@@ -44,7 +44,7 @@ export function JourneySection({ locale }: { locale: Locale }) {
               >
                 {String(beat.step).padStart(2, "0")}
               </span>
-              <h3 className="editorial-serif text-xl leading-snug text-loam-50 sm:text-2xl lg:min-h-[2.75em]">
+              <h3 className="editorial-serif text-xl leading-snug text-loam-50 sm:text-2xl">
                 {beat.title}
               </h3>
               <p className="max-w-sm text-[0.9375rem] leading-7 text-loam-50/72 sm:text-base">

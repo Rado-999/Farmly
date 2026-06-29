@@ -32,7 +32,7 @@ export function ReviewsList({ reviews }: ReviewsListProps) {
           <SectionHeading
             align="left"
             eyebrow="Доверие от общността"
-            title="Какво усещат хората, след като следят сезона"
+            title="Какво казват хората, след като опознаят фермата"
             description="Няколко честни бележки имат по-голямо значение от стена от оценки."
           />
         </RevealOnScroll>
@@ -41,7 +41,7 @@ export function ReviewsList({ reviews }: ReviewsListProps) {
           <RevealOnScroll className="content-after-head block">
             <EmptyState
               title="Все още няма отзиви"
-              description="Докато хората следят сезона на този фермер, тук ще се появят бележки за доверие."
+              description="Когато хора добавят този фермер в селото си, тук ще се появят бележки за доверие."
             />
           </RevealOnScroll>
         ) : (

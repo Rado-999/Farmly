@@ -50,8 +50,8 @@ export async function Footer() {
             <p className="max-w-sm text-sm leading-7 text-stone-700/90">
               {translate(
                 locale,
-                "Спокойна дигитална провинция — истински ферми, истински хора, истински сезони. Създадено за принадлежност, преди покупката.",
-                "A calm digital countryside with real farms, real people, and real seasons. Built for belonging before the purchase.",
+                "Farmly свързва купувачи с местни фермери в България. Виж кой отглежда храната ти, преди да купуваш.",
+                "Farmly connects buyers with local farmers in Bulgaria. See who grows your food before you buy.",
               )}
             </p>
           </div>

@@ -25,6 +25,10 @@ export const landingImages = {
     src: "https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=1800&q=85&auto=format&fit=crop",
     alt: "Старa дървена конструкция на ферма",
   },
+  villageHome: {
+    src: "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?w=1800&q=85&auto=format&fit=crop",
+    alt: "Ферма сред зелени полета — селско място, към което се връщаш",
+  },
 } as const;
 
 /** Drop hero-dawn.mp4 in public/landing/ — component falls back to poster + Ken Burns */

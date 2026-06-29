@@ -34,8 +34,8 @@ export async function generateMetadata(): Promise<Metadata> {
     title: "Farmly",
     description: translate(
       locale,
-      "Спокойна дигитална селска местност — запознайте се с истински фермери, гледайте техните сезони и се почувствайте част от общността, преди да купувате.",
-      "A calm digital countryside where you can meet real farmers, watch their seasons, and feel part of the community before you buy.",
+      "Запознай се с български фермери, гледай видеа от полето и виж какво е в сезон, преди да купуваш.",
+      "Meet Bulgarian farmers, watch field videos, and see what is in season before you buy.",
     ),
     icons: {
       icon: "/brand/farmly-logo.png",

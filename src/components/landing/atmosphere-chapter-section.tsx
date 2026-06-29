@@ -1,6 +1,7 @@
 import Image from "next/image";
 
 import { PageSection } from "@/components/ui/page-section";
+import { ImageCaptionPanel } from "@/components/ui/image-caption-panel";
 import { RevealOnScroll } from "@/components/ui/reveal-on-scroll";
 import type { AtmosphereChapter } from "@/lib/landing/narrative";
 import { landingImages } from "@/lib/landing/visuals";
@@ -52,15 +53,13 @@ export function AtmosphereChapterSection({ chapter }: AtmosphereChapterSectionPr
               />
               <div
                 aria-hidden
-                className="absolute inset-0 bg-[linear-gradient(0deg,rgba(31,48,34,0.5)_0%,transparent_45%,rgba(31,48,34,0.08)_100%)]"
+                className="absolute inset-0 bg-[linear-gradient(0deg,rgba(31,48,34,0.35)_0%,transparent_40%,rgba(31,48,34,0.06)_100%)]"
               />
               {captionParts ? (
-                <figcaption className="absolute inset-x-0 bottom-0 p-6 sm:p-8">
-                  <p className="editorial-serif text-xl leading-snug text-loam-50 sm:text-2xl">
-                    <span className="italic text-hearth-300/95">{captionParts.lead}</span>
-                    {captionParts.rest ? ` ${captionParts.rest}` : null}
-                  </p>
-                </figcaption>
+                <ImageCaptionPanel>
+                  <span className="image-caption-lead">{captionParts.lead}</span>
+                  {captionParts.rest ? ` ${captionParts.rest}` : null}
+                </ImageCaptionPanel>
               ) : null}
             </figure>
           </RevealOnScroll>

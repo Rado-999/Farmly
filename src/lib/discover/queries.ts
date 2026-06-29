@@ -340,8 +340,8 @@ function buildNeighbourhoods(farmers: VillageFarmer[]): VillageNeighbourhood[] {
       label,
       description:
         group.length === 1
-          ? `${group[0].name} споделя живота си оттук.`
-          : `${group.length} ферми по този път — всеки със свой ритъм и сезон.`,
+          ? `${group[0].name} е от тук.`
+          : `${group.length} ферми в този район.`,
       farmers: group,
     }))
     .slice(0, 5);
@@ -356,7 +356,7 @@ export function buildVillageSnapshot(
   return {
     farmerCount: farmers.length,
     filmCount: films.length,
-    momentCount: moments.length,
+    productCount: moments.length,
     regionCount: neighbourhoods.length,
   };
 }

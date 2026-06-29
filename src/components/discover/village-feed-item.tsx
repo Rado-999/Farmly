@@ -61,7 +61,7 @@ function FilmPulseCard({
       </Link>
       <div className="min-w-0 flex-1">
         <p className="text-[0.625rem] font-medium uppercase tracking-[0.14em] text-wheat/85">
-          {translate(locale, "Полски филм", "Field film")} · {film.stage}
+          {translate(locale, "Филм", "Film")} · {film.stage}
         </p>
         <h3 className="editorial-serif mt-1 text-lg leading-snug sm:text-xl">
           {film.title}

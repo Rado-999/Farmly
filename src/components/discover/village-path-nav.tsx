@@ -14,7 +14,7 @@ export function VillagePathNav() {
         { id: "village-path", label: translate(locale, "Пътека", "Path") },
         {
           id: "neighbourhoods",
-          label: translate(locale, "Квартали", "Neighbourhoods"),
+          label: translate(locale, "Ферми", "Farms"),
         },
       ] as const,
     [locale],

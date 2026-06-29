@@ -109,8 +109,8 @@ export function LoginForm() {
       title={translate(locale, "Добре дошли отново", "Welcome back")}
       message={translate(
         locale,
-        "Свържете се отново с истинска храна и истински фермери.",
-        "Reconnect with real food and real farmers.",
+        "Влез, за да добавяш ферми в селото си и да виждаш новостите им.",
+        "Log in to add farms to your village and see their updates.",
       )}
       footer={
         <>

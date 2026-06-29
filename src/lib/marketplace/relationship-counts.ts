@@ -5,11 +5,9 @@ import {
   getFarmerFollowerCount,
   getUserFollowingCount,
 } from "@/lib/marketplace/follows";
-import { getUserSavedFarmCount } from "@/lib/marketplace/saved-farms";
 
 export type UserRelationshipCounts = {
   followingCount: number;
-  savedCount: number;
 };
 
 export type ProfileRelationshipCounts = UserRelationshipCounts & {
@@ -22,10 +20,7 @@ export async function loadUserRelationshipCounts(
   supabase: SupabaseClient,
   userId: string,
 ): Promise<UserRelationshipCounts> {
-  const [followingResult, savedResult] = await Promise.all([
-    getUserFollowingCount(supabase, userId),
-    getUserSavedFarmCount(supabase, userId),
-  ]);
+  const followingResult = await getUserFollowingCount(supabase, userId);
 
   if (!followingResult.ok) {
     logger.warn({
@@ -37,19 +32,8 @@ export async function loadUserRelationshipCounts(
     });
   }
 
-  if (!savedResult.ok) {
-    logger.warn({
-      operation: "relationshipCounts.loadUserRelationshipCounts.saved",
-      message: "Failed to load saved farm count; defaulting to zero.",
-      userId,
-      errorCode: savedResult.error.code,
-      error: savedResult.error.message,
-    });
-  }
-
   return {
     followingCount: followingResult.ok ? followingResult.data : 0,
-    savedCount: savedResult.ok ? savedResult.data : 0,
   };
 }
 
